@@ -129,6 +129,12 @@ public class GameEngine {
             }
 
         case .examine(let obj):
+            // First, check if the object is actually accessible
+            if !isObjectAccessibleForExamine(obj) {
+                outputHandler.output("You don't see that here.")
+                return
+            }
+
             // Use getCurrentDescription to get the appropriate description
             let objDescription: String
 
@@ -320,6 +326,49 @@ public class GameEngine {
           inventory - List what you're carrying
           quit - End the game
         """)
+    }
+
+    // MARK: - Helper Methods
+
+    /// Check if an object is accessible for examination
+    /// - Parameter obj: The object to check
+    /// - Returns: True if the object can be examined
+    private func isObjectAccessibleForExamine(_ obj: GameObject) -> Bool {
+        // Objects in inventory are always accessible
+        if obj.location === world.player {
+            return true
+        }
+
+        // Get the current room
+        guard let currentRoom = world.player.currentRoom else {
+            return false
+        }
+
+        // Objects in the current room are accessible
+        if obj.location === currentRoom {
+            return true
+        }
+
+        // Check if the object is in an open container in the room
+        if let container = obj.location as? GameObject,
+           container.location === currentRoom,
+           container.isContainer() && container.canSeeInside() {
+            return true
+        }
+
+        // Check if the object is in an open container in the inventory
+        if let container = obj.location as? GameObject,
+           container.location === world.player,
+           container.isContainer() && container.canSeeInside() {
+            return true
+        }
+
+        // For global objects, check if they're accessible in the current room
+        if obj.isGlobalObject() {
+            return world.isGlobalObjectAccessible(obj, in: currentRoom)
+        }
+
+        return false
     }
 }
 

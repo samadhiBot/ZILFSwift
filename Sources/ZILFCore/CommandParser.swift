@@ -178,6 +178,13 @@ public class CommandParser {
                     }
                 }
             }
+
+            // Check for global and local-global objects accessible from this room
+            for obj in world.globalObjects {
+                if objectMatchesName(obj, name) && world.isGlobalObjectAccessible(obj, in: room) {
+                    return obj
+                }
+            }
         }
 
         // Also check for objects in open containers in inventory
@@ -230,6 +237,11 @@ public class CommandParser {
            container.isContainer() && container.canSeeInside() &&
             container.location === world.player {
             return true
+        }
+
+        // Check if it's a global or local-global object accessible from the current room
+        if let room = world.player.currentRoom, obj.isGlobalObject() {
+            return world.isGlobalObjectAccessible(obj, in: room)
         }
 
         return false

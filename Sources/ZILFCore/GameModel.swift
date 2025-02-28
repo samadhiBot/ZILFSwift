@@ -386,6 +386,7 @@ public class Player: GameObject {
 public class GameWorld {
     public var rooms: [Room] = []
     public var objects: [GameObject] = []
+    public var globalObjects: [GameObject] = []
     public var player: Player
     public var lastMentionedObject: GameObject?
     public let eventManager = EventManager()
