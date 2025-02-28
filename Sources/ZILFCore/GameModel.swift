@@ -106,40 +106,46 @@ public class GameObject {
 
     /// Set a state value for this object
     /// - Parameters:
-    ///   - value: The value to store
-    ///   - key: The key to store it under
+    ///   - value: Value to store
+    ///   - key: Key to store it under
     public func setState<T>(_ value: T, forKey key: String) {
         stateValues[key] = value
     }
 
-    /// Get a state value for this object
-    /// - Parameter key: The key to retrieve
+    /// Get a state value by key
+    /// - Parameter key: Key to retrieve
     /// - Returns: The stored value, or nil if not found
     public func getState<T>(forKey key: String) -> T? {
         return stateValues[key] as? T
     }
 
-    /// Check if a boolean state is true
+    /// Remove a state value for this object
+    /// - Parameter key: Key to remove
+    public func removeState(forKey key: String) {
+        stateValues.removeValue(forKey: key)
+    }
+
+    /// Check if a state key has a boolean true value
     /// - Parameter key: The key to check
-    /// - Returns: The boolean value, or false if not set
+    /// - Returns: True if the state exists and is true
     public func hasState(_ key: String) -> Bool {
         return getState(forKey: key) ?? false
     }
 
-    /// Dynamic member lookup subscript for getting state values with nice syntax
+    /// Dynamic member lookup subscript for getting and setting state values with nice syntax
+    /// Always returns an optional value for safety
     public subscript<T>(dynamicMember key: String) -> T? {
-        return getState(forKey: key)
-    }
-
-    /// Dynamic member lookup subscript for setting state values with nice syntax
-    public subscript<T>(dynamicMember key: String) -> T {
         get {
-            guard let value: T = getState(forKey: key) else {
-                fatalError("State value for key '\(key)' does not exist or cannot be converted to type \(T.self)")
-            }
-            return value
+            return getState(forKey: key)
         }
-        set { setState(newValue, forKey: key) }
+        set {
+            if let newValue = newValue {
+                setState(newValue, forKey: key)
+            } else {
+                // If nil is assigned, remove the state
+                removeState(forKey: key)
+            }
+        }
     }
 }
 
