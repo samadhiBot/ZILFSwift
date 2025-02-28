@@ -299,8 +299,49 @@ public class Player: GameObject {
     }
 
     public func move(direction: Direction) -> Bool {
-        guard let currentRoom = self.currentRoom,
-              let newRoom = currentRoom.getExit(direction: direction) else {
+        guard let currentRoom = self.currentRoom else {
+            return false
+        }
+
+        // First check if there's a special exit in this direction
+        if let specialExit = currentRoom.getSpecialExit(direction: direction) {
+            // Check if the exit condition passes
+            if specialExit.checkCondition() {
+                // Display success message if there is one
+                if let successMessage = specialExit.successMessage {
+                    print(successMessage)
+                }
+
+                // Execute onTraverse action if there is one
+                specialExit.executeTraverse()
+
+                // Move the player to the destination
+                let destination = specialExit.destination
+
+                // Remove from old room
+                if let index = currentRoom.contents.firstIndex(where: { $0 === self }) {
+                    currentRoom.contents.remove(at: index)
+                }
+
+                // Add to new room
+                self.location = destination
+                destination.contents.append(self)
+
+                // Trigger the room's enter action
+                destination.executeEnterAction()
+
+                return true
+            } else {
+                // Display failure message if there is one
+                if let failureMessage = specialExit.failureMessage {
+                    print(failureMessage)
+                }
+                return false
+            }
+        }
+
+        // If no special exit, use the regular exit
+        guard let newRoom = currentRoom.getExit(direction: direction) else {
             return false
         }
 

@@ -20,6 +20,14 @@ struct HelloWorldGame {
         let treasureRoom = Room(name: "Treasure Room", description: "This small chamber is filled with a soft, magical light. The walls are adorned with ancient markings.")
         treasureRoom.makeNaturallyLit()
 
+        // New secret room
+        let secretRoom = Room(name: "Secret Chamber", description: "This hidden chamber appears to have been untouched for centuries. Mysterious symbols cover the walls.")
+        secretRoom.makeNaturallyLit()
+
+        // New locked room
+        let vaultRoom = Room(name: "Ancient Vault", description: "An impressive stone vault with ornate carvings. It looks like it once held great treasures.")
+        vaultRoom.makeNaturallyLit()
+
         // Connect rooms with exits
         entrance.setExit(direction: .north, room: mainCavern)
         mainCavern.setExit(direction: .south, room: entrance)
@@ -34,6 +42,8 @@ struct HelloWorldGame {
         world.registerRoom(entrance)
         world.registerRoom(mainCavern)
         world.registerRoom(treasureRoom)
+        world.registerRoom(secretRoom)
+        world.registerRoom(vaultRoom)
 
         // Create objects
         let lantern = GameObject(name: "lantern", description: "A brass lantern that provides warm light.", location: entrance)
@@ -56,10 +66,15 @@ struct HelloWorldGame {
         // Make sure to close the chest
         chest.clearFlag("open")
 
+        // Create a key for the vault
+        let ancientKey = GameObject(name: "ancient key", description: "A weathered bronze key with strange symbols.", location: secretRoom)
+        ancientKey.setFlag("takeable")
+
         world.registerObject(lantern)
         world.registerObject(coin)
         world.registerObject(chest)
         world.registerObject(treasure)
+        world.registerObject(ancientKey)
 
         // Add event examples
         world.queueEvent(name: "lantern-flicker", turns: 3) {
@@ -95,6 +110,49 @@ struct HelloWorldGame {
             print("You feel a sense of awe as you enter this ancient chamber.")
             return true // Output was produced
         }
+
+        // Add a hidden exit from the treasure room to the secret chamber
+        var treasureExamined = false
+        treasureRoom.setHiddenExit(
+            direction: .down,
+            destination: secretRoom,
+            world: world,
+            condition: { _ in treasureExamined },
+            revealMessage: "As you move around the room, you discover a hidden trapdoor in the floor!"
+        )
+
+        // Make the hidden exit appear when examining the treasure room walls
+        let treasureBeginCommandAction = RoomActionPatterns.commandInterceptor(
+            handlers: [
+                "examine": { command in
+                    if case .examine(let obj) = command, obj === treasureRoom {
+                        treasureExamined = true
+                        print("You carefully examine the walls of the treasure room and notice subtle markings that suggest a hidden passage somewhere in the floor.")
+                        return true
+                    }
+                    return false
+                }
+            ]
+        )
+        treasureRoom.beginCommandAction = treasureBeginCommandAction
+
+        // Add a locked exit from the secret room to the vault
+        secretRoom.setLockedExit(
+            direction: .north,
+            destination: vaultRoom,
+            world: world,
+            key: ancientKey,
+            lockedMessage: "A heavy stone door blocks the way north. There appears to be a keyhole.",
+            unlockedMessage: "You insert the ancient key into the lock. With a grinding sound, the stone door swings open."
+        )
+
+        // Add a one-way exit from the vault back to the main cavern
+        vaultRoom.setOneWayExit(
+            direction: .down,
+            destination: mainCavern,
+            world: world,
+            message: "You slide down a smooth stone chute and land back in the main cavern!"
+        )
 
         return world
     }

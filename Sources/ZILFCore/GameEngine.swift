@@ -231,49 +231,65 @@ public class GameEngine {
 
     /// Handle the LOOK command
     private func handleLook() {
-        guard let room = world.player.currentRoom else {
-            outputHandler.output("You can't see anything.")
-            return
-        }
-
-        // Check if the room is dark
-        if !world.isRoomLit(room) {
-            // First try the room's specific look handler (which might handle darkness)
+        if let room = world.player.currentRoom {
+            // Check if the room's look action handles the description
             if !room.executeLookAction() {
-                // Default darkness message
-                outputHandler.output("It's pitch black. You can't see anything.")
-            }
-            return
-        }
+                // If not, show the default description
+                if world.isRoomLit(room) {
+                    // In a lit room, show the full description
+                    outputHandler.output(room.description, terminator: "\n")
 
-        // The room is lit, so proceed with normal room description
+                    // Show exits
+                    let exits = getVisibleExits(room)
+                    if !exits.isEmpty {
+                        outputHandler.output("Exits: \(exits.joined(separator: ", "))", terminator: "\n")
+                    } else {
+                        outputHandler.output("There are no obvious exits.", terminator: "\n")
+                    }
 
-        // First try the room's specific look handler
-        if !room.executeLookAction() {
-            // If no custom description, output the default
-            outputHandler.output(room.description)
-        }
-
-        // Always run the flash action for important details
-        room.executeFlashAction()
-
-        // Describe objects in the room
-        // List exits
-        let availableExits = room.exits.keys.map { $0.rawValue }.joined(separator: ", ")
-        if !availableExits.isEmpty {
-            outputHandler.output("Exits: \(availableExits)")
-        } else {
-            outputHandler.output("There are no obvious exits.")
-        }
-
-        // List objects in the room (except the player)
-        let visibleObjects = room.contents.filter { $0 !== world.player }
-        if !visibleObjects.isEmpty {
-            outputHandler.output("\nYou can see:")
-            for obj in visibleObjects {
-                outputHandler.output("  \(obj.name)")
+                    // Show visible objects in the room
+                    let visibleObjects = room.contents.filter { $0 !== world.player }
+                    if !visibleObjects.isEmpty {
+                        if visibleObjects.count == 1 {
+                            outputHandler.output("You can see \(visibleObjects[0].name) here.", terminator: "\n")
+                        } else {
+                            outputHandler.output("You can see:", terminator: "\n")
+                            for obj in visibleObjects {
+                                outputHandler.output("  \(obj.name)", terminator: "\n")
+                            }
+                        }
+                    }
+                } else {
+                    // In darkness, just show a standard message
+                    outputHandler.output("It's too dark to see anything here.", terminator: "\n")
+                }
             }
         }
+    }
+
+    /// Get a list of visible exit directions from a room
+    /// - Parameter room: The room to check
+    /// - Returns: A list of exit direction names
+    private func getVisibleExits(_ room: Room) -> [String] {
+        var exits: [String] = []
+
+        // Add normal exits
+        for direction in Direction.allCases {
+            if room.getExit(direction: direction) != nil {
+                exits.append(direction.rawValue)
+            }
+        }
+
+        // Add visible special exits
+        for direction in Direction.allCases {
+            if let specialExit = room.getSpecialExit(direction: direction),
+               specialExit.isVisible {
+                exits.append(direction.rawValue)
+            }
+        }
+
+        // Remove duplicates in case a direction has both regular and special exits
+        return Array(Set(exits))
     }
 
     private func advanceTime() {

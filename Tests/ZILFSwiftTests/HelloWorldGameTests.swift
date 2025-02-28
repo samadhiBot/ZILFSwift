@@ -15,41 +15,70 @@ struct HelloWorldGameTests {
 
         // Verify world properties
         #expect(world.player.currentRoom?.name == "Entrance")
-        #expect(world.rooms.count == 3)
+        #expect(world.rooms.count == 5)  // Updated to include Secret Chamber and Ancient Vault
 
         // Find rooms
         let entrance = world.rooms.first { $0.name == "Entrance" }
         let mainCavern = world.rooms.first { $0.name == "Main Cavern" }
         let treasureRoom = world.rooms.first { $0.name == "Treasure Room" }
+        let secretRoom = world.rooms.first { $0.name == "Secret Chamber" }
+        let vaultRoom = world.rooms.first { $0.name == "Ancient Vault" }
 
         #expect(entrance != nil)
         #expect(mainCavern != nil)
         #expect(treasureRoom != nil)
+        #expect(secretRoom != nil)
+        #expect(vaultRoom != nil)
 
-        // Verify room connections
+        // Verify standard room connections
         #expect(entrance?.getExit(direction: .north) === mainCavern)
         #expect(mainCavern?.getExit(direction: .south) === entrance)
         #expect(mainCavern?.getExit(direction: .east) === treasureRoom)
         #expect(treasureRoom?.getExit(direction: .west) === mainCavern)
 
+        // Verify special exits exist (not testing condition)
+        #expect(treasureRoom?.getSpecialExit(direction: .down) != nil)
+        #expect(secretRoom?.getSpecialExit(direction: .north) != nil)
+        #expect(vaultRoom?.getSpecialExit(direction: .down) != nil)
+
+        // Verify the one-way exit destination
+        #expect(vaultRoom?.getSpecialExit(direction: .down)?.destination === mainCavern)
+
         // Verify objects
         let lantern = world.objects.first { $0.name == "lantern" }
         let coin = world.objects.first { $0.name == "gold coin" }
         let chest = world.objects.first { $0.name == "treasure chest" }
+        let amulet = world.objects.first { $0.name == "golden amulet" }
+        let ancientKey = world.objects.first { $0.name == "ancient key" }
 
         #expect(lantern != nil)
         #expect(coin != nil)
         #expect(chest != nil)
+        #expect(amulet != nil)
+        #expect(ancientKey != nil)
 
         // Verify object locations
         #expect(lantern?.location === entrance)
         #expect(coin?.location === mainCavern)
         #expect(chest?.location === treasureRoom)
+        #expect(amulet?.location === chest)
+        #expect(ancientKey?.location === secretRoom)
 
         // Verify object properties
         #expect(lantern!.hasFlag("takeable"))
         #expect(coin!.hasFlag("takeable"))
         #expect(!chest!.hasFlag("takeable"))
+        #expect(amulet!.hasFlag("takeable"))
+        #expect(ancientKey!.hasFlag("takeable"))
+
+        // Verify chest is not open
+        #expect(!chest!.hasFlag("open"))
+
+        // Verify light sources
+        #expect(lantern!.hasFlag("light-source"))
+        #expect(!lantern!.hasFlag("lit"))  // Initially not lit
+        #expect(amulet!.hasFlag("light-source"))
+        #expect(amulet!.hasFlag("lit"))  // Initially lit
     }
 
     @Test func testGameCommands() {
