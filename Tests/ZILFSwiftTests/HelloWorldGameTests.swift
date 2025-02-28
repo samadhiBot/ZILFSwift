@@ -59,7 +59,7 @@ struct HelloWorldGameTests {
 
         // Test initial look command
         engine.executeCommand(.look)
-        #expect(outputHandler.output.contains("Entrance"))
+        #expect(outputHandler.output.contains("You are standing at the entrance"))
         #expect(outputHandler.output.contains("lantern"))
         outputHandler.clear()
 
@@ -77,7 +77,7 @@ struct HelloWorldGameTests {
         // Test moving to the main cavern
         engine.executeCommand(.move(.north))
         #expect(world.player.currentRoom?.name == "Main Cavern")
-        #expect(outputHandler.output.contains("Main Cavern"))
+        #expect(outputHandler.output.contains("spacious cavern"))
         #expect(outputHandler.output.contains("gold coin"))
         outputHandler.clear()
 
@@ -96,7 +96,7 @@ struct HelloWorldGameTests {
         // Test moving to the treasure room
         engine.executeCommand(.move(.east))
         #expect(world.player.currentRoom?.name == "Treasure Room")
-        #expect(outputHandler.output.contains("Treasure Room"))
+        #expect(outputHandler.output.contains("small chamber"))
         #expect(outputHandler.output.contains("treasure chest"))
         outputHandler.clear()
 

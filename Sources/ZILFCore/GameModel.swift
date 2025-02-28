@@ -105,6 +105,22 @@ public class GameObject {
 public class Room: GameObject {
     public var exits: [Direction: Room] = [:]
 
+    // Define the possible room action phases
+    public enum ActionPhase {
+        /// Beginning of turn, before command processing (M-BEG in ZIL)
+        case beginTurn
+        /// End of turn (M-END in ZIL)
+        case endTurn
+        /// When a player enters this room (M-ENTER in ZIL)
+        case enter
+        /// When looking at the room (M-LOOK in ZIL)
+        case look
+        /// When important room details should be shown even in brief mode (M-FLASH in ZIL)
+        case flash
+        /// When a specific command is being processed
+        case command(Command)
+    }
+
     // Action handlers for different phases
     /// Called when a player enters this room
     /// - Returns: true if the action produced output to display
@@ -117,6 +133,21 @@ public class Room: GameObject {
     /// Called at the beginning of processing a command while in this room
     /// - Returns: true if the action handled the command (prevents further processing)
     public var beginCommandAction: ((Room, Command) -> Bool)?
+
+    /// Called at the beginning of the turn, before any command processing (M-BEG in ZIL)
+    /// - Returns: true if the action produced output or handled the command
+    public var beginTurnAction: ((Room) -> Bool)?
+
+    /// Called when the room is being looked at (M-LOOK in ZIL)
+    /// - Returns: true if the action produced a description (prevents default description)
+    public var lookAction: ((Room) -> Bool)?
+
+    /// Called when the room should show important details even in brief mode (M-FLASH in ZIL)
+    /// - Returns: true if the action produced output
+    public var flashAction: ((Room) -> Bool)?
+
+    // Internal dictionary storage for room state
+    private var stateValues: [String: Any] = [:]
 
     public init(name: String, description: String) {
         super.init(name: name, description: description)
@@ -150,6 +181,71 @@ public class Room: GameObject {
     public func executeBeginCommandAction(command: Command) -> Bool {
         guard let action = beginCommandAction else { return false }
         return action(self, command)
+    }
+
+    /// Execute the begin-turn action for this room (before command processing)
+    /// - Returns: true if the action produced output
+    public func executeBeginTurnAction() -> Bool {
+        guard let action = beginTurnAction else { return false }
+        return action(self)
+    }
+
+    /// Execute the look action for this room
+    /// - Returns: true if the action provided a description
+    public func executeLookAction() -> Bool {
+        guard let action = lookAction else { return false }
+        return action(self)
+    }
+
+    /// Execute the flash action for this room (important details even in brief mode)
+    /// - Returns: true if the action produced output
+    public func executeFlashAction() -> Bool {
+        guard let action = flashAction else { return false }
+        return action(self)
+    }
+
+    /// A generic phase handler that can handle any room action phase
+    /// - Parameter phase: The action phase to execute
+    /// - Returns: true if the action produced output or handled a command
+    public func executePhase(_ phase: ActionPhase) -> Bool {
+        switch phase {
+        case .beginTurn:
+            return executeBeginTurnAction()
+        case .endTurn:
+            return executeEndTurnAction()
+        case .enter:
+            return executeEnterAction()
+        case .look:
+            return executeLookAction()
+        case .flash:
+            return executeFlashAction()
+        case .command(let command):
+            return executeBeginCommandAction(command: command)
+        }
+    }
+
+    // MARK: - Room State Management
+
+    /// Set a state value for this room
+    /// - Parameters:
+    ///   - value: The value to store
+    ///   - key: The key to store it under
+    public func setState<T>(_ value: T, forKey key: String) {
+        stateValues[key] = value
+    }
+
+    /// Get a state value for this room
+    /// - Parameter key: The key to retrieve
+    /// - Returns: The stored value, or nil if not found
+    public func getState<T>(forKey key: String) -> T? {
+        return stateValues[key] as? T
+    }
+
+    /// Check if a boolean state is true
+    /// - Parameter key: The key to check
+    /// - Returns: The boolean value, or false if not set
+    public func hasState(_ key: String) -> Bool {
+        return getState(forKey: key) ?? false
     }
 }
 

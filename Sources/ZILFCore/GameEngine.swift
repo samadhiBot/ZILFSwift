@@ -48,6 +48,19 @@ public class GameEngine {
     }
 
     public func executeCommand(_ command: Command) {
+        // First check if the current room has an M-BEG handler
+        if let room = world.player.currentRoom {
+            // If the room's begin turn action handles the command, we're done
+            if room.executeBeginTurnAction() {
+                return
+            }
+
+            // Check if the room handles this specific command
+            if room.executeBeginCommandAction(command: command) {
+                return
+            }
+        }
+
         switch command {
         case .close(let obj):
             world.lastMentionedObject = obj
@@ -109,27 +122,7 @@ public class GameEngine {
             }
 
         case .look:
-            if let room = world.player.currentRoom {
-                outputHandler.output("\(room.name)")
-                outputHandler.output("\(room.description)")
-
-                // List exits
-                let availableExits = room.exits.keys.map { $0.rawValue }.joined(separator: ", ")
-                if !availableExits.isEmpty {
-                    outputHandler.output("Exits: \(availableExits)")
-                } else {
-                    outputHandler.output("There are no obvious exits.")
-                }
-
-                // List objects in the room (except the player)
-                let visibleObjects = room.contents.filter { $0 !== world.player }
-                if !visibleObjects.isEmpty {
-                    outputHandler.output("\nYou can see:")
-                    for obj in visibleObjects {
-                        outputHandler.output("  \(obj.name)")
-                    }
-                }
-            }
+            handleLook()
 
         case .move(let direction):
             if world.player.move(direction: direction) {
@@ -209,6 +202,41 @@ public class GameEngine {
 
         case .unknown(let message):
             outputHandler.output(message)
+        }
+    }
+
+    /// Handle the LOOK command
+    private func handleLook() {
+        guard let room = world.player.currentRoom else {
+            outputHandler.output("You can't see anything.")
+            return
+        }
+
+        // First try the room's specific look handler
+        if !room.executeLookAction() {
+            // If no custom description, output the default
+            outputHandler.output(room.description)
+        }
+
+        // Always run the flash action for important details
+        room.executeFlashAction()
+
+        // Describe objects in the room
+        // List exits
+        let availableExits = room.exits.keys.map { $0.rawValue }.joined(separator: ", ")
+        if !availableExits.isEmpty {
+            outputHandler.output("Exits: \(availableExits)")
+        } else {
+            outputHandler.output("There are no obvious exits.")
+        }
+
+        // List objects in the room (except the player)
+        let visibleObjects = room.contents.filter { $0 !== world.player }
+        if !visibleObjects.isEmpty {
+            outputHandler.output("\nYou can see:")
+            for obj in visibleObjects {
+                outputHandler.output("  \(obj.name)")
+            }
         }
     }
 

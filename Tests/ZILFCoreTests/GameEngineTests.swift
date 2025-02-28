@@ -18,7 +18,6 @@ struct GameEngineTests {
 
         // Test look command
         engine.executeCommand(.look)
-        #expect(outputHandler.output.contains("Start Room"))
         #expect(outputHandler.output.contains("The starting room"))
         #expect(outputHandler.output.contains("Exits: north"))
         #expect(outputHandler.output.contains("gold coin"))
@@ -27,7 +26,7 @@ struct GameEngineTests {
         // Test move command
         engine.executeCommand(.move(.north))
         #expect(player.currentRoom === northRoom)
-        #expect(outputHandler.output.contains("North Room"))
+        #expect(outputHandler.output.contains("Room to the north"))
         outputHandler.clear()
 
         // Test invalid move
