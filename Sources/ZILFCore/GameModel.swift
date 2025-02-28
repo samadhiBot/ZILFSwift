@@ -106,8 +106,16 @@ public class Room: GameObject {
     public var exits: [Direction: Room] = [:]
 
     // Action handlers for different phases
-    public var enterAction: ((Room) -> Void)?
-    public var endTurnAction: ((Room) -> Void)?
+    /// Called when a player enters this room
+    /// - Returns: true if the action produced output to display
+    public var enterAction: ((Room) -> Bool)?
+
+    /// Called at the end of each turn while the player is in this room
+    /// - Returns: true if the action produced output to display
+    public var endTurnAction: ((Room) -> Bool)?
+
+    /// Called at the beginning of processing a command while in this room
+    /// - Returns: true if the action handled the command (prevents further processing)
     public var beginCommandAction: ((Room, Command) -> Bool)?
 
     public init(name: String, description: String) {
@@ -120,6 +128,28 @@ public class Room: GameObject {
 
     public func getExit(direction: Direction) -> Room? {
         return exits[direction]
+    }
+
+    /// Execute the enter action for this room
+    /// - Returns: true if the action produced output
+    public func executeEnterAction() -> Bool {
+        guard let action = enterAction else { return false }
+        return action(self)
+    }
+
+    /// Execute the end-of-turn action for this room
+    /// - Returns: true if the action produced output
+    public func executeEndTurnAction() -> Bool {
+        guard let action = endTurnAction else { return false }
+        return action(self)
+    }
+
+    /// Execute the begin-command action for this room
+    /// - Parameter command: The command to process
+    /// - Returns: true if the action handled the command
+    public func executeBeginCommandAction(command: Command) -> Bool {
+        guard let action = beginCommandAction else { return false }
+        return action(self, command)
     }
 }
 
@@ -188,9 +218,7 @@ public class Player: GameObject {
         newRoom.contents.append(self)
 
         // Trigger the room's enter action
-        if let enterAction = newRoom.enterAction {
-            enterAction(newRoom)
-        }
+        newRoom.executeEnterAction()
 
         return true
     }
@@ -229,5 +257,38 @@ public class GameWorld {
     /// Check if an event is scheduled for this turn
     public func isEventRunning(named name: String) -> Bool {
         return eventManager.isEventRunningThisTurn(named: name)
+    }
+
+    /// Checks if an event is in the queue at all (this turn or future turns)
+    public func isEventScheduled(named name: String) -> Bool {
+        // Use the direct method from EventManager instead of parsing event strings
+        return eventManager.isEventScheduled(named: name)
+    }
+
+    /// Waits for a specified number of turns or until an event or room action produces output
+    /// This is similar to the WAIT-TURNS routine in ZIL
+    /// - Parameter turns: The number of turns to wait
+    /// - Returns: True if the wait was interrupted by something producing output
+    public func waitTurns(_ turns: Int) -> Bool {
+        var turnCount = 0
+        var outputProduced = false
+
+        while turnCount < turns && !outputProduced {
+            // Process room end-of-turn action first
+            if let room = player.currentRoom {
+                let roomOutput = room.executeEndTurnAction()
+                outputProduced = roomOutput
+            }
+
+            // Process events for this turn if no output was produced by the room
+            if !outputProduced {
+                let eventsOutput = eventManager.processEvents()
+                outputProduced = eventsOutput
+            }
+
+            turnCount += 1
+        }
+
+        return outputProduced
     }
 }

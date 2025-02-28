@@ -22,14 +22,19 @@ public class GameEvent {
     /// Descriptive name for debugging
     public let name: String
 
+    /// Priority of the event (higher numbers execute first)
+    public let priority: Int
+
     /// Create a new game event
     /// - Parameters:
     ///   - name: Descriptive name for the event
     ///   - turns: Turns until the event fires, or -1 for recurring
+    ///   - priority: Priority of the event (higher numbers execute first)
     ///   - action: The function to execute when the event fires
-    public init(name: String, turns: Int, action: @escaping () -> Bool) {
+    public init(name: String, turns: Int, priority: Int = 0, action: @escaping () -> Bool) {
         self.name = name
         self.turnsRemaining = turns
+        self.priority = priority
         self.action = action
     }
 
@@ -65,12 +70,17 @@ public class EventManager {
     /// - Parameters:
     ///   - name: Descriptive name for the event
     ///   - turns: Turns until the event fires (use -1 for recurring)
+    ///   - priority: Priority of the event (higher numbers execute first)
     ///   - action: The function to execute when the event fires
     /// - Returns: The created event
     @discardableResult
-    public func scheduleEvent(name: String, turns: Int, action: @escaping () -> Bool) -> GameEvent {
-        let event = GameEvent(name: name, turns: turns, action: action)
+    public func scheduleEvent(name: String, turns: Int, priority: Int = 0, action: @escaping () -> Bool) -> GameEvent {
+        let event = GameEvent(name: name, turns: turns, priority: priority, action: action)
         eventQueue.append(event)
+
+        // Re-sort the queue by priority so higher priority events execute first
+        eventQueue.sort { $0.priority > $1.priority }
+
         return event
     }
 
@@ -92,13 +102,26 @@ public class EventManager {
         }
     }
 
+    /// Check if an event with the given name exists in the queue
+    /// - Parameter name: The name of the event to check
+    /// - Returns: True if an active event with this name exists in the queue
+    public func isEventScheduled(named name: String) -> Bool {
+        return eventQueue.contains {
+            $0.name == name && $0.isActive
+        }
+    }
+
     /// Process all events for the current turn
     /// - Returns: True if any event fired and produced output
     public func processEvents() -> Bool {
         var producedOutput = false
 
-        // First, fire events that are due this turn
-        for event in eventQueue where event.shouldFireThisTurn() && event.isActive {
+        // Sort events by priority before processing them
+        let eventsToProcess = eventQueue.filter { $0.shouldFireThisTurn() && $0.isActive }
+            .sorted { $0.priority > $1.priority }
+
+        // Fire events that are due this turn in priority order
+        for event in eventsToProcess {
             let result = event.action()
             producedOutput = producedOutput || result
         }

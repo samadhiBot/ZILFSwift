@@ -79,11 +79,14 @@ struct HelloWorldGame {
         mainCavern.endTurnAction = { room in
             if world.isEventRunning(named: "lantern-flicker") {
                 print("The cavern walls seem to shimmer in the flickering light.")
+                return true // Output was produced
             }
+            return false // No output
         }
 
         treasureRoom.enterAction = { room in
             print("You feel a sense of awe as you enter this ancient chamber.")
+            return true // Output was produced
         }
 
         return world

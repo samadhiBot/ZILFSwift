@@ -215,9 +215,7 @@ public class GameEngine {
     private func advanceTime() {
         // First check if the current room has an M-END handler
         if let room = world.player.currentRoom {
-            if let action = room.endTurnAction {
-                action(room)
-            }
+            room.executeEndTurnAction()
         }
 
         // Process any scheduled events
