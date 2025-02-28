@@ -8,6 +8,7 @@
 import Foundation
 
 // Game objects (rooms, items, etc.)
+@dynamicMemberLookup
 public class GameObject {
     public var capacity: Int = -1  // -1 means unlimited capacity
     public var contents: [GameObject] = []
@@ -15,6 +16,7 @@ public class GameObject {
     public var flags: Set<String> = []
     public var location: GameObject?
     public var name: String
+    internal var stateValues: [String: Any] = [:]
 
     public init(name: String, description: String, location: GameObject? = nil) {
         self.name = name
@@ -99,6 +101,46 @@ public class GameObject {
         }
         return false
     }
+
+    // MARK: - State Management
+
+    /// Set a state value for this object
+    /// - Parameters:
+    ///   - value: The value to store
+    ///   - key: The key to store it under
+    public func setState<T>(_ value: T, forKey key: String) {
+        stateValues[key] = value
+    }
+
+    /// Get a state value for this object
+    /// - Parameter key: The key to retrieve
+    /// - Returns: The stored value, or nil if not found
+    public func getState<T>(forKey key: String) -> T? {
+        return stateValues[key] as? T
+    }
+
+    /// Check if a boolean state is true
+    /// - Parameter key: The key to check
+    /// - Returns: The boolean value, or false if not set
+    public func hasState(_ key: String) -> Bool {
+        return getState(forKey: key) ?? false
+    }
+
+    /// Dynamic member lookup subscript for getting state values with nice syntax
+    public subscript<T>(dynamicMember key: String) -> T? {
+        return getState(forKey: key)
+    }
+
+    /// Dynamic member lookup subscript for setting state values with nice syntax
+    public subscript<T>(dynamicMember key: String) -> T {
+        get {
+            guard let value: T = getState(forKey: key) else {
+                fatalError("State value for key '\(key)' does not exist or cannot be converted to type \(T.self)")
+            }
+            return value
+        }
+        set { setState(newValue, forKey: key) }
+    }
 }
 
 // Room is a specialized GameObject
@@ -145,9 +187,6 @@ public class Room: GameObject {
     /// Called when the room should show important details even in brief mode (M-FLASH in ZIL)
     /// - Returns: true if the action produced output
     public var flashAction: ((Room) -> Bool)?
-
-    // Internal dictionary storage for room state
-    private var stateValues: [String: Any] = [:]
 
     public init(name: String, description: String) {
         super.init(name: name, description: description)
@@ -222,30 +261,6 @@ public class Room: GameObject {
         case .command(let command):
             return executeBeginCommandAction(command: command)
         }
-    }
-
-    // MARK: - Room State Management
-
-    /// Set a state value for this room
-    /// - Parameters:
-    ///   - value: The value to store
-    ///   - key: The key to store it under
-    public func setState<T>(_ value: T, forKey key: String) {
-        stateValues[key] = value
-    }
-
-    /// Get a state value for this room
-    /// - Parameter key: The key to retrieve
-    /// - Returns: The stored value, or nil if not found
-    public func getState<T>(forKey key: String) -> T? {
-        return stateValues[key] as? T
-    }
-
-    /// Check if a boolean state is true
-    /// - Parameter key: The key to check
-    /// - Returns: The boolean value, or false if not set
-    public func hasState(_ key: String) -> Bool {
-        return getState(forKey: key) ?? false
     }
 }
 

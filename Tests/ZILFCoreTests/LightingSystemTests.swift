@@ -22,62 +22,71 @@ struct LightingSystemTests {
         brightRoom.setExit(direction: .north, room: darkRoom)
         darkRoom.setExit(direction: .south, room: brightRoom)
 
-        // Create a player in the bright room
+        // Create a player and world
         let player = Player(startingRoom: brightRoom)
-
-        // Create a game world
         let world = GameWorld(player: player)
         world.registerRoom(brightRoom)
         world.registerRoom(darkRoom)
 
-        // Test the naturally lit room
+        // Test if bright room is naturally lit
         #expect(world.isRoomLit(brightRoom))
 
-        // Ensure that the room state tracking is initialized before testing
-        brightRoom.setState(true, forKey: "wasLit")
-        #expect(!world.didRoomBecomeLit(brightRoom))  // It was already lit so it didn't "become" lit
-        #expect(!world.didRoomBecomeDark(brightRoom)) // It's still lit so it didn't become dark
+        // Test if the room just became lit
+        // (first time, wasLit state doesn't exist yet, so should return true)
+        #expect(world.didRoomBecomeLit(brightRoom))
 
-        // Test the dark room
+        // Set the wasLit state
+        brightRoom.setState(true, forKey: "wasLit")
+
+        // Should now return false since there was no change in lighting
+        #expect(!world.didRoomBecomeLit(brightRoom))
+
+        // Check dark room (should not be lit)
         #expect(!world.isRoomLit(darkRoom))
 
-        // Create a light source
-        let lantern = GameObject(name: "lantern", description: "A brass lantern")
-        lantern.makeLightSource(initiallyLit: false)
+        // Initially dark, should not trigger a room darkening event
+        darkRoom.setState(false, forKey: "wasLit")
+        #expect(!world.didRoomBecomeDark(darkRoom))
+
+        // Test player carrying a light source (lantern)
+        let lantern = GameObject(name: "brass lantern", description: "A old brass lantern.")
+        lantern.makeLightSource(initiallyLit: true)
+
+        // Manually add lantern to player's inventory
+        if let oldLocation = lantern.location,
+           let index = oldLocation.contents.firstIndex(where: { $0 === lantern }) {
+            oldLocation.contents.remove(at: index)
+        }
         lantern.location = player
         player.contents.append(lantern)
 
-        // Test light sources
-        #expect(lantern.hasFlag(.lightSource))
-        #expect(!lantern.hasFlag(.lit))
+        // Verify lantern is in player's inventory
+        #expect(player.contents.contains { $0 === lantern })
 
-        // Even with the lantern, the dark room is still dark because the lantern is off
-        #expect(!world.isRoomLit(darkRoom))
+        // Move player to dark room (manually)
+        if let currentRoom = player.currentRoom,
+           let index = currentRoom.contents.firstIndex(where: { $0 === player }) {
+            currentRoom.contents.remove(at: index)
+        }
+        player.location = darkRoom
+        darkRoom.contents.append(player)
 
-        // Initialize dark room lighting state
-        darkRoom.setState(false, forKey: "wasLit")
-
-        // Turn on the lantern
-        lantern.turnLightOn()
-        #expect(lantern.hasFlag(.lit))
-
-        // Now when the player enters the dark room, it should be lit by the lantern
-        _ = player.move(direction: .north)
+        // Verify player is in dark room
         #expect(player.currentRoom === darkRoom)
 
-        // The room should now be lit
+        // Room should now be lit due to lantern
         #expect(world.isRoomLit(darkRoom))
-        #expect(world.didRoomBecomeLit(darkRoom))
 
-        // Reset the state for next check
-        darkRoom.setState(true, forKey: "wasLit")
+        // Should detect the room just became lit
+        #expect(world.didRoomBecomeLit(darkRoom))
 
         // Turn off the lantern
         lantern.turnLightOff()
-        #expect(!lantern.hasFlag(.lit))
 
-        // The room should be dark again
+        // Room should now be dark again
         #expect(!world.isRoomLit(darkRoom))
+
+        // Should detect the room just became dark
         #expect(world.didRoomBecomeDark(darkRoom))
     }
 

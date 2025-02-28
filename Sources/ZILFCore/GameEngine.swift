@@ -77,6 +77,16 @@ public class GameEngine {
             case .quit:
                 // Still allow quitting in darkness
                 break
+            case .examine(let obj):
+                // Allow examining light sources or objects in inventory even in darkness
+                if obj.hasFlag(.lightSource) || obj.location === world.player {
+                    // Process the examine command normally
+                    break
+                } else {
+                    // For other objects, show a darkness message
+                    outputHandler.output("It's too dark to see anything here.")
+                    return
+                }
             default:
                 // For most commands, show a message about darkness
                 outputHandler.output("It's too dark to see anything here.")
@@ -119,19 +129,31 @@ public class GameEngine {
             }
 
         case .examine(let obj):
-            outputHandler.output(obj.description, terminator: "\n")
+            // Use getCurrentDescription to get the appropriate description
+            let objDescription: String
+
+            if obj.location === world.player {
+                // Objects in inventory can always be seen
+                objDescription = obj.getCurrentDescription(isLit: true)
+            } else {
+                // Other objects depend on room lighting
+                objDescription = obj.getCurrentDescription(isLit: obj.location == nil || world.isRoomLit(obj.location as? Room ?? Room(name: "", description: "")))
+            }
+
+            outputHandler.output(objDescription, terminator: "\n")
+
+            // Show detail text if available
+            if let detailText = obj.getSpecialText(forKey: .detailText) {
+                outputHandler.output(detailText, terminator: "\n")
+            }
 
             world.lastMentionedObject = obj
 
-            // If it's a container and we can see inside, show the contents
-            if obj.isContainer() && obj.canSeeInside() {
-                if obj.contents.isEmpty {
-                    outputHandler.output("It's empty.", terminator: "\n")
-                } else {
-                    outputHandler.output("It contains:", terminator: "\n")
-                    for item in obj.contents {
-                        outputHandler.output("  \(item.name)", terminator: "\n")
-                    }
+            // If it's a container, use our getContentsDescription method
+            if obj.isContainer() {
+                let contentsDescription = obj.getContentsDescription()
+                if !contentsDescription.isEmpty {
+                    outputHandler.output(contentsDescription, terminator: "\n")
                 }
             }
 
@@ -234,35 +256,9 @@ public class GameEngine {
         if let room = world.player.currentRoom {
             // Check if the room's look action handles the description
             if !room.executeLookAction() {
-                // If not, show the default description
-                if world.isRoomLit(room) {
-                    // In a lit room, show the full description
-                    outputHandler.output(room.description, terminator: "\n")
-
-                    // Show exits
-                    let exits = getVisibleExits(room)
-                    if !exits.isEmpty {
-                        outputHandler.output("Exits: \(exits.joined(separator: ", "))", terminator: "\n")
-                    } else {
-                        outputHandler.output("There are no obvious exits.", terminator: "\n")
-                    }
-
-                    // Show visible objects in the room
-                    let visibleObjects = room.contents.filter { $0 !== world.player }
-                    if !visibleObjects.isEmpty {
-                        if visibleObjects.count == 1 {
-                            outputHandler.output("You can see \(visibleObjects[0].name) here.", terminator: "\n")
-                        } else {
-                            outputHandler.output("You can see:", terminator: "\n")
-                            for obj in visibleObjects {
-                                outputHandler.output("  \(obj.name)", terminator: "\n")
-                            }
-                        }
-                    }
-                } else {
-                    // In darkness, just show a standard message
-                    outputHandler.output("It's too dark to see anything here.", terminator: "\n")
-                }
+                // If not, show the full room description using our special text properties
+                let roomDescription = room.getFullRoomDescription(in: world)
+                outputHandler.output(roomDescription, terminator: "\n")
             }
         }
     }
