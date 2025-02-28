@@ -61,6 +61,30 @@ public class GameEngine {
             }
         }
 
+        // Check if the room is dark before processing most commands
+        if let room = world.player.currentRoom, !world.isRoomLit(room) {
+            // Allow certain commands even in darkness
+            switch command {
+            case .look:
+                handleLook()
+                return
+            case .move:
+                // Still allow movement in darkness
+                break
+            case .inventory:
+                // Still allow inventory in darkness
+                break
+            case .quit:
+                // Still allow quitting in darkness
+                break
+            default:
+                // For most commands, show a message about darkness
+                outputHandler.output("It's too dark to see anything here.")
+                return
+            }
+        }
+
+        // Process the command as normal
         switch command {
         case .close(let obj):
             world.lastMentionedObject = obj
@@ -211,6 +235,18 @@ public class GameEngine {
             outputHandler.output("You can't see anything.")
             return
         }
+
+        // Check if the room is dark
+        if !world.isRoomLit(room) {
+            // First try the room's specific look handler (which might handle darkness)
+            if !room.executeLookAction() {
+                // Default darkness message
+                outputHandler.output("It's pitch black. You can't see anything.")
+            }
+            return
+        }
+
+        // The room is lit, so proceed with normal room description
 
         // First try the room's specific look handler
         if !room.executeLookAction() {

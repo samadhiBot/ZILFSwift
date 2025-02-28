@@ -12,8 +12,13 @@ struct HelloWorldGame {
     static func create() -> GameWorld {
         // Create rooms
         let entrance = Room(name: "Entrance", description: "You are standing at the entrance to a small cave. Sunlight streams in from outside.")
+        entrance.makeNaturallyLit()
+
         let mainCavern = Room(name: "Main Cavern", description: "This spacious cavern has smooth walls that glisten with moisture. A strange glow emanates from deeper in the cave.")
+        mainCavern.makeNaturallyLit()
+
         let treasureRoom = Room(name: "Treasure Room", description: "This small chamber is filled with a soft, magical light. The walls are adorned with ancient markings.")
+        treasureRoom.makeNaturallyLit()
 
         // Connect rooms with exits
         entrance.setExit(direction: .north, room: mainCavern)
@@ -33,6 +38,7 @@ struct HelloWorldGame {
         // Create objects
         let lantern = GameObject(name: "lantern", description: "A brass lantern that provides warm light.", location: entrance)
         lantern.setFlag("takeable")
+        lantern.makeLightSource(initiallyLit: false)
 
         let coin = GameObject(name: "gold coin", description: "A shiny gold coin with strange markings.", location: mainCavern)
         coin.setFlag("takeable")
@@ -45,6 +51,7 @@ struct HelloWorldGame {
         // Maybe add a treasure inside the chest
         let treasure = GameObject(name: "golden amulet", description: "An exquisite golden amulet that gleams with an inner light.", location: chest)
         treasure.setFlag("takeable")
+        treasure.makeLightSource(initiallyLit: true)
 
         // Make sure to close the chest
         chest.clearFlag("open")

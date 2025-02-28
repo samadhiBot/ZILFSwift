@@ -65,13 +65,18 @@ struct GameEngineTests {
     // Helper to set up a test world
     func setupTestWorld() throws -> (GameWorld, Player, Room, Room, GameObject) {
         let startRoom = Room(name: "Start Room", description: "The starting room")
+        startRoom.makeNaturallyLit() // Make the start room naturally lit for testing
+
         let northRoom = Room(name: "North Room", description: "Room to the north")
+        northRoom.makeNaturallyLit() // Make the north room naturally lit for testing
 
         startRoom.setExit(direction: .north, room: northRoom)
         northRoom.setExit(direction: .south, room: startRoom)
 
         let player = Player(startingRoom: startRoom)
         let world = GameWorld(player: player)
+        world.registerRoom(startRoom)
+        world.registerRoom(northRoom)
 
         // Add a takeable object
         let coin = GameObject(name: "gold coin", description: "A shiny gold coin", location: startRoom)
