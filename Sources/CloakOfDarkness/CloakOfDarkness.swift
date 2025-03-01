@@ -73,6 +73,14 @@ public enum CloakOfDarkness {
         let player = Player(startingRoom: foyer)
         let world = GameWorld(player: player)
 
+        // Store a reference to the game world in each room for easier access
+        foyer.setState(world, forKey: "gameWorld")
+        bar.setState(world, forKey: "gameWorld")
+        cloakroom.setState(world, forKey: "gameWorld")
+        hallToStudy.setState(world, forKey: "gameWorld")
+        study.setState(world, forKey: "gameWorld")
+        closet.setState(world, forKey: "gameWorld")
+
         // Register rooms with the world
         world.registerRoom(foyer)
         world.registerRoom(bar)
@@ -138,14 +146,13 @@ public enum CloakOfDarkness {
 
         // Bar enter action - handle lighting based on cloak
         bar.enterAction = { (room: Room) -> Bool in
-            let engine: GameEngine? = room.location?.getState(forKey: "engine")
-            let world = engine?.world
-            let player = world?.player
+            // Access the world and player through contents
+            let player = room.contents.first { $0 is Player } as? Player
 
             // Check if player has cloak in inventory
-            let cloak = player?.contents.first(where: { $0.name == "cloak" })
+            let hasCloak = player?.contents.contains { $0.name == "cloak" } ?? false
 
-            if cloak != nil {
+            if hasCloak {
                 // Player has cloak - set room to dark
                 room.clearFlag(.lit)
                 print("You enter the dimly lit bar. It's hard to see anything.")
@@ -168,7 +175,7 @@ public enum CloakOfDarkness {
                 if let command = command {
                     switch command {
                     case .look:
-                        print("It's pitch black here. You can't see anything.")
+                        print("It's too dark to see.")
                         return true
                     case .move(let direction) where direction == .north:
                         return false
@@ -200,7 +207,7 @@ public enum CloakOfDarkness {
                 print("The bar, much rougher than you'd have guessed after the opulence of the foyer to the north, is completely empty. You can see a message scrawled in the sawdust on the floor.")
                 return true
             } else {
-                print("It's pitch black here. You can't see anything.")
+                print("It's too dark to see.")
                 return true
             }
         }
@@ -222,21 +229,21 @@ public enum CloakOfDarkness {
         cloakroom.beginCommandAction = { (room: Room, command: Command) -> Bool in
             guard case .move(.west) = command else { return false }
 
-            let engine: GameEngine? = room.location?.getState(forKey: "engine")
-            let world = engine?.world
-            let player = world?.player
+            // Try different ways to find the player
+            let player = room.contents.first { $0 is Player } as? Player
 
-            // Check if player is wearing the cloak
-            let cloak = player?.contents.first(where: { $0.name == "cloak" })
+            // Check if player is wearing/carrying the cloak
+            let hasCloak = player?.contents.contains { $0.name == "cloak" } ?? false
 
-            if cloak != nil {
+            if hasCloak {
                 print("You cannot enter the opening to the west while in possession of your cloak.")
                 return true
             } else {
-                if let hallToStudy = world?.rooms.first(where: { $0.name == "Hallway to Study" }) {
-                    print("Oof - it's cramped in here.")
+                // Try to access the world from our room's stored state
+                let world: GameWorld? = room.getState(forKey: "gameWorld")
 
-                    // Move player to hallToStudy
+                // Try to find the hallway
+                if let world = world, let hallToStudy = world.rooms.first(where: { $0.name == "Hallway to Study" }) {
                     if let player = player, let currentRoom = player.currentRoom {
                         // Remove from current room
                         if let index = currentRoom.contents.firstIndex(where: { $0 === player }) {
@@ -250,12 +257,14 @@ public enum CloakOfDarkness {
                         // Execute enter actions in the new room
                         _ = hallToStudy.executeEnterAction()
 
+                        print("Oof - it's cramped in here.")
                         return true
                     }
                 }
-            }
 
-            return false
+                print("You can't go that way.")
+                return true
+            }
         }
 
         return cloakroom
@@ -357,7 +366,8 @@ public enum CloakOfDarkness {
         apple.setFlag(.takeBit)
         apple.setFlag(.edibleBit)
 
-        apple.commandHandler = { verb, directObject, indirectObject, preposition in
+        apple.setCommandHandler(<#T##handler: (GameObject, Command) -> Bool##(GameObject, Command) -> Bool#>)
+        apple.commandHandler = { (verb: String, directObject: GameObject?, indirectObject: GameObject?, preposition: String?) in
             if verb == "examine" && directObject?.name == "apple" {
                 print("The apple is red and looks delicious.")
                 return true
@@ -365,7 +375,12 @@ public enum CloakOfDarkness {
 
             if verb == "eat" && directObject?.name == "apple" {
                 print("You eat the apple. It's delicious!")
-                world.removeObject(apple)
+                // Remove the apple from the game world
+                if let location = apple.location {
+                    if let index = location.contents.firstIndex(where: { $0 === apple }) {
+                        location.contents.remove(at: index)
+                    }
+                }
                 return true
             }
 
@@ -378,17 +393,11 @@ public enum CloakOfDarkness {
         let grime = GameObject(name: "grime", description: "Years of dirt and grime cover the floor.")
         grime.location = foyer
 
-        grime.commandHandler = { verb, directObject, indirectObject, preposition in
+        grime.commandHandler = { (verb: String, directObject: GameObject?, indirectObject: GameObject?, preposition: String?) in
             if verb == "examine" && directObject?.name == "grime" {
                 print("The floor is covered in years of accumulated dirt and grime.")
                 return true
             }
-
-            if verb == "clean" && directObject?.name == "grime" {
-                print("You try to clean the grime, but it's too ingrained.")
-                return true
-            }
-
             return false
         }
 
@@ -402,23 +411,30 @@ public enum CloakOfDarkness {
         message.setState("There seems to be some sort of message scrawled in the sawdust on the floor.", forKey: "firstDescription")
         world.registerObject(message)
 
+        // Store the world directly in the message for closure access
+        message.setState(world, forKey: "gameWorld")
+
         // Message command handler
         message.setExamineHandler { obj in
             let room = obj.location as? Room
             let disturbed: Int = room?.getState(forKey: "disturbed") ?? 0
 
-            // Get the engine from the world
-            let engine: GameEngine? = world.player.getState(forKey: "engine")
+            // Access the world directly from our stored state
+            let gameWorld: GameWorld? = obj.getState(forKey: "gameWorld")
 
-            if disturbed > 1 {
-                print("The message simply reads: \"You lose.\"")
-                engine?.gameOver(message: "You lose", isVictory: false)
-                return true
-            } else {
-                print("The message simply reads: \"You win.\"")
-                engine?.gameOver(message: "You win", isVictory: true)
-                return true
+            // Try to get the engine from the player in the world
+            if let engine: GameEngine = gameWorld?.player.getState(
+                forKey: "engine"
+            ) { // gameWorld?.player.stateValues["engine"] as? GameEngine {
+                if disturbed > 1 {
+                    print("The message simply reads: \"You lose.\"")
+                    engine.gameOver(message: "You lose", isVictory: false)
+                } else {
+                    print("The message simply reads: \"You win.\"")
+                    engine.gameOver(message: "You win", isVictory: true)
+                }
             }
+            return true
         }
 
         // Add a take handler that disturbs the floor
@@ -771,17 +787,11 @@ public enum CloakOfDarkness {
         broom.location = closet
         broom.setFlag(.takeBit)
 
-        broom.commandHandler = { verb, directObject, indirectObject, preposition in
+        broom.commandHandler = { (verb: String, directObject: GameObject?, indirectObject: GameObject?, preposition: String?) in
             if verb == "examine" && directObject?.name == "broom" {
                 print("An old wooden broom with straw bristles. It looks like it hasn't been used in years.")
                 return true
             }
-
-            if verb == "sweep" && directObject?.name == "broom" {
-                print("You make a halfhearted attempt to sweep the floor, but quickly lose interest.")
-                return true
-            }
-
             return false
         }
 
@@ -793,18 +803,11 @@ public enum CloakOfDarkness {
         shelf.setFlag(.contBit)
         shelf.setFlag(.surfaceBit)
 
-        shelf.commandHandler = { verb, directObject, indirectObject, preposition in
+        shelf.commandHandler = { (verb: String, directObject: GameObject?, indirectObject: GameObject?, preposition: String?) in
             if verb == "examine" && directObject?.name == "shelf" {
                 print("A dusty wooden shelf attached to the wall.")
-                if !shelf.contents.isEmpty {
-                    print("On the shelf you can see:")
-                    for item in shelf.contents {
-                        print("  \(item.name)")
-                    }
-                }
                 return true
             }
-
             return false
         }
 
