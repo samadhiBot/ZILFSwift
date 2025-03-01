@@ -150,7 +150,17 @@ public class GameEngine {
             return
         }
 
-        // Process the command
+        // Check if the command involves an object that has a custom handler
+        if let obj = getGameObject(from: command) {
+            // Check if the object is accessible before attempting to process its command
+            if isObjectAccessibleForExamine(obj) && obj.processCommand(command) {
+                // The object handled the command
+                advanceTime()
+                return
+            }
+        }
+
+        // Process the command with default handling
         switch command {
         case .look:
             handleLook()
@@ -383,6 +393,13 @@ public class GameEngine {
             return
         }
 
+        // Check if the object has a custom handler for this command
+        if obj.processCommand(.take(obj)) {
+            // The object handled the take command
+            return
+        }
+
+        // Default behavior
         // Check if object is already in inventory
         if obj.location === world.player {
             outputHandler("You're already carrying that.")
@@ -405,6 +422,13 @@ public class GameEngine {
 
     /// Handle the DROP command
     private func handleDrop(_ obj: GameObject) {
+        // Check if the object has a custom handler for this command
+        if obj.processCommand(.drop(obj)) {
+            // The object handled the drop command
+            return
+        }
+
+        // Default behavior
         // Check if player has the object
         if obj.location !== world.player {
             outputHandler("You're not carrying that.")
@@ -431,7 +455,13 @@ public class GameEngine {
             return
         }
 
-        // Show the object's description
+        // Check if the object has a custom handler for this command
+        if obj.processCommand(.examine(obj)) {
+            // The object handled the examine command
+            return
+        }
+
+        // Default behavior: Show the object's description
         outputHandler(obj.description)
 
         // Update last mentioned object
@@ -441,6 +471,13 @@ public class GameEngine {
     /// Handle the MOVE command
     private func handleMove(direction: Direction) {
         let player = world.player
+
+        // Check if the current room has a custom handler for this direction
+        if let currentRoom = player.location as? Room,
+           currentRoom.processCommand(.move(direction)) {
+            // The room handled the move command
+            return
+        }
 
         if player.move(direction: direction) {
             // Player successfully moved, show the new room description
@@ -458,6 +495,13 @@ public class GameEngine {
             return
         }
 
+        // Check if the object has a custom handler for this command
+        if obj.processCommand(.open(obj)) {
+            // The object handled the open command
+            return
+        }
+
+        // Default behavior
         // Check if object is openable
         if !obj.isOpenable() {
             outputHandler("You can't open that.")
@@ -497,6 +541,13 @@ public class GameEngine {
             return
         }
 
+        // Check if the object has a custom handler for this command
+        if obj.processCommand(.close(obj)) {
+            // The object handled the close command
+            return
+        }
+
+        // Default behavior
         // Check if object is openable
         if !obj.isOpenable() {
             outputHandler("You can't close that.")
@@ -658,7 +709,7 @@ public class GameEngine {
         world.lastMentionedObject = obj
     }
 
-    /// Handle TURN_ON command
+    /// Handle TURN ON command
     private func handleTurnOn(_ obj: GameObject) {
         // Check if the object is accessible
         if !isObjectAccessibleForExamine(obj) {
@@ -666,30 +717,31 @@ public class GameEngine {
             return
         }
 
-        // Check if the object is a device
-        if !obj.hasFlag(.deviceBit) {
-            outputHandler("You can't turn on \(obj.name).")
+        // Check if the object has a custom handler for this command
+        if obj.processCommand(.customCommand("turn_on", [obj], additionalData: nil)) {
+            // The object handled the turn on command
             return
         }
 
-        // Check if the device is already on
-        if obj.hasFlag(.onBit) {
-            outputHandler("The \(obj.name) is already on.")
+        // Default behavior
+        if !obj.hasFlag(String.deviceBit) {
+            outputHandler("That's not something you can turn on.")
             return
         }
 
-        // Turn on the device
-        obj.setFlag(.onBit)
-
-        // If it's a light source, handle lighting change
-        if obj.hasFlag(.lightSource) {
-            obj.setFlag(.lit)
+        if obj.hasFlag(String.onBit) {
+            outputHandler("That's already on.")
+            return
         }
 
-        outputHandler("You turn on the \(obj.name).")
+        obj.setFlag(String.onBit)
+        outputHandler("You turn on \(obj.name).")
+
+        // Update last mentioned object
+        world.lastMentionedObject = obj
     }
 
-    /// Handle TURN_OFF command
+    /// Handle TURN OFF command
     private func handleTurnOff(_ obj: GameObject) {
         // Check if the object is accessible
         if !isObjectAccessibleForExamine(obj) {
@@ -697,30 +749,31 @@ public class GameEngine {
             return
         }
 
-        // Check if the object is a device
-        if !obj.hasFlag(.deviceBit) {
-            outputHandler("You can't turn off \(obj.name).")
+        // Check if the object has a custom handler for this command
+        if obj.processCommand(.customCommand("turn_off", [obj], additionalData: nil)) {
+            // The object handled the turn off command
             return
         }
 
-        // Check if the device is already off
-        if !obj.hasFlag(.onBit) {
-            outputHandler("The \(obj.name) is already off.")
+        // Default behavior
+        if !obj.hasFlag(String.deviceBit) {
+            outputHandler("That's not something you can turn off.")
             return
         }
 
-        // Turn off the device
-        obj.clearFlag(.onBit)
-
-        // If it's a light source, handle lighting change
-        if obj.hasFlag(.lightSource) {
-            obj.clearFlag(.lit)
+        if !obj.hasFlag(String.onBit) {
+            outputHandler("That's already off.")
+            return
         }
 
-        outputHandler("You turn off the \(obj.name).")
+        obj.clearFlag(String.onBit)
+        outputHandler("You turn off \(obj.name).")
+
+        // Update last mentioned object
+        world.lastMentionedObject = obj
     }
 
-    /// Handle FLIP command (toggle on/off)
+    /// Handle FLIP command
     private func handleFlip(_ obj: GameObject) {
         // Check if the object is accessible
         if !isObjectAccessibleForExamine(obj) {
@@ -728,32 +781,28 @@ public class GameEngine {
             return
         }
 
-        // Check if the object is a device
-        if !obj.hasFlag(.deviceBit) {
-            outputHandler("You can't flip \(obj.name).")
+        // Check if the object has a custom handler for this command
+        if obj.processCommand(.customCommand("flip", [obj], additionalData: nil)) {
+            // The object handled the flip command
             return
         }
 
-        // Toggle the device state
-        if obj.hasFlag(.onBit) {
-            obj.clearFlag(.onBit)
-
-            // If it's a light source, handle lighting change
-            if obj.hasFlag(.lightSource) {
-                obj.clearFlag(.lit)
-            }
-
-            outputHandler("You turn off the \(obj.name).")
-        } else {
-            obj.setFlag(.onBit)
-
-            // If it's a light source, handle lighting change
-            if obj.hasFlag(.lightSource) {
-                obj.setFlag(.lit)
-            }
-
-            outputHandler("You turn on the \(obj.name).")
+        // Default behavior
+        if !obj.hasFlag(String.deviceBit) {
+            outputHandler("That's not something you can flip.")
+            return
         }
+
+        if obj.hasFlag(String.onBit) {
+            obj.clearFlag(String.onBit)
+            outputHandler("You turn off \(obj.name).")
+        } else {
+            obj.setFlag(String.onBit)
+            outputHandler("You turn on \(obj.name).")
+        }
+
+        // Update last mentioned object
+        world.lastMentionedObject = obj
     }
 
     /// Handle WAIT command
@@ -779,19 +828,27 @@ public class GameEngine {
             return
         }
 
-        // Check if the object is readable
-        if !obj.hasFlag(.readBit) {
+        // Check if the object has a custom handler for this command
+        if obj.processCommand(.customCommand("read", [obj], additionalData: nil)) {
+            // The object handled the read command
+            return
+        }
+
+        // Default behavior
+        if !obj.hasFlag(String.readBit) {
             outputHandler("There's nothing to read on \(obj.name).")
             return
         }
 
-        // Get the text to display
-        let text: String? = obj.getState(forKey: "readText")
-        if let text = text {
+        // Get the text from the object's state or use a default
+        if let text: String = obj.getState(forKey: "text") {
             outputHandler(text)
         } else {
-            outputHandler("You can't make out anything written on \(obj.name).")
+            outputHandler("You read \(obj.name).")
         }
+
+        // Update last mentioned object
+        world.lastMentionedObject = obj
     }
 
     /// Handle the QUIT command

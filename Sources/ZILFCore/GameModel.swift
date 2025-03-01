@@ -478,3 +478,86 @@ public extension GameObject {
         return hasFlag(.takeBit)
     }
 }
+
+// Add command handling extension to GameObject
+public extension GameObject {
+    /// Process a command against this game object, using its command handler if available
+    /// - Parameter command: The command to process
+    /// - Returns: True if the command was handled by this object
+    func processCommand(_ command: Command) -> Bool {
+        // Get the command handler using getState
+        if let handler = stateValues["commandAction"] as? ((GameObject, Command) -> Bool) {
+            return handler(self, command)
+        }
+        return false
+    }
+
+    /// Set a command handler for this game object
+    /// - Parameter handler: The command handler function
+    func setCommandHandler(_ handler: @escaping (GameObject, Command) -> Bool) {
+        stateValues["commandAction"] = handler
+    }
+
+    /// Set a handler for the examine command
+    /// - Parameter handler: The handler function that takes a GameObject and returns a Bool
+    func setExamineHandler(_ handler: @escaping (GameObject) -> Bool) {
+        let commandHandler: (GameObject, Command) -> Bool = { obj, command in
+            if case .examine = command {
+                return handler(obj)
+            }
+            return false
+        }
+        setCommandHandler(commandHandler)
+    }
+
+    /// Set a handler for a custom command
+    /// - Parameters:
+    ///   - verb: The verb to handle
+    ///   - handler: The handler function that takes a GameObject and an array of objects and returns a Bool
+    func setCustomCommandHandler(verb: String, handler: @escaping (GameObject, [GameObject]) -> Bool) {
+        let commandHandler: (GameObject, Command) -> Bool = { obj, command in
+            if case .customCommand(let cmdVerb, let objects, _) = command, cmdVerb == verb {
+                return handler(obj, objects)
+            }
+            return false
+        }
+        setCommandHandler(commandHandler)
+    }
+
+    /// Convenience method to set multiple flags at once
+    /// - Parameter flags: The flags to set
+    func setFlags(_ flags: String...) {
+        for flag in flags {
+            setFlag(flag)
+        }
+    }
+}
+
+// Convenience initializers for GameObject
+public extension GameObject {
+    /// Convenience initializer with location and flags
+    /// - Parameters:
+    ///   - name: The name of the object
+    ///   - description: The description of the object
+    ///   - location: The location of the object (optional)
+    ///   - flags: Array of flags to set on the object
+    convenience init(name: String, description: String, location: GameObject? = nil, flags: [String]) {
+        self.init(name: name, description: description, location: location)
+        for flag in flags {
+            setFlag(flag)
+        }
+    }
+
+    /// Convenience initializer with location and variadic flags
+    /// - Parameters:
+    ///   - name: The name of the object
+    ///   - description: The description of the object
+    ///   - location: The location of the object (optional)
+    ///   - flags: Variadic list of flags to set on the object
+    convenience init(name: String, description: String, location: GameObject? = nil, flags: String...) {
+        self.init(name: name, description: description, location: location)
+        for flag in flags {
+            setFlag(flag)
+        }
+    }
+}
