@@ -7,10 +7,25 @@
 
 // Player representation
 public class Player: GameObject {
+    // Direct properties for critical components
+    // Using implicitly unwrapped optional for engine which is set after initialization
+    public private(set) var engine: GameEngine!
+    public private(set) var world: GameWorld!
+
     public init(startingRoom: Room) {
         super.init(name: "player", description: "As good-looking as ever.")
         self.location = startingRoom
         startingRoom.contents.append(self)
+    }
+
+    // Called by GameWorld during initialization
+    internal func setWorld(_ world: GameWorld) {
+        self.world = world
+    }
+
+    // Called by GameEngine during initialization
+    internal func setEngine(_ engine: GameEngine) {
+        self.engine = engine
     }
 
     public var currentRoom: Room? {

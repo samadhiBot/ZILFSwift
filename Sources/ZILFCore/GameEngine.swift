@@ -39,9 +39,8 @@ public class GameEngine {
         self.outputHandler = outputHandler
         self.worldCreator = worldCreator
 
-        // Register the engine in the player object for access
-        // Store it directly in the player which is accessible everywhere
-        world.player.setState(self, forKey: "engine")
+        // Set engine directly on player using proper API instead of state dictionary
+        world.player.setEngine(self)
     }
 
     public func start() {
@@ -915,7 +914,7 @@ public class GameEngine {
             let freshWorld = worldCreator()
 
             // Register the engine in the new world's player
-            freshWorld.player.setState(self, forKey: "engine")
+            freshWorld.player.setEngine(self)
 
             return freshWorld
         } else {
@@ -923,7 +922,7 @@ public class GameEngine {
             let freshWorld = GameWorld(player: Player(startingRoom: Room(name: "Default", description: "Default room")))
 
             // Register the engine in the new world's player
-            freshWorld.player.setState(self, forKey: "engine")
+            freshWorld.player.setEngine(self)
 
             return freshWorld
         }

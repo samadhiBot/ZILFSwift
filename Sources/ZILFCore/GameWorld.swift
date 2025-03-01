@@ -16,6 +16,8 @@ public class GameWorld {
 
     public init(player: Player) {
         self.player = player
+        // Set the player's world reference directly
+        player.setWorld(self)
     }
 
     public func registerRoom(_ room: Room) {
