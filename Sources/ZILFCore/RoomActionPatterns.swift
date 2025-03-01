@@ -238,6 +238,7 @@ public enum RoomActionPatterns {
             case .close: verb = "close"
             case .quit: verb = "quit"
             case .unknown: verb = "unknown"
+            case .customCommand(let verbName, _, _): verb = verbName
             }
 
             // Check if we have a handler for this verb

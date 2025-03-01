@@ -451,3 +451,30 @@ public class GameWorld {
         return outputProduced
     }
 }
+
+// Add moveTo functionality to GameObject
+public extension GameObject {
+    /// Move this object to a new location
+    /// - Parameter destination: The new location
+    func moveTo(destination: GameObject) {
+        // Remove from current location if any
+        if let currentLocation = location,
+           let index = currentLocation.contents.firstIndex(where: { $0 === self }) {
+            currentLocation.contents.remove(at: index)
+        }
+
+        // Update location and add to new container's contents
+        location = destination
+        destination.contents.append(self)
+    }
+
+    /// Get the inventory objects for an object
+    var inventory: [GameObject] {
+        return contents
+    }
+
+    /// Check if object is takeable
+    func isTakeable() -> Bool {
+        return hasFlag(.takeBit)
+    }
+}

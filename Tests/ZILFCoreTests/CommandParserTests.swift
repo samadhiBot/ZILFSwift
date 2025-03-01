@@ -202,6 +202,10 @@ struct CommandParserTests {
         let player = Player(startingRoom: startRoom)
         let world = GameWorld(player: player)
 
+        // Register rooms with the world
+        world.registerRoom(startRoom)
+        world.registerRoom(northRoom)
+
         // Add a takeable object
         let coin = GameObject(name: "gold coin", description: "A shiny gold coin", location: startRoom)
         coin.setFlag("takeable")

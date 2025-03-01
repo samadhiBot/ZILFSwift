@@ -7,7 +7,8 @@ let package = Package(
     platforms: [.macOS(.v13)],
     products: [
         .executable(name: "ZILFSwift", targets: ["ZILFSwift"]),
-        .library(name: "ZILFCore", targets: ["ZILFCore"])
+        .library(name: "ZILFCore", targets: ["ZILFCore"]),
+        .library(name: "ZILFTestSupport", targets: ["ZILFTestSupport"])
     ],
     dependencies: [],
     targets: [
@@ -18,13 +19,18 @@ let package = Package(
         .target(
             name: "ZILFCore"
         ),
+        .target(
+            name: "ZILFTestSupport",
+            dependencies: ["ZILFCore"],
+            path: "Sources/ZILFTestSupport"
+        ),
         .testTarget(
             name: "ZILFCoreTests",
-            dependencies: ["ZILFCore"]
+            dependencies: ["ZILFCore", "ZILFTestSupport"]
         ),
         .testTarget(
             name: "ZILFSwiftTests",
-            dependencies: ["ZILFSwift"]
+            dependencies: ["ZILFSwift", "ZILFTestSupport"]
         )
     ]
 )

@@ -5,6 +5,7 @@
 //  Created by Chris Sessions on 8/2/25.
 //
 
+import Foundation
 import Testing
 @testable import ZILFCore
 
@@ -105,16 +106,16 @@ import Testing
         hall.addLocalGlobal(rug)
 
         // Create engine to test object interactions
-        let outputHandler = TestOutputHandler()
-        let engine = GameEngine(world: world, outputHandler: outputHandler)
+        let outputHandler = OutputCapture()
+        let engine = GameEngine(world: world, outputHandler: outputHandler.handler)
 
         // Test examining global objects
-        engine.executeCommand(.examine(sky))
+        engine.executeCommand(Command.examine(sky))
         #expect(outputHandler.output.contains("A clear blue sky"))
         outputHandler.clear()
 
         // Test examining local-global objects
-        engine.executeCommand(.examine(rug))
+        engine.executeCommand(Command.examine(rug))
         #expect(outputHandler.output.contains("A tatty rug"))
         outputHandler.clear()
 
@@ -122,12 +123,16 @@ import Testing
         _ = player.move(direction: .east)
 
         // Should still be able to examine sky from kitchen
-        engine.executeCommand(.examine(sky))
+        engine.executeCommand(Command.examine(sky))
         #expect(outputHandler.output.contains("A clear blue sky"))
         outputHandler.clear()
 
         // Shouldn't be able to examine rug from kitchen
-        engine.executeCommand(.examine(rug))
+        engine.executeCommand(Command.examine(rug))
         #expect(outputHandler.output.contains("You don't see that here"))
+    }
+
+    @Test func testGlobalObjectInteractions() {
+        // This test function is a duplicate and should be removed
     }
 }

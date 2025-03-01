@@ -8,6 +8,7 @@
 import Testing
 @testable import ZILFSwift
 @testable import ZILFCore
+import ZILFTestSupport
 
 struct HelloWorldGameTests {
     @Test func testGameCreation() {
@@ -83,70 +84,75 @@ struct HelloWorldGameTests {
 
     @Test func testGameCommands() {
         let world = HelloWorldGame.create()
-        let outputHandler = TestOutputHandler()
-        let engine = GameEngine(world: world, outputHandler: outputHandler)
+        let outputHandler = OutputCapture()
+        let engine = GameEngine(world: world, outputHandler: outputHandler.handler)
 
         // Test initial look command
-        engine.executeCommand(.look)
+        engine.executeCommand(Command.look)
+        print("Output after look: \(outputHandler.output)")
         #expect(outputHandler.output.contains("You are standing at the entrance"))
         #expect(outputHandler.output.contains("lantern"))
         outputHandler.clear()
 
         // Test taking the lantern
-        engine.executeCommand(.take(world.objects.first { $0.name == "lantern" }!))
+        let lantern = world.objects.first { $0.name == "lantern" }!
+        engine.executeCommand(Command.take(lantern))
+        print("Output after take lantern: \(outputHandler.output)")
         #expect(outputHandler.output.contains("Taken"))
         #expect(world.player.contents.contains { $0.name == "lantern" })
         outputHandler.clear()
 
         // Test examining the lantern after taking it
-        engine.executeCommand(.examine(world.objects.first { $0.name == "lantern" }!))
+        engine.executeCommand(Command.examine(lantern))
+        print("Output after examine lantern: \(outputHandler.output)")
         #expect(outputHandler.output.contains("brass lantern"))
         outputHandler.clear()
 
         // Test moving to the main cavern
-        engine.executeCommand(.move(.north))
+        engine.executeCommand(Command.move(Direction.north))
+        print("Output after move north: \(outputHandler.output)")
         #expect(world.player.currentRoom?.name == "Main Cavern")
         #expect(outputHandler.output.contains("spacious cavern"))
         #expect(outputHandler.output.contains("gold coin"))
         outputHandler.clear()
 
         // Test taking the coin
-        engine.executeCommand(.take(world.objects.first { $0.name == "gold coin" }!))
+        engine.executeCommand(Command.take(world.objects.first { $0.name == "gold coin" }!))
         #expect(outputHandler.output.contains("Taken"))
         #expect(world.player.contents.contains { $0.name == "gold coin" })
         outputHandler.clear()
 
         // Test inventory
-        engine.executeCommand(.inventory)
+        engine.executeCommand(Command.inventory)
         #expect(outputHandler.output.contains("lantern"))
         #expect(outputHandler.output.contains("gold coin"))
         outputHandler.clear()
 
         // Test moving to the treasure room
-        engine.executeCommand(.move(.east))
+        engine.executeCommand(Command.move(Direction.east))
         #expect(world.player.currentRoom?.name == "Treasure Room")
         #expect(outputHandler.output.contains("small chamber"))
         #expect(outputHandler.output.contains("treasure chest"))
         outputHandler.clear()
 
         // Test examining the chest
-        engine.executeCommand(.examine(world.objects.first { $0.name == "treasure chest" }!))
+        engine.executeCommand(Command.examine(world.objects.first { $0.name == "treasure chest" }!))
         #expect(outputHandler.output.contains("ornate wooden chest"))
         outputHandler.clear()
 
         // Test trying to take the chest (which shouldn't be takeable)
-        engine.executeCommand(.take(world.objects.first { $0.name == "treasure chest" }!))
+        engine.executeCommand(Command.take(world.objects.first { $0.name == "treasure chest" }!))
         #expect(outputHandler.output.contains("You can't take that"))
         #expect(!world.player.contents.contains { $0.name == "treasure chest" })
         outputHandler.clear()
 
         // Test going back to the main cavern
-        engine.executeCommand(.move(.west))
+        engine.executeCommand(Command.move(Direction.west))
         #expect(world.player.currentRoom?.name == "Main Cavern")
         outputHandler.clear()
 
         // Test dropping the coin
-        engine.executeCommand(.drop(world.objects.first { $0.name == "gold coin" }!))
+        engine.executeCommand(Command.drop(world.objects.first { $0.name == "gold coin" }!))
         #expect(outputHandler.output.contains("Dropped"))
         #expect(!world.player.contents.contains { $0.name == "gold coin" })
         #expect(world.player.currentRoom?.contents.contains { $0.name == "gold coin" } ?? false)
@@ -205,21 +211,5 @@ struct HelloWorldGameTests {
         } else {
             throw TestFailure("Expected quit command")
         }
-    }
-}
-
-class TestOutputHandler: OutputHandler {
-    var output = ""
-
-    func output(_ text: String) {
-        output(text, terminator: "\n")
-    }
-
-    func output(_ text: String, terminator: String) {
-        output += text + terminator
-    }
-
-    func clear() {
-        output = ""
     }
 }
