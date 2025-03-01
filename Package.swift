@@ -35,7 +35,7 @@ let package = Package(
         ),
         .testTarget(
             name: "ZILFSwiftTests",
-            dependencies: ["ZILFSwift", "ZILFTestSupport"]
+            dependencies: ["ZILFSwift", "ZILFTestSupport", "CloakOfDarkness"]
         )
     ]
 )
