@@ -1,3 +1,10 @@
+//
+//  GameWorld.swift
+//  ZILFSwift
+//
+//  Created by Chris Sessions on 3/1/25.
+//
+
 // GameWorld contains all game objects and state
 public class GameWorld {
     public var rooms: [Room] = []

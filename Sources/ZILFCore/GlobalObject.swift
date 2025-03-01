@@ -1,11 +1,153 @@
 //
-//  GlobalObjects.swift
+//  GlobalObject.swift
 //  ZILFSwift
 //
-//  Created by Chris Sessions on 8/2/25.
+//  Created by Chris Sessions on 3/1/25.
 //
 
 import Foundation
+
+// Game objects (rooms, items, etc.)
+@dynamicMemberLookup
+public class GameObject {
+    public var capacity: Int = -1  // -1 means unlimited capacity
+    public var contents: [GameObject] = []
+    public var description: String
+    public var flags: Set<String> = []
+    public var location: GameObject?
+    public var name: String
+    internal var stateValues: [String: Any] = [:]
+
+    public init(name: String, description: String, location: GameObject? = nil) {
+        self.name = name
+        self.description = description
+        if let location = location {
+            self.location = location
+            location.contents.append(self)
+        }
+    }
+
+    public func isIn(_ obj: GameObject) -> Bool {
+        var current = self.location
+        while let loc = current {
+            if loc === obj {
+                return true
+            }
+            current = loc.location
+        }
+        return false
+    }
+
+    public func hasFlag(_ flag: String) -> Bool {
+        return flags.contains(flag)
+    }
+
+    public func setFlag(_ flag: String) {
+        flags.insert(flag)
+    }
+
+    public func clearFlag(_ flag: String) {
+        flags.remove(flag)
+    }
+
+    public func isContainer() -> Bool {
+        return hasFlag("container")
+    }
+
+    public func isOpen() -> Bool {
+        return hasFlag("open")
+    }
+
+    public func isOpenable() -> Bool {
+        return hasFlag("openable")
+    }
+
+    public func canSeeInside() -> Bool {
+        return isContainer() && (isOpen() || hasFlag("transparent"))
+    }
+
+    public func open() -> Bool {
+        if isContainer() && isOpenable() && !isOpen() {
+            setFlag("open")
+            return true
+        }
+        return false
+    }
+
+    public func close() -> Bool {
+        if isContainer() && isOpenable() && isOpen() {
+            clearFlag("open")
+            return true
+        }
+        return false
+    }
+
+    public func addToContainer(_ obj: GameObject) -> Bool {
+        if isContainer() && isOpen() {
+            // Check capacity if it's limited
+            if capacity >= 0 && contents.count >= capacity {
+                return false
+            }
+
+            // Remove from current location
+            if let loc = obj.location, let index = loc.contents.firstIndex(where: { $0 === obj }) {
+                loc.contents.remove(at: index)
+            }
+
+            // Add to this container
+            obj.location = self
+            contents.append(obj)
+            return true
+        }
+        return false
+    }
+
+    // MARK: - State Management
+
+    /// Set a state value for this object
+    /// - Parameters:
+    ///   - value: Value to store
+    ///   - key: Key to store it under
+    public func setState<T>(_ value: T, forKey key: String) {
+        stateValues[key] = value
+    }
+
+    /// Get a state value by key
+    /// - Parameter key: Key to retrieve
+    /// - Returns: The stored value, or nil if not found
+    public func getState<T>(forKey key: String) -> T? {
+        return stateValues[key] as? T
+    }
+
+    /// Remove a state value for this object
+    /// - Parameter key: Key to remove
+    public func removeState(forKey key: String) {
+        stateValues.removeValue(forKey: key)
+    }
+
+    /// Check if a state key has a boolean true value
+    /// - Parameter key: The key to check
+    /// - Returns: True if the state exists and is true
+    public func hasState(_ key: String) -> Bool {
+        return getState(forKey: key) ?? false
+    }
+
+    /// Dynamic member lookup subscript for getting and setting state values with nice syntax
+    /// Always returns an optional value for safety
+    public subscript<T>(dynamicMember key: String) -> T? {
+        get {
+            return getState(forKey: key)
+        }
+        set {
+            if let newValue = newValue {
+                setState(newValue, forKey: key)
+            } else {
+                // If nil is assigned, remove the state
+                removeState(forKey: key)
+            }
+        }
+    }
+}
 
 /// String constants for global object types
 public extension String {
@@ -162,5 +304,171 @@ public extension GameObject {
 
         let accessibleRooms: [Room]? = getState(forKey: "accessibleRooms")
         return accessibleRooms ?? []
+    }
+}
+
+// Add moveTo functionality to GameObject
+public extension GameObject {
+    /// Move this object to a new location
+    /// - Parameter destination: The new location
+    func moveTo(destination: GameObject) {
+        // Remove from current location if any
+        if let currentLocation = location,
+           let index = currentLocation.contents.firstIndex(where: { $0 === self }) {
+            currentLocation.contents.remove(at: index)
+        }
+
+        // Update location and add to new container's contents
+        location = destination
+        destination.contents.append(self)
+    }
+
+    /// Get the inventory objects for an object
+    var inventory: [GameObject] {
+        return contents
+    }
+
+    /// Check if object is takeable
+    func isTakeable() -> Bool {
+        return hasFlag(.takeBit)
+    }
+}
+
+// Add command handling extension to GameObject
+public extension GameObject {
+    /// Process a command against this game object, using its command handler if available
+    /// - Parameter command: The command to process
+    /// - Returns: True if the command was handled by this object
+    func processCommand(_ command: Command) -> Bool {
+        // Get the command handler using getState
+        if let handler = stateValues["commandAction"] as? ((GameObject, Command) -> Bool) {
+            return handler(self, command)
+        }
+        return false
+    }
+
+    /// Set a command handler for this game object
+    /// - Parameter handler: The command handler function
+    func setCommandHandler(_ handler: @escaping (GameObject, Command) -> Bool) {
+        stateValues["commandAction"] = handler
+    }
+
+    /// Set a handler for the examine command
+    /// - Parameter handler: The handler function that takes a GameObject and returns a Bool
+    func setExamineHandler(_ handler: @escaping (GameObject) -> Bool) {
+        let commandHandler: (GameObject, Command) -> Bool = { obj, command in
+            if case .examine = command {
+                return handler(obj)
+            }
+            return false
+        }
+        setCommandHandler(commandHandler)
+    }
+
+    /// Set a handler for the take command
+    /// - Parameter handler: The handler function that takes a GameObject and returns a Bool
+    func setTakeHandler(_ handler: @escaping (GameObject) -> Bool) {
+        let commandHandler: (GameObject, Command) -> Bool = { obj, command in
+            if case .take = command {
+                return handler(obj)
+            }
+            return false
+        }
+        setCommandHandler(commandHandler)
+    }
+
+    /// Set a handler for the drop command
+    /// - Parameter handler: The handler function that takes a GameObject and returns a Bool
+    func setDropHandler(_ handler: @escaping (GameObject) -> Bool) {
+        let commandHandler: (GameObject, Command) -> Bool = { obj, command in
+            if case .drop = command {
+                return handler(obj)
+            }
+            return false
+        }
+        setCommandHandler(commandHandler)
+    }
+
+    /// Set a handler for a custom command
+    /// - Parameters:
+    ///   - verb: The verb to handle
+    ///   - handler: The handler function that takes a GameObject and an array of objects and returns a Bool
+    func setCustomCommandHandler(verb: String, handler: @escaping (GameObject, [GameObject]) -> Bool) {
+        let commandHandler: (GameObject, Command) -> Bool = { obj, command in
+            if case .customCommand(let cmdVerb, let objects, _) = command, cmdVerb == verb {
+                return handler(obj, objects)
+            }
+            return false
+        }
+        setCommandHandler(commandHandler)
+    }
+
+    /// Set handlers for multiple commands at once
+    /// - Parameter handlers: Dictionary mapping command verbs to handler functions
+    func setCommandHandlers(handlers: [String: (GameObject) -> Bool]) {
+        var compositHandler: (GameObject, Command) -> Bool = { _, _ in false }
+
+        for (verb, handler) in handlers {
+            let previousHandler = compositHandler
+            compositHandler = { obj, command in
+                // First try the previous handlers
+                if previousHandler(obj, command) {
+                    return true
+                }
+
+                // Check if this is the command for this handler
+                switch command {
+                case .examine where verb == "examine":
+                    return handler(obj)
+                case .take where verb == "take":
+                    return handler(obj)
+                case .drop where verb == "drop":
+                    return handler(obj)
+                case .customCommand(let cmdVerb, _, _) where cmdVerb == verb:
+                    return handler(obj)
+                default:
+                    return false
+                }
+            }
+        }
+
+        setCommandHandler(compositHandler)
+    }
+
+    /// Convenience method to set multiple flags at once
+    /// - Parameter flags: The flags to set
+    func setFlags(_ flags: String...) {
+        for flag in flags {
+            setFlag(flag)
+        }
+    }
+}
+
+// Convenience initializers for GameObject
+public extension GameObject {
+    /// Convenience initializer with location and flags
+    /// - Parameters:
+    ///   - name: The name of the object
+    ///   - description: The description of the object
+    ///   - location: The location of the object (optional)
+    ///   - flags: Array of flags to set on the object
+    convenience init(name: String, description: String, location: GameObject? = nil, flags: [String]) {
+        self.init(name: name, description: description, location: location)
+        for flag in flags {
+            setFlag(flag)
+        }
+    }
+
+    /// Convenience initializer with location and variadic flags
+    /// - Parameters:
+    ///   - name: The name of the object
+    ///   - description: The description of the object
+    ///   - location: The location of the object (optional)
+    ///   - flags: Variadic list of flags to set on the object
+    convenience init(name: String, description: String, location: GameObject? = nil, flags: String...) {
+        self.init(name: name, description: description, location: location)
+        for flag in flags {
+            setFlag(flag)
+        }
     }
 }

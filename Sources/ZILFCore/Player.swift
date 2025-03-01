@@ -1,3 +1,10 @@
+//
+//  Player.swift
+//  ZILFSwift
+//
+//  Created by Chris Sessions on 3/1/25.
+//
+
 // Player representation
 public class Player: GameObject {
     public init(startingRoom: Room) {

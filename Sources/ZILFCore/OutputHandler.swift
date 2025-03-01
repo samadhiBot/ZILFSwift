@@ -1,3 +1,10 @@
+//
+//  OutputHandler.swift
+//  ZILFSwift
+//
+//  Created by Chris Sessions on 3/1/25.
+//
+
 // Protocol for handling output from the game engine
 public protocol OutputHandler {
     func output(_ text: String, terminator: String)

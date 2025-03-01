@@ -1,5 +1,5 @@
 //
-//  GameModel.swift
+//  Direction.swift
 //  ZILFSwift
 //
 //  Created by Chris Sessions on 2/25/25.

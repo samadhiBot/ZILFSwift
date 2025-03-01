@@ -60,4 +60,3 @@ public class GameEvent {
         return false // Don't remove recurring events
     }
 }
-

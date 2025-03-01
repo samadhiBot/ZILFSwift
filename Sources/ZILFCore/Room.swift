@@ -1,3 +1,10 @@
+//
+//  Room.swift
+//  ZILFSwift
+//
+//  Created by Chris Sessions on 3/1/25.
+//
+
 // Room is a specialized GameObject
 public class Room: GameObject {
     public var exits: [Direction: Room] = [:]

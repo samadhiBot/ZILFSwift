@@ -1,3 +1,10 @@
+//
+//  EventManager.swift
+//  ZILFSwift
+//
+//  Created by Chris Sessions on 3/1/25.
+//
+
 /// Manages scheduled events in the game
 public class EventManager {
     /// The queue of scheduled events
