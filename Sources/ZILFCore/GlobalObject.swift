@@ -18,6 +18,12 @@ public class GameObject {
     public var name: String
     internal var stateValues: [String: Any] = [:]
 
+    // Add a proper typed gameWorld property
+    public var gameWorld: GameWorld? {
+        get { return stateValues["gameWorld"] as? GameWorld }
+        set { stateValues["gameWorld"] = newValue }
+    }
+
     public init(name: String, description: String, location: GameObject? = nil) {
         self.name = name
         self.description = description
@@ -108,28 +114,35 @@ public class GameObject {
     /// - Parameters:
     ///   - value: Value to store
     ///   - key: Key to store it under
-    public func setState<T>(_ value: T, forKey key: String) {
+    internal func setState<T>(_ value: T, forKey key: String) {
         stateValues[key] = value
     }
 
     /// Get a state value by key
     /// - Parameter key: Key to retrieve
     /// - Returns: The stored value, or nil if not found
-    public func getState<T>(forKey key: String) -> T? {
+    internal func getState<T>(forKey key: String) -> T? {
         return stateValues[key] as? T
     }
 
     /// Remove a state value for this object
     /// - Parameter key: Key to remove
-    public func removeState(forKey key: String) {
+    internal func removeState(forKey key: String) {
         stateValues.removeValue(forKey: key)
     }
 
     /// Check if a state key has a boolean true value
     /// - Parameter key: The key to check
     /// - Returns: True if the state exists and is true
-    public func hasState(_ key: String) -> Bool {
+    internal func hasState(_ key: String) -> Bool {
         return getState(forKey: key) ?? false
+    }
+
+    /// Check if a property exists in the object's state dictionary
+    /// - Parameter propertyName: The name of the property to check
+    /// - Returns: True if the property exists
+    public func hasProperty(_ propertyName: String) -> Bool {
+        return stateValues[propertyName] != nil
     }
 
     /// Dynamic member lookup subscript for getting and setting state values with nice syntax
@@ -146,6 +159,36 @@ public class GameObject {
                 removeState(forKey: key)
             }
         }
+    }
+
+    /// Provides access to a property existence check with the .isSet suffix
+    /// Example: object.someProperty.isSet will return true if someProperty exists
+    public subscript(dynamicMember key: String) -> PropertyExistenceChecker {
+        return PropertyExistenceChecker(object: self, key: key)
+    }
+}
+
+/// Helper class to check if a property exists through the .isSet property
+/// Example usage:
+/// ```swift
+/// // Check if a property exists
+/// if object.someProperty.isSet {
+///     // Property exists, now we can safely use it
+///     let value = object.someProperty as? String
+/// }
+/// ```
+public struct PropertyExistenceChecker {
+    private let object: GameObject
+    private let key: String
+
+    internal init(object: GameObject, key: String) {
+        self.object = object
+        self.key = key
+    }
+
+    /// Returns true if the property exists in the object's state dictionary
+    public var isSet: Bool {
+        return object.stateValues[key] != nil
     }
 }
 
@@ -470,5 +513,26 @@ public extension GameObject {
         for flag in flags {
             setFlag(flag)
         }
+    }
+}
+
+// Extension to add player finding functionality to GameObject
+public extension GameObject {
+    /// Find the player by traversing up the object graph
+    /// - Returns: The player object, or nil if not found
+    func findPlayer() -> Player? {
+        // Check if this object's location is a room
+        if let room = location as? Room {
+            // Try to find the player in this room
+            return room.contents.first { $0 is Player } as? Player
+        }
+
+        // If this object is in another container, traverse up
+        if let container = location {
+            return container.findPlayer()
+        }
+
+        // Could not find player
+        return nil
     }
 }

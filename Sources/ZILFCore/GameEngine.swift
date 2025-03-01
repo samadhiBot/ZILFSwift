@@ -14,21 +14,14 @@ public class GameEngine {
     private var outputHandler: (String) -> Void
     private var lastCommand: Command?
 
+    // Public accessor for the current command (the last processed command)
+    public var currentCommand: Command? {
+        return lastCommand
+    }
+
     // Game over state tracking
     private var isGameOver = false
     private var gameOverMessage: String?
-
-    // Add public accessors for testing
-    public func getState<T>(forKey key: String) -> T? {
-        switch key {
-        case "isGameOver":
-            return isGameOver as? T
-        case "gameOverMessage":
-            return gameOverMessage as? T
-        default:
-            return nil
-        }
-    }
 
     // World creator function for game restarts
     private var worldCreator: (() -> GameWorld)?

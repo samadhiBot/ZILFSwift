@@ -177,4 +177,54 @@ struct DynamicMemberLookupTests {
         object.removeState(forKey: "role")
         #expect(object.role as String? == nil)
     }
+
+    @Test("Testing property existence checking with isSet")
+    func testPropertyExistenceChecking() {
+        let object = GameObject(name: "test object", description: "A test object for isSet testing")
+
+        // Initially, the property doesn't exist
+        #expect(object.score.isSet == false)
+        #expect(object.hasProperty("score") == false)
+
+        // Set the property
+        object.score = 100
+
+        // Now it should exist
+        #expect(object.score.isSet == true)
+        #expect(object.hasProperty("score") == true)
+
+        // Type doesn't matter for existence checking
+        #expect(object.score as Int? == 100)
+
+        // Remove the property
+        object.removeState(forKey: "score")
+
+        // Now it should not exist again
+        #expect(object.score.isSet == false)
+        #expect(object.hasProperty("score") == false)
+
+        // Compound example: only access a property if it exists
+        object.playerName = "Hero"
+
+        let displayName: String
+        if object.playerName.isSet {
+            displayName = (object.playerName as String?) ?? "Unknown"
+        } else {
+            displayName = "Unnamed Hero"
+        }
+
+        #expect(displayName == "Hero")
+
+        // Alternative using hasProperty
+        let otherObject = GameObject(name: "other", description: "Another test object")
+
+        let otherDisplayName: String
+        if otherObject.hasProperty("playerName") {
+            otherDisplayName = (otherObject.playerName as String?) ?? "Unknown"
+        } else {
+            otherDisplayName = "Unnamed Hero"
+        }
+
+        #expect(otherDisplayName == "Unnamed Hero")
+    }
 }
