@@ -58,7 +58,7 @@ public class GameEngine {
         while isRunning {
             if isGameOver {
                 // If game is over, only accept restart or quit commands
-                outputHandler("\n> ")
+                print("> ", terminator: "") // Use print directly with terminator to fix cursor position
                 guard let input = readLine()?.lowercased() else { continue }
 
                 switch input {
@@ -73,7 +73,7 @@ public class GameEngine {
                 continue
             }
 
-            outputHandler("\n> ")
+            print("> ", terminator: "") // Use print directly with terminator to fix cursor position
             guard let input = readLine() else { continue }
 
             if input.lowercased() == "help" {
@@ -821,7 +821,7 @@ public class GameEngine {
 
         // Handle the player's choice
         while isGameOver && isRunning {
-            outputHandler("\n> ")
+            print("> ", terminator: "") // Use print directly with terminator to fix cursor position
             guard let input = readLine()?.lowercased() else { continue }
 
             switch input {
