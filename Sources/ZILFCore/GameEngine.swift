@@ -14,14 +14,40 @@ public class GameEngine {
     private var outputHandler: (String) -> Void
     private var lastCommand: Command?
 
-    public init(world: GameWorld, outputHandler: @escaping (String) -> Void = { print($0) }) {
+    // Game over state tracking
+    private var isGameOver = false
+    private var gameOverMessage: String?
+
+    // Add public accessors for testing
+    public func getState<T>(forKey key: String) -> T? {
+        switch key {
+        case "isGameOver":
+            return isGameOver as? T
+        case "gameOverMessage":
+            return gameOverMessage as? T
+        default:
+            return nil
+        }
+    }
+
+    // World creator function for game restarts
+    private var worldCreator: (() -> GameWorld)?
+
+    public init(world: GameWorld, outputHandler: @escaping (String) -> Void = { print($0) }, worldCreator: (() -> GameWorld)? = nil) {
         self.world = world
         self.parser = CommandParser(world: world)
         self.outputHandler = outputHandler
+        self.worldCreator = worldCreator
+
+        // Register the engine in the player object for access
+        // Store it directly in the player which is accessible everywhere
+        world.player.setState(self, forKey: "engine")
     }
 
     public func start() {
         isRunning = true
+        isGameOver = false
+
         outputHandler("Welcome to the Hello World Adventure!")
         outputHandler("Type 'help' for a list of commands.\n")
 
@@ -30,6 +56,23 @@ public class GameEngine {
 
         // Main game loop
         while isRunning {
+            if isGameOver {
+                // If game is over, only accept restart or quit commands
+                outputHandler("\n> ")
+                guard let input = readLine()?.lowercased() else { continue }
+
+                switch input {
+                case "restart":
+                    handleRestart()
+                case "quit":
+                    handleQuit()
+                    break
+                default:
+                    outputHandler("Please type RESTART or QUIT.")
+                }
+                continue
+            }
+
             outputHandler("\n> ")
             guard let input = readLine() else { continue }
 
@@ -49,6 +92,11 @@ public class GameEngine {
     }
 
     public func executeCommand(_ command: Command) {
+        // Don't process commands if game is over
+        if isGameOver {
+            return
+        }
+
         // Store the command for potential "again" (g) command
         if getVerbForCommand(command) != "again" {
             lastCommand = command
@@ -746,9 +794,118 @@ public class GameEngine {
         }
     }
 
+    /// Handle the QUIT command
     private func handleQuit() {
         outputHandler("Thanks for playing!")
         isRunning = false
+    }
+
+    /// Handle Game Over - called when the game ends
+    /// - Parameters:
+    ///   - message: Message to display to the player
+    ///   - isVictory: Whether this is a victory (win) or defeat (lose)
+    public func gameOver(message: String, isVictory: Bool = false) {
+        if isGameOver {
+            return  // Don't trigger game over more than once
+        }
+
+        isGameOver = true
+        gameOverMessage = message
+
+        // Display the game over message with appropriate formatting
+        outputHandler("\n*** \(isVictory ? "VICTORY" : "GAME OVER") ***")
+        outputHandler(message)
+
+        // Prompt for restart or quit
+        outputHandler("\nWould you like to RESTART or QUIT?")
+
+        // Handle the player's choice
+        while isGameOver && isRunning {
+            outputHandler("\n> ")
+            guard let input = readLine()?.lowercased() else { continue }
+
+            switch input {
+            case "restart":
+                handleRestart()
+            case "quit":
+                handleQuit()
+            default:
+                outputHandler("Please type RESTART or QUIT.")
+            }
+        }
+    }
+
+    /// Handle restarting the game
+    private func handleRestart() {
+        isGameOver = false
+        gameOverMessage = nil
+
+        // Reset the game world
+        let newWorld = recreateWorld()
+        world = newWorld
+        parser = CommandParser(world: world)
+
+        outputHandler("\n--- Game Restarted ---\n")
+
+        // Start with a look at the current room
+        executeCommand(.look)
+    }
+
+    /// Recreate the game world for restart
+    /// - Returns: A fresh game world, or nil if creation fails
+    private func recreateWorld() -> GameWorld {
+        if let worldCreator = worldCreator {
+            let freshWorld = worldCreator()
+
+            // Register the engine in the new world's player
+            freshWorld.player.setState(self, forKey: "engine")
+
+            return freshWorld
+        } else {
+            // Fall back to a simple new world if no creator function was provided
+            let freshWorld = GameWorld(player: Player(startingRoom: Room(name: "Default", description: "Default room")))
+
+            // Register the engine in the new world's player
+            freshWorld.player.setState(self, forKey: "engine")
+
+            return freshWorld
+        }
+    }
+
+    /// Execute the game loop - an alternative to start() that doesn't block
+    /// - Parameter input: The command input string
+    /// - Returns: True if the game is still running, false if it ended
+    public func executeGameLoop(input: String) -> Bool {
+        if !isRunning || isGameOver {
+            return false
+        }
+
+        if input.lowercased() == "help" {
+            printHelp()
+        } else {
+            let command = parser.parse(input)
+            executeCommand(command)
+
+            // Check for game over after command execution
+            if isGameOver {
+                return false
+            }
+
+            // Advance time after each command (except game verbs)
+            if !isGameVerb(getVerbForCommand(command)) {
+                advanceTime()
+            }
+        }
+
+        return isRunning && !isGameOver
+    }
+
+    /// Check if a character is in a dangerous situation that could lead to death
+    /// - Returns: True if the player is in danger
+    public func isPlayerInDanger() -> Bool {
+        // Game-specific logic to determine if player is in danger
+        // Example: Checking if player is in a room with an enemy or hazard
+        return false
     }
 
     // Helper function to check if an object is visible to the player
@@ -847,6 +1004,18 @@ public class GameEngine {
 
         // Update last mentioned object
         world.lastMentionedObject = obj
+    }
+
+    /// Kill the player, triggering game over
+    /// - Parameter message: The death message to display
+    public func playerDied(message: String) {
+        gameOver(message: message, isVictory: false)
+    }
+
+    /// Player has won the game
+    /// - Parameter message: The victory message to display
+    public func playerWon(message: String) {
+        gameOver(message: message, isVictory: true)
     }
 }
 

@@ -223,4 +223,90 @@ public extension Room {
         )
         setSpecialExit(direction: direction, specialExit: specialExit, world: world)
     }
+
+    /// Create a deadly exit that triggers game over when used
+    /// - Parameters:
+    ///   - direction: The direction of the exit
+    ///   - deathMessage: The message to display when the player uses this exit
+    ///   - world: The game world
+    ///   - condition: Optional condition that must be true for the exit to be deadly
+    func setDeadlyExit(
+        direction: Direction,
+        deathMessage: String,
+        world: GameWorld,
+        condition: ((Room) -> Bool)? = nil
+    ) {
+        // Create a special exit action
+        let exitAction: (GameWorld?) -> Void = { world in
+            // Check the condition if provided
+            if let condition = condition, !condition(self) {
+                // If condition is false, it's not deadly right now
+                return
+            }
+
+            // Get the game engine from the player
+            if let world = world,
+               let engine: GameEngine = world.player.getState(forKey: "engine") {
+                // Trigger game over
+                engine.playerDied(message: deathMessage)
+            } else {
+                // If no engine is available, just show the message
+                print(deathMessage)
+            }
+        }
+
+        // Create a room that doesn't matter (player will never reach it)
+        let dummyRoom = Room(name: "Game Over", description: "Game over room")
+
+        // Create a special exit instance
+        let specialExit = SpecialExit(
+            destination: dummyRoom,
+            world: world,
+            onTraverse: exitAction
+        )
+        setSpecialExit(direction: direction, specialExit: specialExit, world: world)
+    }
+
+    /// Create a victory exit that triggers game win when used
+    /// - Parameters:
+    ///   - direction: The direction of the exit
+    ///   - victoryMessage: The victory message to display
+    ///   - world: The game world
+    ///   - condition: Optional condition that must be true for the exit to trigger victory
+    func setVictoryExit(
+        direction: Direction,
+        victoryMessage: String,
+        world: GameWorld,
+        condition: ((Room) -> Bool)? = nil
+    ) {
+        // Create a special exit action
+        let exitAction: (GameWorld?) -> Void = { world in
+            // Check the condition if provided
+            if let condition = condition, !condition(self) {
+                // If condition is false, it's not a victory yet
+                return
+            }
+
+            // Get the game engine from the player
+            if let world = world,
+               let engine: GameEngine = world.player.getState(forKey: "engine") {
+                // Trigger victory
+                engine.playerWon(message: victoryMessage)
+            } else {
+                // If no engine is available, just show the message
+                print(victoryMessage)
+            }
+        }
+
+        // Create a room that doesn't matter (player will never reach it)
+        let dummyRoom = Room(name: "Victory", description: "Victory room")
+
+        // Create a special exit instance
+        let specialExit = SpecialExit(
+            destination: dummyRoom,
+            world: world,
+            onTraverse: exitAction
+        )
+        setSpecialExit(direction: direction, specialExit: specialExit, world: world)
+    }
 }

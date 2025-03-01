@@ -154,6 +154,35 @@ struct HelloWorldGame {
             message: "You slide down a smooth stone chute and land back in the main cavern!"
         )
 
+        // Add a dangerous pit with a deadly exit
+        let pitRoom = Room(name: "Unstable Ledge", description: "You stand at the edge of a crumbling ledge above a bottomless pit. The ground feels very unstable.")
+        pitRoom.makeNaturallyLit()
+
+        // Connect the pit room
+        treasureRoom.setExit(direction: .south, room: pitRoom)
+        pitRoom.setExit(direction: .north, room: treasureRoom)
+
+        // Add the deadly pit exit
+        pitRoom.setDeadlyExit(
+            direction: .down,
+            deathMessage: "You step forward and the ledge gives way beneath you. You fall into darkness, tumbling endlessly into the abyss...",
+            world: world
+        )
+
+        // Add a victory exit that requires the golden amulet
+        mainCavern.setVictoryExit(
+            direction: .west,
+            victoryMessage: "As you move west with the golden amulet in your possession, it begins to glow brightly. The cave wall shimmers and dissolves, revealing a hidden passage. You step through and find yourself in a magical realm beyond the cave. Congratulations, you've completed the adventure!",
+            world: world,
+            condition: { room in
+                // Check if the player has the golden amulet
+                return world.player.contents.contains { $0.name == "golden amulet" }
+            }
+        )
+
+        // Register the new room
+        world.registerRoom(pitRoom)
+
         return world
     }
 }

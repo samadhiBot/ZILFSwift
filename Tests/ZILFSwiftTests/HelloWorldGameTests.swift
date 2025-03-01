@@ -16,7 +16,7 @@ struct HelloWorldGameTests {
 
         // Verify world properties
         #expect(world.player.currentRoom?.name == "Entrance")
-        #expect(world.rooms.count == 5)  // Updated to include Secret Chamber and Ancient Vault
+        #expect(world.rooms.count == 6)  // Updated to include Unstable Ledge/pit room
 
         // Find rooms
         let entrance = world.rooms.first { $0.name == "Entrance" }
@@ -24,12 +24,14 @@ struct HelloWorldGameTests {
         let treasureRoom = world.rooms.first { $0.name == "Treasure Room" }
         let secretRoom = world.rooms.first { $0.name == "Secret Chamber" }
         let vaultRoom = world.rooms.first { $0.name == "Ancient Vault" }
+        let pitRoom = world.rooms.first { $0.name == "Unstable Ledge" }
 
         #expect(entrance != nil)
         #expect(mainCavern != nil)
         #expect(treasureRoom != nil)
         #expect(secretRoom != nil)
         #expect(vaultRoom != nil)
+        #expect(pitRoom != nil)
 
         // Verify standard room connections
         #expect(entrance?.getExit(direction: .north) === mainCavern)
