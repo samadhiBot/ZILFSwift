@@ -1,9 +1,4 @@
-//
-//  RoomActionPriorities.swift
-//  ZILFSwift
-//
-//  Created by Chris Sessions on 6/1/25.
-//
+import Foundation
 
 /// Room Action Priorities
 ///
@@ -38,14 +33,12 @@
 /// })
 /// ```
 
-import Foundation
-
 // MARK: - Room Action Priority Configuration
 
 /// Extended room action functionality with priority support
-public extension Room {
+extension Room {
     /// Priority level for room actions
-    enum ActionPriority: Int, Comparable {
+    public enum ActionPriority: Int, Comparable {
         /// Lowest priority, runs after everything else
         case low = 0
         /// Standard priority, runs in the middle
@@ -61,7 +54,7 @@ public extension Room {
     }
 
     /// An action with associated priority
-    struct PrioritizedAction {
+    public struct PrioritizedAction {
         let priority: ActionPriority
         let action: (Room) -> Bool
 
@@ -76,7 +69,7 @@ public extension Room {
     }
 
     /// A prioritized command action
-    struct PrioritizedCommandAction {
+    public struct PrioritizedCommandAction {
         let priority: ActionPriority
         let action: (Room, Command) -> Bool
 
@@ -124,7 +117,7 @@ public extension Room {
     /// This action will be executed when a player enters the room.
     /// Actions are executed in order of priority (highest first). If an action returns true,
     /// no further actions will be executed.
-    func addEnterAction(_ action: PrioritizedAction) {
+    public func addEnterAction(_ action: PrioritizedAction) {
         var actions = enterActions
         actions.append(action)
         enterActions = actions
@@ -142,7 +135,7 @@ public extension Room {
     /// This action will be executed at the end of each turn while the player is in the room.
     /// Actions are executed in order of priority (highest first). If an action returns true,
     /// no further actions will be executed.
-    func addEndTurnAction(_ action: PrioritizedAction) {
+    public func addEndTurnAction(_ action: PrioritizedAction) {
         var actions = endTurnActions
         actions.append(action)
         endTurnActions = actions
@@ -160,7 +153,7 @@ public extension Room {
     /// This action will be executed at the beginning of each turn before any command processing.
     /// Actions are executed in order of priority (highest first). If an action returns true,
     /// no further actions will be executed.
-    func addBeginTurnAction(_ action: PrioritizedAction) {
+    public func addBeginTurnAction(_ action: PrioritizedAction) {
         var actions = beginTurnActions
         actions.append(action)
         beginTurnActions = actions
@@ -178,7 +171,7 @@ public extension Room {
     /// This action will be executed when a command is being processed while the player is in the room.
     /// Actions are executed in order of priority (highest first). If an action returns true,
     /// no further actions will be executed and the command is considered handled.
-    func addCommandAction(_ action: PrioritizedCommandAction) {
+    public func addCommandAction(_ action: PrioritizedCommandAction) {
         var actions = commandActions
         actions.append(action)
         commandActions = actions
@@ -186,7 +179,8 @@ public extension Room {
         // Set up the main command action to execute our prioritized actions
         beginCommandAction = { [weak self] room, command in
             guard let self = self else { return false }
-            return self.executeCommandActionsByPriority(self.commandActions, for: room, command: command)
+            return self.executeCommandActionsByPriority(
+                self.commandActions, for: room, command: command)
         }
     }
 
@@ -219,7 +213,9 @@ public extension Room {
     ///   - room: The room to pass to the actions
     ///   - command: The command to process
     /// - Returns: True if any action handled the command
-    private func executeCommandActionsByPriority(_ actions: [PrioritizedCommandAction], for room: Room, command: Command) -> Bool {
+    private func executeCommandActionsByPriority(
+        _ actions: [PrioritizedCommandAction], for room: Room, command: Command
+    ) -> Bool {
         guard !actions.isEmpty else { return false }
 
         // Sort by priority (highest first)
