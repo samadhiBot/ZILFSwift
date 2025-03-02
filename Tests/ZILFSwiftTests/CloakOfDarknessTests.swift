@@ -144,7 +144,7 @@ import ZILFTestSupport
         #expect(!outputHandler.output.contains("You lose"))
 
         // The game should be over
-        let isGameOver: Bool? = engine.getState(forKey: "isGameOver")
+        let isGameOver: Bool? = engine.isGameOver
         print("DEBUG: isGameOver? \(String(describing: isGameOver))")
         #expect(isGameOver == true)
         #expect(outputHandler.output.contains("You win"))
@@ -201,7 +201,7 @@ import ZILFTestSupport
         #expect(!outputHandler.output.contains("You win"))
 
         // The game should be over
-        let isGameOver: Bool? = engine.getState(forKey: "isGameOver")
+        let isGameOver: Bool? = engine.isGameOver
         #expect(isGameOver == true)
         #expect(outputHandler.output.contains("You lose"))
     }

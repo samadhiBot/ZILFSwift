@@ -35,14 +35,14 @@ import ZILFTestSupport
         let engine = GameEngine(world: world, outputHandler: outputHandler.handler)
 
         // Verify game is not over at start
-        let isGameOver: Bool? = engine.getState(forKey: "isGameOver")
+        let isGameOver: Bool? = engine.isGameOver
         #expect(isGameOver == nil || isGameOver == false)
 
         // Trigger player death
         engine.playerDied(message: "You have died!")
 
         // Verify game over state
-        let isGameOverAfter: Bool? = engine.getState(forKey: "isGameOver")
+        let isGameOverAfter: Bool? = engine.isGameOver
         #expect(isGameOverAfter == true)
 
         // Check output
@@ -65,14 +65,14 @@ import ZILFTestSupport
         let engine = GameEngine(world: world, outputHandler: outputHandler.handler)
 
         // Verify game is not over at start
-        let isGameOver: Bool? = engine.getState(forKey: "isGameOver")
+        let isGameOver: Bool? = engine.isGameOver
         #expect(isGameOver == nil || isGameOver == false)
 
         // Trigger player victory
         engine.playerWon(message: "Congratulations! You've won the game!")
 
         // Verify game over state
-        let isGameOverAfter: Bool? = engine.getState(forKey: "isGameOver")
+        let isGameOverAfter: Bool? = engine.isGameOver
         #expect(isGameOverAfter == true)
 
         // Check output

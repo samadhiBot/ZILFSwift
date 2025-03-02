@@ -1,37 +1,37 @@
-//
-//  Player.swift
-//  ZILFSwift
-//
-//  Created by Chris Sessions on 3/1/25.
-//
+import Foundation
 
-// Player representation
+/// Represents the player character in the game world.
+///
+/// The `Player` class extends `GameObject` and provides functionality specific
+/// to the player character, including movement between rooms and tracking the
+/// player's current location.
 public class Player: GameObject {
-    // Direct properties for critical components
-    // Using implicitly unwrapped optional for engine which is set after initialization
+    /// The current room the player is located in.
+    public var currentRoom: Room? {
+        return location as? Room
+    }
+
+    /// The game engine instance managing this player.
     public private(set) var engine: GameEngine!
+
+    /// The game world instance containing this player.
     public private(set) var world: GameWorld!
 
+    /// Creates a new player instance starting in the specified room.
+    /// - Parameter startingRoom: The room where the player begins the game.
     public init(startingRoom: Room) {
         super.init(name: "player", description: "As good-looking as ever.")
         self.location = startingRoom
         startingRoom.contents.append(self)
     }
 
-    // Called by GameWorld during initialization
-    internal func setWorld(_ world: GameWorld) {
-        self.world = world
-    }
-
-    // Called by GameEngine during initialization
-    internal func setEngine(_ engine: GameEngine) {
-        self.engine = engine
-    }
-
-    public var currentRoom: Room? {
-        return location as? Room
-    }
-
+    /// Attempts to move the player in the specified direction.
+    ///
+    /// This method handles both standard exits and special exits with conditions.
+    /// It will also trigger any entry actions for the destination room.
+    ///
+    /// - Parameter direction: The direction to move in.
+    /// - Returns: `true` if the movement was successful, `false` otherwise.
     public func move(direction: Direction) -> Bool {
         guard let currentRoom = self.currentRoom else {
             return false
@@ -92,5 +92,17 @@ public class Player: GameObject {
         newRoom.executeEnterAction()
 
         return true
+    }
+
+    /// Sets the game engine for this player.
+    /// - Parameter engine: The game engine to associate with this player.
+    internal func setEngine(_ engine: GameEngine) {
+        self.engine = engine
+    }
+
+    /// Sets the game world for this player.
+    /// - Parameter world: The game world to associate with this player.
+    internal func setWorld(_ world: GameWorld) {
+        self.world = world
     }
 }

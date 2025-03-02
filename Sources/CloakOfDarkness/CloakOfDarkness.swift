@@ -1,7 +1,57 @@
 import Foundation
 import ZILFCore
 
+// MARK: - Command Verbs
+
+extension String {
+    /// Examine an object to get more information about it.
+    public static let examine = "examine"
+
+    /// Consume an edible object.
+    public static let eat = "eat"
+
+    /// Toggle a switch or device.
+    public static let flip = "flip"
+
+    /// Place an object on something.
+    public static let putOn = "put-on"
+
+    /// Read the text of an object.
+    public static let read = "read"
+
+    /// Consider or contemplate an object or concept.
+    public static let thinkAbout = "think-about"
+
+    /// Activate a device.
+    public static let turnOn = "turn-on"
+
+    /// Deactivate a device.
+    public static let turnOff = "turn-off"
+}
+
+// MARK: - Directions
+
+extension String {
+    /// Direction to move northward.
+    public static let north = "north"
+
+    /// Direction to move eastward.
+    public static let east = "east"
+
+    /// Direction to move southward.
+    public static let south = "south"
+
+    /// Direction to move westward.
+    public static let west = "west"
+}
+
 // MARK: - Command Handler Functions
+
+/// Handles commands directed at the apple object.
+/// - Parameters:
+///   - obj: The apple game object.
+///   - command: The player's command.
+/// - Returns: `true` if the command was handled, `false` otherwise.
 private func handleAppleCommands(_ obj: GameObject, _ command: Command) -> Bool {
     if case .examine = command {
         print("A bright red apple. It looks delicious.")
@@ -19,6 +69,11 @@ private func handleAppleCommands(_ obj: GameObject, _ command: Command) -> Bool 
     return false
 }
 
+/// Handles commands directed at the message object.
+/// - Parameters:
+///   - obj: The message game object.
+///   - command: The player's command.
+/// - Returns: `true` if the command was handled, `false` otherwise.
 private func handleMessageCommands(_ obj: GameObject, _ command: Command) -> Bool {
     if case .examine = command {
         let room = obj.location as? Room
@@ -42,30 +97,20 @@ private func handleMessageCommands(_ obj: GameObject, _ command: Command) -> Boo
     return false
 }
 
-// MARK: - Command Verbs
-public extension String {
-    static let examine = "examine"
-    static let eat = "eat"
-    static let read = "read"
-    static let thinkAbout = "think-about"
-    static let putOn = "put-on"
-    static let turnOn = "turn-on"
-    static let turnOff = "turn-off"
-    static let flip = "flip"
-}
-
-// MARK: - Directions
-public extension String {
-    static let north = "north"
-    static let south = "south"
-    static let east = "east"
-    static let west = "west"
-}
+// MARK: - Cloak of Darkness Game Implementation
 
 /// Implementation of the classic "Cloak of Darkness" demo game.
-/// Converted from the ZIL implementation to Swift using ZILFCore.
+///
+/// This is a Swift implementation of the classic interactive fiction demo
+/// originally designed by Roger Firth. It demonstrates a simple but complete
+/// text adventure game using the ZILFCore engine.
 public enum CloakOfDarkness {
-    /// Creates and returns the game world with all rooms, objects, and game logic
+
+    /// Creates and initializes the complete game world.
+    ///
+    /// This method sets up all rooms, objects, and connections for the Cloak of Darkness game.
+    ///
+    /// - Returns: A fully configured game world ready to be played.
     public static func create() -> GameWorld {
         // Create the rooms
         let foyer = createFoyer()
@@ -108,47 +153,22 @@ public enum CloakOfDarkness {
         closet.exits[.south] = study
 
         // Create objects and populate the world
-        createObjects(world: world, foyer: foyer, bar: bar, cloakroom: cloakroom,
-                     hallToStudy: hallToStudy, study: study, closet: closet)
+        createObjects(
+            world: world, foyer: foyer, bar: bar, cloakroom: cloakroom,
+            hallToStudy: hallToStudy, study: study, closet: closet)
 
         return world
     }
 
-    // MARK: - Room Creation
+    // MARK: - Room Creation Methods
 
-    private static func createFoyer() -> Room {
-        let foyer = Room(
-            name: "Foyer of the Opera House",
-            description: "You are standing in a spacious hall, splendidly decorated in red and gold, with glittering chandeliers overhead. The entrance from the street is to the north, and there are doorways south and west."
-        )
-
-        foyer.setFlag(.naturallyLit)
-
-        // Foyer end-turn action
-        foyer.endTurnAction = { (room: Room) -> Bool in
-            // For the end-turn action, we'll check for the named events
-            // Access the world directly rather than through the player
-            if let world = room.gameWorld {
-                // Return true if any of these events are in progress
-                if world.isEventScheduled(named: "I-APPLE-FUN") {
-                    print("The Foyer routine detects that the Apple event will run this turn!")
-                    return true
-                }
-                if world.isEventScheduled(named: "I-TABLE-FUN") {
-                    print("The Foyer routine detects that the Table event will run this turn!")
-                    return true
-                }
-            }
-            return false
-        }
-
-        return foyer
-    }
-
+    /// Creates and configures the bar room.
+    /// - Returns: A configured bar room.
     private static func createBar() -> Room {
         let bar = Room(
             name: "Foyer Bar",
-            description: "The bar, much rougher than you'd have guessed after the opulence of the foyer to the north, is completely empty."
+            description:
+                "The bar, much rougher than you'd have guessed after the opulence of the foyer to the north, is completely empty."
         )
 
         // Bar enter action - handle lighting based on cloak
@@ -209,8 +229,7 @@ public enum CloakOfDarkness {
                 print("You grope around clumsily in the dark. Better be careful.")
 
                 // Update disturbed counter
-                let disturbed: Int = room.disturbed ?? 0
-                room?.disturbed = disturbed + 1
+                room.disturbed = (room.disturbed ?? 0) + 1
 
                 return true
             }
@@ -220,7 +239,9 @@ public enum CloakOfDarkness {
         // Override look handler for bar to make the description match test expectations
         bar.lookHandler = { (room: Room) -> Bool in
             if room.hasFlag(.lit) {
-                print("The bar, much rougher than you'd have guessed after the opulence of the foyer to the north, is completely empty. You can see a message scrawled in the sawdust on the floor.")
+                print(
+                    "The bar, much rougher than you'd have guessed after the opulence of the foyer to the north, is completely empty. You can see a message scrawled in the sawdust on the floor."
+                )
                 return true
             } else {
                 print("It's too dark to see.")
@@ -234,10 +255,41 @@ public enum CloakOfDarkness {
         return bar
     }
 
+    /// Creates and configures the closet room.
+    /// - Returns: A configured closet room.
+    private static func createCloset() -> Room {
+        let closet = Room(
+            name: "Closet",
+            description: "A cramped excuse of a closet."
+        )
+
+        // Closet enter action - update lighting based on switch
+        closet.enterAction = { (room: Room) -> Bool in
+            // Access the game world directly
+            let world = room.gameWorld
+
+            if let study = world?.rooms.first(where: { $0.name == "Study" }),
+                let lightSwitch = study.contents.first(where: { $0.name == "light switch" })
+            {
+                if lightSwitch.hasFlag(.onBit) {
+                    room.setFlag(.lit)
+                } else {
+                    room.clearFlag(.lit)
+                }
+            }
+            return false
+        }
+
+        return closet
+    }
+
+    /// Creates and configures the cloakroom.
+    /// - Returns: A configured cloakroom.
     private static func createCloakroom() -> Room {
         let cloakroom = Room(
             name: "Cloakroom",
-            description: "The walls of this small room were clearly once lined with hooks, though now only one remains. The exit is a door to the east, but there is also a cramped opening to the west."
+            description:
+                "The walls of this small room were clearly once lined with hooks, though now only one remains. The exit is a door to the east, but there is also a cramped opening to the west."
         )
         cloakroom.setFlag(.naturallyLit)
 
@@ -259,7 +311,9 @@ public enum CloakOfDarkness {
                 let world = room.gameWorld
 
                 // Try to find the hallway
-                if let world = world, let hallToStudy = world.rooms.first(where: { $0.name == "Hallway to Study" }) {
+                if let world = world,
+                    let hallToStudy = world.rooms.first(where: { $0.name == "Hallway to Study" })
+                {
                     if let player = player, let currentRoom = player.currentRoom {
                         // Remove from current room
                         if let index = currentRoom.contents.firstIndex(where: { $0 === player }) {
@@ -286,10 +340,45 @@ public enum CloakOfDarkness {
         return cloakroom
     }
 
+    /// Creates and configures the main foyer.
+    /// - Returns: A configured foyer room.
+    private static func createFoyer() -> Room {
+        let foyer = Room(
+            name: "Foyer of the Opera House",
+            description:
+                "You are standing in a spacious hall, splendidly decorated in red and gold, with glittering chandeliers overhead. The entrance from the street is to the north, and there are doorways south and west."
+        )
+
+        foyer.setFlag(.naturallyLit)
+
+        // Foyer end-turn action
+        foyer.endTurnAction = { (room: Room) -> Bool in
+            // For the end-turn action, we'll check for the named events
+            // Access the world directly rather than through the player
+            if let world = room.gameWorld {
+                // Return true if any of these events are in progress
+                if world.isEventScheduled(named: "I-APPLE-FUN") {
+                    print("The Foyer routine detects that the Apple event will run this turn!")
+                    return true
+                }
+                if world.isEventScheduled(named: "I-TABLE-FUN") {
+                    print("The Foyer routine detects that the Table event will run this turn!")
+                    return true
+                }
+            }
+            return false
+        }
+
+        return foyer
+    }
+
+    /// Creates and configures the hallway to the study.
+    /// - Returns: A configured hallway room.
     private static func createHallToStudy() -> Room {
         let hallToStudy = Room(
             name: "Hallway to Study",
-            description: "The hallway leads to a Study to the west, and back to the Cloakroom to the east."
+            description:
+                "The hallway leads to a Study to the west, and back to the Cloakroom to the east."
         )
         hallToStudy.setFlag(.naturallyLit)
 
@@ -308,10 +397,13 @@ public enum CloakOfDarkness {
         return hallToStudy
     }
 
+    /// Creates and configures the study room.
+    /// - Returns: A configured study room.
     private static func createStudy() -> Room {
         let study = Room(
             name: "Study",
-            description: "A small room with a worn stand in the middle. A hallway lies east of here, a closet off to the west."
+            description:
+                "A small room with a worn stand in the middle. A hallway lies east of here, a closet off to the west."
         )
         study.setFlag(.naturallyLit)
 
@@ -331,35 +423,21 @@ public enum CloakOfDarkness {
         return study
     }
 
-    private static func createCloset() -> Room {
-        let closet = Room(
-            name: "Closet",
-            description: "A cramped excuse of a closet."
-        )
+    // MARK: - Object Creation Methods
 
-        // Closet enter action - update lighting based on switch
-        closet.enterAction = { (room: Room) -> Bool in
-            // Access the game world directly
-            let world = room.gameWorld
-
-            if let study = world?.rooms.first(where: { $0.name == "Study" }),
-               let lightSwitch = study.contents.first(where: { $0.name == "light switch" }) {
-                if lightSwitch.hasFlag(.onBit) {
-                    room.setFlag(.lit)
-                } else {
-                    room.clearFlag(.lit)
-                }
-            }
-            return false
-        }
-
-        return closet
-    }
-
-    // MARK: - Object Creation
-
-    private static func createObjects(world: GameWorld, foyer: Room, bar: Room, cloakroom: Room,
-                                     hallToStudy: Room, study: Room, closet: Room) {
+    /// Creates all game objects and places them in the appropriate locations.
+    /// - Parameters:
+    ///   - world: The game world.
+    ///   - foyer: The foyer room.
+    ///   - bar: The bar room.
+    ///   - cloakroom: The cloakroom.
+    ///   - hallToStudy: The hallway to study.
+    ///   - study: The study room.
+    ///   - closet: The closet room.
+    private static func createObjects(
+        world: GameWorld, foyer: Room, bar: Room, cloakroom: Room,
+        hallToStudy: Room, study: Room, closet: Room
+    ) {
         // Create player inventory
         createPlayerInventory(world: world)
 
@@ -375,48 +453,16 @@ public enum CloakOfDarkness {
         createGlobalObjects(world: world)
     }
 
-    private static func createFoyerObjects(world: GameWorld, foyer: Room) {
-        // Create an apple in the foyer
-        let apple = GameObject(name: "apple", description: "A shiny red apple.")
-        apple.location = foyer
-        apple.setFlag(.takeBit)
-        apple.setFlag(.edibleBit)
-
-        apple.setExamineHandler { obj in
-            print("The apple is red and looks delicious.")
-            return true
-        }
-
-        apple.setCustomCommandHandler(verb: "eat") { obj, objects in
-            print("You eat the apple. It's delicious!")
-            // Remove the apple from the game world
-            if let location = obj.location {
-                if let index = location.contents.firstIndex(where: { $0 === obj }) {
-                    location.contents.remove(at: index)
-                }
-            }
-            return true
-        }
-
-        world.registerObject(apple)
-
-        // Create some grime in the foyer
-        let grime = GameObject(name: "grime", description: "Years of dirt and grime cover the floor.")
-        grime.location = foyer
-
-        grime.setExamineHandler { obj in
-            print("The floor is covered in years of accumulated dirt and grime.")
-            return true
-        }
-
-        world.registerObject(grime)
-    }
-
+    /// Creates objects for the bar room.
+    /// - Parameters:
+    ///   - world: The game world.
+    ///   - bar: The bar room.
     private static func createBarObjects(world: GameWorld, bar: Room) {
         // Message
         let message = GameObject(name: "message", description: "A message scrawled in the sawdust.")
         message.location = bar
-        message.firstDescription = "There seems to be some sort of message scrawled in the sawdust on the floor."
+        message.firstDescription =
+            "There seems to be some sort of message scrawled in the sawdust on the floor."
         world.registerObject(message)
 
         // Store the world directly in the message for closure access
@@ -451,9 +497,49 @@ public enum CloakOfDarkness {
         }
     }
 
+    /// Creates objects for the closet room.
+    /// - Parameters:
+    ///   - world: The game world.
+    ///   - closet: The closet room.
+    private static func createClosetObjects(world: GameWorld, closet: Room) {
+        // Create a broom in the closet
+        let broom = GameObject(
+            name: "broom", description: "An old wooden broom with straw bristles.")
+        broom.location = closet
+        broom.setFlag(.takeBit)
+
+        broom.setExamineHandler { obj in
+            print(
+                "An old wooden broom with straw bristles. It looks like it hasn't been used in years."
+            )
+            return true
+        }
+
+        world.registerObject(broom)
+
+        // Create a dusty shelf
+        let shelf = GameObject(
+            name: "shelf", description: "A dusty wooden shelf attached to the wall.")
+        shelf.location = closet
+        shelf.setFlag(.contBit)
+        shelf.setFlag(.surfaceBit)
+
+        shelf.setExamineHandler { obj in
+            print("A dusty wooden shelf attached to the wall.")
+            return true
+        }
+
+        world.registerObject(shelf)
+    }
+
+    /// Creates objects for the cloakroom.
+    /// - Parameters:
+    ///   - world: The game world.
+    ///   - cloakroom: The cloakroom.
     private static func createCloakroomObjects(world: GameWorld, cloakroom: Room) {
         // Hook
-        let hook = GameObject(name: "small brass hook", description: "A small brass hook is on the wall.")
+        let hook = GameObject(
+            name: "small brass hook", description: "A small brass hook is on the wall.")
         hook.location = cloakroom
         hook.setFlag(.contBit)
         hook.setFlag(.surfaceBit)
@@ -463,16 +549,110 @@ public enum CloakOfDarkness {
             print("Test: Normal examine replaced by a dequeue of the Table event.")
             // Access the world directly rather than through the player
             if let room = obj.location as? Room,
-               let world = room.gameWorld {
+                let world = room.gameWorld
+            {
                 _ = world.dequeueEvent(named: "I-TABLE-FUN")
             }
             return true
         }
     }
 
+    /// Creates objects for the foyer room.
+    /// - Parameters:
+    ///   - world: The game world.
+    ///   - foyer: The foyer room.
+    private static func createFoyerObjects(world: GameWorld, foyer: Room) {
+        // Create an apple in the foyer
+        let apple = GameObject(name: "apple", description: "A shiny red apple.")
+        apple.location = foyer
+        apple.setFlag(.takeBit)
+        apple.setFlag(.edibleBit)
+
+        apple.setExamineHandler { obj in
+            print("The apple is red and looks delicious.")
+            return true
+        }
+
+        apple.setCustomCommandHandler(verb: "eat") { obj, objects in
+            print("You eat the apple. It's delicious!")
+            // Remove the apple from the game world
+            if let location = obj.location {
+                if let index = location.contents.firstIndex(where: { $0 === obj }) {
+                    location.contents.remove(at: index)
+                }
+            }
+            return true
+        }
+
+        world.registerObject(apple)
+
+        // Create some grime in the foyer
+        let grime = GameObject(
+            name: "grime", description: "Years of dirt and grime cover the floor.")
+        grime.location = foyer
+
+        grime.setExamineHandler { obj in
+            print("The floor is covered in years of accumulated dirt and grime.")
+            return true
+        }
+
+        world.registerObject(grime)
+    }
+
+    /// Creates global objects available throughout the game.
+    /// - Parameter world: The game world.
+    private static func createGlobalObjects(world: GameWorld) {
+        // Ceiling (global object)
+        let ceiling = GameObject(
+            name: "ceiling", description: "Nothing really noticeable about the ceiling.")
+        world.globalObjects.append(ceiling)
+
+        ceiling.setExamineHandler { obj in
+            print("Nothing really noticeable about the ceiling.")
+            return true
+        }
+
+        // Darkness (global object)
+        let darkness = GameObject(name: "darkness", description: "It's too dark to see anything.")
+        darkness.setFlag(.nArticleBit)
+        world.globalObjects.append(darkness)
+
+        darkness.setCustomCommandHandler(verb: "think-about") { obj, objects in
+            if objects.contains(where: { $0 === obj }) {
+                print("Light, darkness. Your favorite cloak has something to do with them, yes?")
+                return true
+            }
+            return false
+        }
+
+        // Rug (local global object)
+        let rug = GameObject(name: "rug", description: "A tatty old rug.")
+
+        rug.setCustomCommandHandler(verb: "put-on") { obj, objects in
+            if objects.contains(where: { $0 === obj }) {
+                print("You don't want to place anything on that tatty rug.")
+                return true
+            }
+            return false
+        }
+
+        if let foyer = world.rooms.first(where: { $0.name == "Foyer of the Opera House" }),
+            let bar = world.rooms.first(where: { $0.name == "Foyer Bar" })
+        {
+            foyer.addLocalGlobal(rug)
+            bar.addLocalGlobal(rug)
+        }
+        world.registerObject(rug)
+    }
+
+    /// Creates objects for the hallway to study.
+    /// - Parameters:
+    ///   - world: The game world.
+    ///   - hallToStudy: The hallway to study.
     private static func createHallwayObjects(world: GameWorld, hallToStudy: Room) {
         // Sign
-        let sign = GameObject(name: "sign", description: "It's a block of grey wood bearing hastily-painted words.")
+        let sign = GameObject(
+            name: "sign", description: "It's a block of grey wood bearing hastily-painted words.")
         sign.location = hallToStudy
         sign.setFlag(.readBit)
         sign.firstDescription = "A crude wooden sign hangs above the western exit."
@@ -480,6 +660,30 @@ public enum CloakOfDarkness {
         world.registerObject(sign)
     }
 
+    /// Creates the player's initial inventory.
+    /// - Parameter world: The game world.
+    private static func createPlayerInventory(world: GameWorld) {
+        // Cloak
+        let cloak = GameObject(name: "cloak", description: "The cloak is unnaturally dark.")
+        // We need to explicitly add it to the player's contents
+        world.player.contents.append(cloak)
+        // Then set the location afterwards
+        cloak.location = world.player
+        cloak.setFlag(.takeBit)
+        cloak.setFlag(.wearBit)
+        cloak.setFlag(.wornBit)
+        world.registerObject(cloak)
+
+        cloak.setExamineHandler { obj in
+            print("The cloak is unnaturally dark.")
+            return true
+        }
+    }
+
+    /// Creates objects for the study room.
+    /// - Parameters:
+    ///   - world: The game world.
+    ///   - study: The study room.
     private static func createStudyObjects(world: GameWorld, study: Room) {
         // Light switch
         let lightSwitch = GameObject(name: "light switch", description: "An ordinary light switch.")
@@ -488,7 +692,9 @@ public enum CloakOfDarkness {
         world.registerObject(lightSwitch)
 
         lightSwitch.setExamineHandler { obj in
-            print("An ordinary light switch set in the wall to the left of the entrance to the closet. It is currently ", terminator: "")
+            print(
+                "An ordinary light switch set in the wall to the left of the entrance to the closet. It is currently ",
+                terminator: "")
             if obj.hasFlag(.onBit) {
                 print("on.")
             } else {
@@ -503,9 +709,10 @@ public enum CloakOfDarkness {
 
                 // Find the player using the findPlayer helper
                 if let room = obj.location as? Room,
-                   let player = room.findPlayer(),
-                   let currentRoom = player.currentRoom,
-                   currentRoom.name == "Closet" {
+                    let player = room.findPlayer(),
+                    let currentRoom = player.currentRoom,
+                    currentRoom.name == "Closet"
+                {
                     currentRoom.setFlag(.lit)
                     print("The closet lights up!")
                 }
@@ -522,9 +729,10 @@ public enum CloakOfDarkness {
 
                 // Find the player using the findPlayer helper
                 if let room = obj.location as? Room,
-                   let player = room.findPlayer(),
-                   let currentRoom = player.currentRoom,
-                   currentRoom.name == "Closet" {
+                    let player = room.findPlayer(),
+                    let currentRoom = player.currentRoom,
+                    currentRoom.name == "Closet"
+                {
                     currentRoom.clearFlag(.lit)
                     print("The closet goes dark!")
                 }
@@ -543,9 +751,10 @@ public enum CloakOfDarkness {
 
                     // Find the player using the findPlayer helper
                     if let room = obj.location as? Room,
-                       let player = room.findPlayer(),
-                       let currentRoom = player.currentRoom,
-                       currentRoom.name == "Closet" {
+                        let player = room.findPlayer(),
+                        let currentRoom = player.currentRoom,
+                        currentRoom.name == "Closet"
+                    {
                         currentRoom.clearFlag(.lit)
                         print("The closet goes dark!")
                     }
@@ -557,9 +766,10 @@ public enum CloakOfDarkness {
 
                     // Find the player using the findPlayer helper
                     if let room = obj.location as? Room,
-                       let player = room.findPlayer(),
-                       let currentRoom = player.currentRoom,
-                       currentRoom.name == "Closet" {
+                        let player = room.findPlayer(),
+                        let currentRoom = player.currentRoom,
+                        currentRoom.name == "Closet"
+                    {
                         currentRoom.setFlag(.lit)
                         print("The closet lights up!")
                     }
@@ -600,9 +810,10 @@ public enum CloakOfDarkness {
 
                     // Find the player using the findPlayer helper
                     if let room = obj.location as? Room,
-                       let player = room.findPlayer(),
-                       let currentRoom = player.currentRoom,
-                       !currentRoom.hasFlag(.lit) && !currentRoom.hasFlag(.naturallyLit) {
+                        let player = room.findPlayer(),
+                        let currentRoom = player.currentRoom,
+                        !currentRoom.hasFlag(.lit) && !currentRoom.hasFlag(.naturallyLit)
+                    {
                         currentRoom.setFlag(.lit)
                         print("The flashlight illuminates the area!")
                     }
@@ -623,9 +834,10 @@ public enum CloakOfDarkness {
 
                     // Find the player using the findPlayer helper
                     if let room = obj.location as? Room,
-                       let player = room.findPlayer(),
-                       let currentRoom = player.currentRoom,
-                       !currentRoom.hasFlag(.naturallyLit) {
+                        let player = room.findPlayer(),
+                        let currentRoom = player.currentRoom,
+                        !currentRoom.hasFlag(.naturallyLit)
+                    {
                         // Check if room should now be dark
                         let hasOtherLight = player.contents.contains {
                             $0.hasFlag(.lightSource) && $0.hasFlag(.lit) && $0 !== obj
@@ -651,9 +863,10 @@ public enum CloakOfDarkness {
 
                     // Find the player using the findPlayer helper
                     if let room = obj.location as? Room,
-                       let player = room.findPlayer(),
-                       let currentRoom = player.currentRoom,
-                       !currentRoom.hasFlag(.naturallyLit) {
+                        let player = room.findPlayer(),
+                        let currentRoom = player.currentRoom,
+                        !currentRoom.hasFlag(.naturallyLit)
+                    {
                         // Check if room should now be dark
                         let hasOtherLight = player.contents.contains {
                             $0.hasFlag(.lightSource) && $0.hasFlag(.lit) && $0 !== obj
@@ -672,9 +885,10 @@ public enum CloakOfDarkness {
 
                     // Find the player using the findPlayer helper
                     if let room = obj.location as? Room,
-                       let player = room.findPlayer(),
-                       let currentRoom = player.currentRoom,
-                       !currentRoom.hasFlag(.lit) && !currentRoom.hasFlag(.naturallyLit) {
+                        let player = room.findPlayer(),
+                        let currentRoom = player.currentRoom,
+                        !currentRoom.hasFlag(.lit) && !currentRoom.hasFlag(.naturallyLit)
+                    {
                         currentRoom.setFlag(.lit)
                         print("The flashlight illuminates the area!")
                     }
@@ -693,11 +907,13 @@ public enum CloakOfDarkness {
         world.registerObject(stand)
 
         // Book
-        let book = GameObject(name: "book", description: "A tattered hard-cover book with a red binding.")
+        let book = GameObject(
+            name: "book", description: "A tattered hard-cover book with a red binding.")
         book.location = stand
         book.setFlag(.takeBit)
         book.setFlag(.readBit)
-        book.text = "It tells of an adventurer who was tasked with testing out a library that was old and new at the same time."
+        book.text =
+            "It tells of an adventurer who was tasked with testing out a library that was old and new at the same time."
         world.registerObject(book)
 
         // Other study objects
@@ -731,7 +947,8 @@ public enum CloakOfDarkness {
         sphere.setFlag(.contBit)
         world.registerObject(sphere)
 
-        let firefly = GameObject(name: "firefly", description: "A tiny but brightly glowing firefly.")
+        let firefly = GameObject(
+            name: "firefly", description: "A tiny but brightly glowing firefly.")
         firefly.location = sphere
         firefly.setFlag(.takeBit)
         firefly.setFlag(.lightSource)
@@ -773,92 +990,5 @@ public enum CloakOfDarkness {
         tray.setFlag(.surfaceBit)
         tray.capacity = 11
         world.registerObject(tray)
-    }
-
-    private static func createClosetObjects(world: GameWorld, closet: Room) {
-        // Create a broom in the closet
-        let broom = GameObject(name: "broom", description: "An old wooden broom with straw bristles.")
-        broom.location = closet
-        broom.setFlag(.takeBit)
-
-        broom.setExamineHandler { obj in
-            print("An old wooden broom with straw bristles. It looks like it hasn't been used in years.")
-            return true
-        }
-
-        world.registerObject(broom)
-
-        // Create a dusty shelf
-        let shelf = GameObject(name: "shelf", description: "A dusty wooden shelf attached to the wall.")
-        shelf.location = closet
-        shelf.setFlag(.contBit)
-        shelf.setFlag(.surfaceBit)
-
-        shelf.setExamineHandler { obj in
-            print("A dusty wooden shelf attached to the wall.")
-            return true
-        }
-
-        world.registerObject(shelf)
-    }
-
-    private static func createGlobalObjects(world: GameWorld) {
-        // Ceiling (global object)
-        let ceiling = GameObject(name: "ceiling", description: "Nothing really noticeable about the ceiling.")
-        world.globalObjects.append(ceiling)
-
-        ceiling.setExamineHandler { obj in
-            print("Nothing really noticeable about the ceiling.")
-            return true
-        }
-
-        // Darkness (global object)
-        let darkness = GameObject(name: "darkness", description: "It's too dark to see anything.")
-        darkness.setFlag(.nArticleBit)
-        world.globalObjects.append(darkness)
-
-        darkness.setCustomCommandHandler(verb: "think-about") { obj, objects in
-            if objects.contains(where: { $0 === obj }) {
-                print("Light, darkness. Your favorite cloak has something to do with them, yes?")
-                return true
-            }
-            return false
-        }
-
-        // Rug (local global object)
-        let rug = GameObject(name: "rug", description: "A tatty old rug.")
-
-        rug.setCustomCommandHandler(verb: "put-on") { obj, objects in
-            if objects.contains(where: { $0 === obj }) {
-                print("You don't want to place anything on that tatty rug.")
-                return true
-            }
-            return false
-        }
-
-        if let foyer = world.rooms.first(where: { $0.name == "Foyer of the Opera House" }),
-           let bar = world.rooms.first(where: { $0.name == "Foyer Bar" }) {
-            foyer.addLocalGlobal(rug)
-            bar.addLocalGlobal(rug)
-        }
-        world.registerObject(rug)
-    }
-
-    private static func createPlayerInventory(world: GameWorld) {
-        // Cloak
-        let cloak = GameObject(name: "cloak", description: "The cloak is unnaturally dark.")
-        // We need to explicitly add it to the player's contents
-        world.player.contents.append(cloak)
-        // Then set the location afterwards
-        cloak.location = world.player
-        cloak.setFlag(.takeBit)
-        cloak.setFlag(.wearBit)
-        cloak.setFlag(.wornBit)
-        world.registerObject(cloak)
-
-        cloak.setExamineHandler { obj in
-            print("The cloak is unnaturally dark.")
-            return true
-        }
     }
 }

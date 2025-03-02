@@ -1,10 +1,3 @@
-//
-//  main.swift
-//  ZILFSwift
-//
-//  Created by Chris Sessions on 2/25/25.
-//
-
 import Foundation
 import ZILFCore
 

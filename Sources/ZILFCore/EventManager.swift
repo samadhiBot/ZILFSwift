@@ -1,9 +1,4 @@
-//
-//  EventManager.swift
-//  ZILFSwift
-//
-//  Created by Chris Sessions on 3/1/25.
-//
+import Foundation
 
 /// Manages scheduled events in the game
 public class EventManager {
@@ -41,7 +36,7 @@ public class EventManager {
     /// - Parameter name: The name of the event to check
     /// - Returns: True if the event is scheduled for this turn
     public func isEventRunningThisTurn(named name: String) -> Bool {
-        return eventQueue.contains {
+        eventQueue.contains {
             $0.name == name && $0.isActive && $0.shouldFireThisTurn()
         }
     }
@@ -50,7 +45,7 @@ public class EventManager {
     /// - Parameter name: The name of the event to check
     /// - Returns: True if an active event with this name exists in the queue
     public func isEventScheduled(named name: String) -> Bool {
-        return eventQueue.contains {
+        eventQueue.contains {
             $0.name == name && $0.isActive
         }
     }
@@ -89,7 +84,7 @@ public class EventManager {
 
     /// Get a list of all active events (for debugging)
     public func listActiveEvents() -> [String] {
-        return eventQueue
+        eventQueue
             .filter { $0.isActive }
             .map { "\($0.name) - \($0.turnsRemaining == -1 ? "recurring" : "in \($0.turnsRemaining) turns")" }
     }

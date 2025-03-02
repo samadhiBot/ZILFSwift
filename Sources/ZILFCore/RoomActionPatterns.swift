@@ -1,24 +1,63 @@
-//
-//  RoomActionPatterns.swift
-//  ZILFSwift
-//
-//  Created by Chris Sessions on 6/1/25.
-//
-
 import Foundation
 
-/// A collection of common room action patterns that can be used with rooms
+/// A collection of common room action patterns that can be reused throughout the game.
+///
+/// This enum provides factory methods that create standardized room behaviors,
+/// allowing for consistent implementation of common game mechanics without
+/// duplicating code.
 public enum RoomActionPatterns {
+
+    // MARK: - Command Interception Patterns
+
+    /// Creates a room that reacts to specific commands.
+    ///
+    /// This pattern allows rooms to provide custom handling for specific verbs.
+    ///
+    /// - Parameter handlers: Dictionary mapping verb strings to handler closures.
+    /// - Returns: A begin command action that intercepts specific commands.
+    public static func commandInterceptor(
+        handlers: [String: (Command) -> Bool]
+    ) -> (Room, Command) -> Bool {
+        return { _, command in
+            // Get the verb as a string
+            let verb: String
+            switch command {
+            case .take: verb = "take"
+            case .drop: verb = "drop"
+            case .examine: verb = "examine"
+            case .inventory: verb = "inventory"
+            case .look: verb = "look"
+            case .move: verb = "move"
+            case .open: verb = "open"
+            case .close: verb = "close"
+            case .quit: verb = "quit"
+            case .unknown: verb = "unknown"
+            case .customCommand(let verbName, _, _): verb = verbName
+            }
+
+            // Check if we have a handler for this verb
+            if let handler = handlers[verb] {
+                return handler(command)
+            }
+
+            // No handler for this command
+            return false
+        }
+    }
 
     // MARK: - Lighting Patterns
 
-    /// Creates a room that gets its lighting from another source (like a switch or an object)
+    /// Creates a room that gets its lighting from another source (like a switch or an object).
+    ///
+    /// This pattern allows for rooms with dynamic lighting that changes based on
+    /// external conditions.
+    ///
     /// - Parameters:
-    ///   - lightSource: A closure that returns true if light is available
-    ///   - enterDarkMessage: Optional message to display when entering a dark room
-    ///   - enterLitMessage: Optional message to display when entering a lit room
-    ///   - darkDescription: Optional description to use when the room is dark
-    /// - Returns: Actions to attach to a room for dynamic lighting
+    ///   - lightSource: A closure that returns `true` if light is available.
+    ///   - enterDarkMessage: Optional message to display when entering a dark room.
+    ///   - enterLitMessage: Optional message to display when entering a lit room.
+    ///   - darkDescription: Description to use when the room is dark.
+    /// - Returns: Actions to attach to a room for dynamic lighting.
     public static func dynamicLighting(
         lightSource: @escaping () -> Bool,
         enterDarkMessage: String? = "You enter a pitch-black room.",
@@ -62,12 +101,16 @@ public enum RoomActionPatterns {
         return (enterAction, lookAction)
     }
 
-    /// Creates a room that responds to changing light conditions
+    /// Creates a room that responds to changing light conditions.
+    ///
+    /// This pattern allows handling the transition between lit and dark states,
+    /// such as playing sound effects or triggering events.
+    ///
     /// - Parameters:
-    ///   - world: The game world
-    ///   - onLitChange: Closure called when the room becomes lit
-    ///   - onDarkChange: Closure called when the room becomes dark
-    /// - Returns: A begin turn action that responds to lighting changes
+    ///   - world: The game world.
+    ///   - onLitChange: Closure called when the room becomes lit.
+    ///   - onDarkChange: Closure called when the room becomes dark.
+    /// - Returns: A begin turn action that responds to lighting changes.
     public static func lightingChangeHandler(
         world: GameWorld,
         onLitChange: @escaping (Room) -> Bool = { _ in return false },
@@ -96,13 +139,17 @@ public enum RoomActionPatterns {
         return beginTurnAction
     }
 
-    /// Creates actions for a room with a light switch
+    /// Creates actions for a room with a light switch.
+    ///
+    /// This pattern implements a standard light switch that can be turned on and off
+    /// through player commands.
+    ///
     /// - Parameters:
-    ///   - switchName: The name of the light switch object
-    ///   - initiallyOn: Whether the light is initially on
-    ///   - onSound: Optional sound when turning on
-    ///   - offSound: Optional sound when turning off
-    /// - Returns: Command action for handling light switch commands and a lighting source closure
+    ///   - switchName: The name of the light switch object.
+    ///   - initiallyOn: Whether the light is initially on.
+    ///   - onSound: Sound message when turning on.
+    ///   - offSound: Sound message when turning off.
+    /// - Returns: Command action for handling light switch commands and a lighting source closure.
     public static func lightSwitch(
         switchName: String,
         initiallyOn: Bool = true,
@@ -120,10 +167,11 @@ public enum RoomActionPatterns {
                 print("A standard light switch. It's currently \(isSwitchOn ? "on" : "off").")
                 return true
 
-            case .unknown(let text) where
-                (text.lowercased().contains("turn on \(switchName.lowercased())") ||
-                 text.lowercased().contains("switch on \(switchName.lowercased())") ||
-                 text.lowercased().contains("flip \(switchName.lowercased()) on")):
+            case .unknown(let text)
+            where
+                (text.lowercased().contains("turn on \(switchName.lowercased())")
+                || text.lowercased().contains("switch on \(switchName.lowercased())")
+                || text.lowercased().contains("flip \(switchName.lowercased()) on")):
 
                 if isSwitchOn {
                     print("The \(switchName) is already on.")
@@ -133,10 +181,11 @@ public enum RoomActionPatterns {
                 }
                 return true
 
-            case .unknown(let text) where
-                (text.lowercased().contains("turn off \(switchName.lowercased())") ||
-                 text.lowercased().contains("switch off \(switchName.lowercased())") ||
-                 text.lowercased().contains("flip \(switchName.lowercased()) off")):
+            case .unknown(let text)
+            where
+                (text.lowercased().contains("turn off \(switchName.lowercased())")
+                || text.lowercased().contains("switch off \(switchName.lowercased())")
+                || text.lowercased().contains("flip \(switchName.lowercased()) off")):
 
                 if !isSwitchOn {
                     print("The \(switchName) is already off.")
@@ -157,11 +206,15 @@ public enum RoomActionPatterns {
 
     // MARK: - Atmospheric Patterns
 
-    /// Creates a room that has random atmospheric messages
+    /// Creates a room that has random atmospheric messages.
+    ///
+    /// This pattern adds ambient flavor text that appears occasionally to make
+    /// the environment feel more dynamic.
+    ///
     /// - Parameters:
-    ///   - messages: Array of possible messages
-    ///   - chance: Chance (0.0-1.0) of a message appearing each turn
-    /// - Returns: An end turn action that occasionally shows atmospheric messages
+    ///   - messages: Array of possible messages.
+    ///   - chance: Chance (0.0-1.0) of a message appearing each turn.
+    /// - Returns: An end turn action that occasionally shows atmospheric messages.
     public static func randomAtmosphere(
         messages: [String],
         chance: Double = 0.3
@@ -179,9 +232,14 @@ public enum RoomActionPatterns {
 
     // MARK: - State Tracking Patterns
 
-    /// Creates a room that counts visits and can have different descriptions based on visit count
-    /// - Parameter descriptionsByVisitCount: Dictionary mapping visit counts to descriptions
-    /// - Returns: Actions to track visits and show the appropriate description
+    /// Creates a room that counts visits and can have different descriptions based on visit count.
+    ///
+    /// This pattern allows rooms to change their description based on how many times
+    /// the player has visited, enabling progressive narrative reveals.
+    ///
+    /// - Parameter descriptionsByVisitCount: Dictionary mapping visit counts to descriptions.
+    ///   Use `0` as a key for the default description.
+    /// - Returns: Actions to track visits and show the appropriate description.
     public static func visitCounter(
         descriptionsByVisitCount: [Int: String]
     ) -> (enterAction: (Room) -> Bool, lookAction: (Room) -> Bool) {
@@ -216,46 +274,15 @@ public enum RoomActionPatterns {
         return (enterAction, lookAction)
     }
 
-    // MARK: - Command Interception Patterns
-
-    /// Creates a room that reacts to specific commands
-    /// - Parameter handlers: Dictionary mapping verb strings to handler closures
-    /// - Returns: A begin command action that intercepts specific commands
-    public static func commandInterceptor(
-        handlers: [String: (Command) -> Bool]
-    ) -> (Room, Command) -> Bool {
-        return { _, command in
-            // Get the verb as a string
-            let verb: String
-            switch command {
-            case .take: verb = "take"
-            case .drop: verb = "drop"
-            case .examine: verb = "examine"
-            case .inventory: verb = "inventory"
-            case .look: verb = "look"
-            case .move: verb = "move"
-            case .open: verb = "open"
-            case .close: verb = "close"
-            case .quit: verb = "quit"
-            case .unknown: verb = "unknown"
-            case .customCommand(let verbName, _, _): verb = verbName
-            }
-
-            // Check if we have a handler for this verb
-            if let handler = handlers[verb] {
-                return handler(command)
-            }
-
-            // No handler for this command
-            return false
-        }
-    }
-
     // MARK: - Time-Based Patterns
 
-    /// Creates a room where events happen at specific turns
-    /// - Parameter schedule: Dictionary mapping turn numbers to event closures
-    /// - Returns: An end turn action that fires events according to schedule
+    /// Creates a room where events happen at specific turns.
+    ///
+    /// This pattern allows scheduling room events to occur after a specific
+    /// number of turns the player has spent in the room.
+    ///
+    /// - Parameter schedule: Dictionary mapping turn numbers to event closures.
+    /// - Returns: An end turn action that fires events according to schedule.
     public static func scheduledEvents(
         schedule: [Int: () -> Bool]
     ) -> (Room) -> Bool {

@@ -1,10 +1,3 @@
-//
-//  SpecialExits.swift
-//  ZILFSwift
-//
-//  Created by Chris Sessions on 6/25/25.
-//
-
 import Foundation
 
 /// Represents a special exit with custom conditions and behaviors
@@ -76,13 +69,13 @@ public class SpecialExit {
 }
 
 /// Extension to Room for creating common types of special exits
-public extension Room {
+extension Room {
     /// Add a special exit in the given direction
     /// - Parameters:
     ///   - direction: Direction of the exit
     ///   - specialExit: The special exit to add
     ///   - world: The game world
-    func setSpecialExit(direction: Direction, specialExit: SpecialExit, world: GameWorld) {
+    public func setSpecialExit(direction: Direction, specialExit: SpecialExit, world: GameWorld) {
         specialExit.setWorld(world)
         setState(specialExit, forKey: "specialExit_\(direction.rawValue)")
     }
@@ -90,14 +83,14 @@ public extension Room {
     /// Get a special exit in the specified direction, if one exists
     /// - Parameter direction: Direction of the exit
     /// - Returns: The special exit, or nil if no special exit exists in that direction
-    func getSpecialExit(direction: Direction) -> SpecialExit? {
+    public func getSpecialExit(direction: Direction) -> SpecialExit? {
         return getState(forKey: "specialExit_\(direction.rawValue)")
     }
 
     /// Check if a special exit is available in the given direction
     /// - Parameter direction: Direction to check
     /// - Returns: True if a special exit exists and its condition passes
-    func isSpecialExitAvailable(direction: Direction) -> Bool {
+    public func isSpecialExitAvailable(direction: Direction) -> Bool {
         guard let specialExit = getSpecialExit(direction: direction) else {
             return false
         }
@@ -111,7 +104,7 @@ public extension Room {
     ///   - world: The game world
     ///   - condition: When the exit is available
     ///   - revealMessage: Message when the exit is revealed
-    func setHiddenExit(
+    public func setHiddenExit(
         direction: Direction,
         destination: Room,
         world: GameWorld,
@@ -136,7 +129,7 @@ public extension Room {
     ///   - key: The object that unlocks this exit
     ///   - lockedMessage: Message shown when trying to use while locked
     ///   - unlockedMessage: Message shown when successfully unlocking
-    func setLockedExit(
+    public func setLockedExit(
         direction: Direction,
         destination: Room,
         world: GameWorld,
@@ -167,7 +160,7 @@ public extension Room {
     ///   - destination: Room this exit leads to
     ///   - world: The game world
     ///   - message: Optional message when using this exit
-    func setOneWayExit(
+    public func setOneWayExit(
         direction: Direction,
         destination: Room,
         world: GameWorld,
@@ -187,7 +180,7 @@ public extension Room {
     ///   - destination: Room this exit leads to
     ///   - world: The game world
     ///   - script: Code to run when the exit is used
-    func setScriptedExit(
+    public func setScriptedExit(
         direction: Direction,
         destination: Room,
         world: GameWorld,
@@ -208,7 +201,7 @@ public extension Room {
     ///   - world: The game world
     ///   - condition: When the exit is available
     ///   - failureMessage: Message shown when exit cannot be used
-    func setConditionalExit(
+    public func setConditionalExit(
         direction: Direction,
         destination: Room,
         world: GameWorld,
@@ -230,7 +223,7 @@ public extension Room {
     ///   - deathMessage: The message to display when the player uses this exit
     ///   - world: The game world
     ///   - condition: Optional condition that must be true for the exit to be deadly
-    func setDeadlyExit(
+    public func setDeadlyExit(
         direction: Direction,
         deathMessage: String,
         world: GameWorld,
@@ -272,7 +265,7 @@ public extension Room {
     ///   - victoryMessage: The victory message to display
     ///   - world: The game world
     ///   - condition: Optional condition that must be true for the exit to trigger victory
-    func setVictoryExit(
+    public func setVictoryExit(
         direction: Direction,
         victoryMessage: String,
         world: GameWorld,
