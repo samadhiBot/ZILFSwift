@@ -245,8 +245,7 @@ public extension Room {
             }
 
             // Get the game engine from the player
-            if let world = world,
-               let engine: GameEngine = world.player.getState(forKey: "engine") {
+            if let world, let engine = world.player.engine {
                 // Trigger game over
                 engine.playerDied(message: deathMessage)
             } else {
@@ -288,8 +287,7 @@ public extension Room {
             }
 
             // Get the game engine from the player
-            if let world = world,
-               let engine: GameEngine = world.player.getState(forKey: "engine") {
+            if let world, let engine = world.player.engine {
                 // Trigger victory
                 engine.playerWon(message: victoryMessage)
             } else {

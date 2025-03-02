@@ -1,5 +1,5 @@
 //
-//  GlobalObject.swift
+//  GameObject.swift
 //  ZILFSwift
 //
 //  Created by Chris Sessions on 3/1/25.
@@ -20,7 +20,7 @@ public class GameObject {
 
     // Add a proper typed gameWorld property
     public var gameWorld: GameWorld? {
-        get { return stateValues["gameWorld"] as? GameWorld }
+        get { stateValues["gameWorld"] as? GameWorld }
         set { stateValues["gameWorld"] = newValue }
     }
 
@@ -135,21 +135,21 @@ public class GameObject {
     /// - Parameter key: The key to check
     /// - Returns: True if the state exists and is true
     internal func hasState(_ key: String) -> Bool {
-        return getState(forKey: key) ?? false
+        getState(forKey: key) ?? false
     }
 
     /// Check if a property exists in the object's state dictionary
     /// - Parameter propertyName: The name of the property to check
     /// - Returns: True if the property exists
     public func hasProperty(_ propertyName: String) -> Bool {
-        return stateValues[propertyName] != nil
+        stateValues[propertyName] != nil
     }
 
     /// Dynamic member lookup subscript for getting and setting state values with nice syntax
     /// Always returns an optional value for safety
     public subscript<T>(dynamicMember key: String) -> T? {
         get {
-            return getState(forKey: key)
+            getState(forKey: key)
         }
         set {
             if let newValue = newValue {
@@ -164,7 +164,7 @@ public class GameObject {
     /// Provides access to a property existence check with the .isSet suffix
     /// Example: object.someProperty.isSet will return true if someProperty exists
     public subscript(dynamicMember key: String) -> PropertyExistenceChecker {
-        return PropertyExistenceChecker(object: self, key: key)
+        PropertyExistenceChecker(object: self, key: key)
     }
 }
 
@@ -188,7 +188,7 @@ public struct PropertyExistenceChecker {
 
     /// Returns true if the property exists in the object's state dictionary
     public var isSet: Bool {
-        return object.stateValues[key] != nil
+        object.stateValues[key] != nil
     }
 }
 
@@ -277,7 +277,7 @@ public extension Room {
         if objectType == nil {
             // Register it as a local-global if not already registered
             let world: GameWorld? = getState(forKey: "world")
-            if let world = world {
+            if let world {
                 world.registerGlobalObject(object, isLocalGlobal: true)
             }
         } else if objectType != String.localGlobalObject {
