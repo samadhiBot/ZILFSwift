@@ -1,10 +1,3 @@
-//
-//  SpecialTextProperties.swift
-//  ZILFSwift
-//
-//  Created by Chris Sessions on 7/10/25.
-//
-
 import Foundation
 
 /// Keys for stored text properties
@@ -35,19 +28,19 @@ public enum SpecialTextKey: String {
 
 /// Extension for handling special text properties like descriptions that can change
 /// based on state, visit counts, etc.
-public extension GameObject {
+extension GameObject {
     /// Set a special text property
     /// - Parameters:
     ///   - text: The text to store
     ///   - forKey: The special text key
-    func setSpecialText(_ text: String, forKey key: SpecialTextKey) {
+    public func setSpecialText(_ text: String, forKey key: SpecialTextKey) {
         setState(text, forKey: "text_\(key.rawValue)")
     }
 
     /// Get a special text property
     /// - Parameter forKey: The special text key
     /// - Returns: The stored text, or nil if not set
-    func getSpecialText(forKey key: SpecialTextKey) -> String? {
+    public func getSpecialText(forKey key: SpecialTextKey) -> String? {
         return getState(forKey: "text_\(key.rawValue)")
     }
 
@@ -55,7 +48,7 @@ public extension GameObject {
     /// - Parameters:
     ///   - text: The description text to use
     ///   - visitCount: The visit count when this description should be used
-    func setDescription(_ text: String, forVisitCount visitCount: Int) {
+    public func setDescription(_ text: String, forVisitCount visitCount: Int) {
         setState(text, forKey: "visitDescription_\(visitCount)")
     }
 
@@ -64,7 +57,7 @@ public extension GameObject {
     ///   - visitCount: Optional visit count, if tracking visits
     ///   - isLit: Whether the current environment is lit
     /// - Returns: The appropriate description
-    func getCurrentDescription(visitCount: Int? = nil, isLit: Bool = true) -> String {
+    public func getCurrentDescription(visitCount: Int? = nil, isLit: Bool = true) -> String {
         // Handle darkness first
         if !isLit {
             if let darkDesc = getSpecialText(forKey: .darkDescription) {
@@ -96,7 +89,7 @@ public extension GameObject {
     /// Mark this object as visited and get an appropriate description
     /// - Parameter isLit: Whether the environment is lit
     /// - Returns: The appropriate description
-    func getDescriptionAndIncreaseVisits(isLit: Bool = true) -> String {
+    public func getDescriptionAndIncreaseVisits(isLit: Bool = true) -> String {
         // Get the current visit count or default to 0
         let visitCount: Int = getState(forKey: "visitCount") ?? 0
 
@@ -109,7 +102,7 @@ public extension GameObject {
 
     /// Get text that describes the contents of this object
     /// - Returns: Text description of contents
-    func getContentsDescription() -> String {
+    public func getContentsDescription() -> String {
         guard isContainer() else { return "" }
 
         if !canSeeInside() {
@@ -130,13 +123,13 @@ public extension GameObject {
 }
 
 /// Extension for Room-specific special text handling
-public extension Room {
+extension Room {
     /// Get the appropriate room description based on lighting, state, and visit count
     /// - Parameters:
     ///   - world: The game world context
     ///   - forceBrief: Whether to use the brief description
     /// - Returns: The appropriate room description
-    func getRoomDescription(in world: GameWorld, forceBrief: Bool = false) -> String {
+    public func getRoomDescription(in world: GameWorld, forceBrief: Bool = false) -> String {
         // Check if the room is lit
         let isRoomLit = world.isRoomLit(self)
 
@@ -162,7 +155,7 @@ public extension Room {
     /// Get a full description of the room including contents and exits
     /// - Parameter world: The game world context
     /// - Returns: A complete room description
-    func getFullRoomDescription(in world: GameWorld) -> String {
+    public func getFullRoomDescription(in world: GameWorld) -> String {
         var result = getRoomDescription(in: world)
 
         // If the room is dark, don't show contents or exits
@@ -192,7 +185,8 @@ public extension Room {
 
                 // If it's an open container, show its contents
                 if obj.isContainer() && obj.canSeeInside() && !obj.contents.isEmpty {
-                    let containedItems = obj.contents.map { "    \($0.name)" }.joined(separator: "\n")
+                    let containedItems = obj.contents.map { "    \($0.name)" }.joined(
+                        separator: "\n")
                     result += "\n" + containedItems
                 }
             }
@@ -217,27 +211,27 @@ public extension Room {
 }
 
 /// Extension for GameWorld to handle special text in a game context
-public extension GameWorld {
+extension GameWorld {
     /// Whether to use brief room descriptions after first visit
-    var useBriefDescriptions: Bool {
+    public var useBriefDescriptions: Bool {
         get { getState(forKey: "useBriefDescriptions") ?? false }
         set { setState(newValue, forKey: "useBriefDescriptions") }
     }
 
     /// Set to use brief room descriptions
-    func setBriefMode() {
+    public func setBriefMode() {
         useBriefDescriptions = true
     }
 
     /// Set to use verbose room descriptions
-    func setVerboseMode() {
+    public func setVerboseMode() {
         useBriefDescriptions = false
     }
 
     /// Toggle between brief and verbose mode
     /// - Returns: The new mode state
     @discardableResult
-    func toggleBriefMode() -> Bool {
+    public func toggleBriefMode() -> Bool {
         useBriefDescriptions.toggle()
         return useBriefDescriptions
     }
