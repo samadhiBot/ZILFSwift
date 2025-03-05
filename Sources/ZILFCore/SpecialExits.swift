@@ -232,7 +232,7 @@ extension Room {
         // Create a special exit action
         let exitAction: (GameWorld?) -> Void = { world in
             // Check the condition if provided
-            if let condition = condition, !condition(self) {
+            if let condition, !condition(self) {
                 // If condition is false, it's not deadly right now
                 return
             }
@@ -274,7 +274,7 @@ extension Room {
         // Create a special exit action
         let exitAction: (GameWorld?) -> Void = { world in
             // Check the condition if provided
-            if let condition = condition, !condition(self) {
+            if let condition, !condition(self) {
                 // If condition is false, it's not a victory yet
                 return
             }

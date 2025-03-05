@@ -208,7 +208,7 @@ public enum CloakOfDarkness {
                 }
 
                 // Skip this effect for certain commands
-                if let command = command {
+                if let command {
                     switch command {
                     case .look:
                         print("It's too dark to see.")
@@ -311,10 +311,10 @@ public enum CloakOfDarkness {
                 let world = room.gameWorld
 
                 // Try to find the hallway
-                if let world = world,
+                if let world,
                     let hallToStudy = world.rooms.first(where: { $0.name == "Hallway to Study" })
                 {
-                    if let player = player, let currentRoom = player.currentRoom {
+                    if let player, let currentRoom = player.currentRoom {
                         // Remove from current room
                         if let index = currentRoom.contents.firstIndex(where: { $0 === player }) {
                             currentRoom.contents.remove(at: index)
@@ -435,8 +435,13 @@ public enum CloakOfDarkness {
     ///   - study: The study room.
     ///   - closet: The closet room.
     private static func createObjects(
-        world: GameWorld, foyer: Room, bar: Room, cloakroom: Room,
-        hallToStudy: Room, study: Room, closet: Room
+        world: GameWorld,
+        foyer: Room,
+        bar: Room,
+        cloakroom: Room,
+        hallToStudy: Room,
+        study: Room,
+        closet: Room
     ) {
         // Create player inventory
         createPlayerInventory(world: world)
@@ -459,7 +464,10 @@ public enum CloakOfDarkness {
     ///   - bar: The bar room.
     private static func createBarObjects(world: GameWorld, bar: Room) {
         // Message
-        let message = GameObject(name: "message", description: "A message scrawled in the sawdust.")
+        let message = GameObject(
+            name: "message",
+            description: "A message scrawled in the sawdust."
+        )
         message.location = bar
         message.firstDescription =
             "There seems to be some sort of message scrawled in the sawdust on the floor."
@@ -504,7 +512,9 @@ public enum CloakOfDarkness {
     private static func createClosetObjects(world: GameWorld, closet: Room) {
         // Create a broom in the closet
         let broom = GameObject(
-            name: "broom", description: "An old wooden broom with straw bristles.")
+            name: "broom",
+            description: "An old wooden broom with straw bristles."
+        )
         broom.location = closet
         broom.setFlag(.takeBit)
 
@@ -519,9 +529,11 @@ public enum CloakOfDarkness {
 
         // Create a dusty shelf
         let shelf = GameObject(
-            name: "shelf", description: "A dusty wooden shelf attached to the wall.")
+            name: "shelf",
+            description: "A dusty wooden shelf attached to the wall."
+        )
         shelf.location = closet
-        shelf.setFlag(.contBit)
+        shelf.setFlag(.containerBit)
         shelf.setFlag(.surfaceBit)
 
         shelf.setExamineHandler { obj in
@@ -539,9 +551,11 @@ public enum CloakOfDarkness {
     private static func createCloakroomObjects(world: GameWorld, cloakroom: Room) {
         // Hook
         let hook = GameObject(
-            name: "small brass hook", description: "A small brass hook is on the wall.")
+            name: "small brass hook",
+            description: "A small brass hook is on the wall."
+        )
         hook.location = cloakroom
-        hook.setFlag(.contBit)
+        hook.setFlag(.containerBit)
         hook.setFlag(.surfaceBit)
         world.registerObject(hook)
 
@@ -588,7 +602,9 @@ public enum CloakOfDarkness {
 
         // Create some grime in the foyer
         let grime = GameObject(
-            name: "grime", description: "Years of dirt and grime cover the floor.")
+            name: "grime",
+            description: "Years of dirt and grime cover the floor."
+        )
         grime.location = foyer
 
         grime.setExamineHandler { obj in
@@ -604,7 +620,9 @@ public enum CloakOfDarkness {
     private static func createGlobalObjects(world: GameWorld) {
         // Ceiling (global object)
         let ceiling = GameObject(
-            name: "ceiling", description: "Nothing really noticeable about the ceiling.")
+            name: "ceiling",
+            description: "Nothing really noticeable about the ceiling."
+        )
         world.globalObjects.append(ceiling)
 
         ceiling.setExamineHandler { obj in
@@ -652,7 +670,9 @@ public enum CloakOfDarkness {
     private static func createHallwayObjects(world: GameWorld, hallToStudy: Room) {
         // Sign
         let sign = GameObject(
-            name: "sign", description: "It's a block of grey wood bearing hastily-painted words.")
+            name: "sign",
+            description: "It's a block of grey wood bearing hastily-painted words."
+        )
         sign.location = hallToStudy
         sign.setFlag(.readBit)
         sign.firstDescription = "A crude wooden sign hangs above the western exit."
@@ -901,14 +921,16 @@ public enum CloakOfDarkness {
         // Stand
         let stand = GameObject(name: "stand", description: "A worn wooden stand.")
         stand.location = study
-        stand.setFlag(.contBit)
+        stand.setFlag(.containerBit)
         stand.setFlag(.surfaceBit)
         stand.capacity = 15
         world.registerObject(stand)
 
         // Book
         let book = GameObject(
-            name: "book", description: "A tattered hard-cover book with a red binding.")
+            name: "book",
+            description: "A tattered hard-cover book with a red binding."
+        )
         book.location = stand
         book.setFlag(.takeBit)
         book.setFlag(.readBit)
@@ -919,7 +941,7 @@ public enum CloakOfDarkness {
         // Other study objects
         let safe = GameObject(name: "safe", description: "A small wall safe.")
         safe.location = study
-        safe.setFlag(.contBit)
+        safe.setFlag(.containerBit)
         safe.setFlag(.openableBit)
         world.registerObject(safe)
 
@@ -930,7 +952,7 @@ public enum CloakOfDarkness {
 
         let glassCase = GameObject(name: "case", description: "A large glass case.")
         glassCase.location = study
-        glassCase.setFlag(.contBit)
+        glassCase.setFlag(.containerBit)
         glassCase.setFlag(.transBit)
         world.registerObject(glassCase)
 
@@ -944,11 +966,13 @@ public enum CloakOfDarkness {
         sphere.location = study
         sphere.setFlag(.takeBit)
         sphere.setFlag(.transBit)
-        sphere.setFlag(.contBit)
+        sphere.setFlag(.containerBit)
         world.registerObject(sphere)
 
         let firefly = GameObject(
-            name: "firefly", description: "A tiny but brightly glowing firefly.")
+            name: "firefly",
+            description: "A tiny but brightly glowing firefly."
+        )
         firefly.location = sphere
         firefly.setFlag(.takeBit)
         firefly.setFlag(.lightSource)
@@ -957,7 +981,7 @@ public enum CloakOfDarkness {
 
         let wallet = GameObject(name: "wallet", description: "A leather wallet.")
         wallet.location = study
-        wallet.setFlag(.contBit)
+        wallet.setFlag(.containerBit)
         wallet.setFlag(.takeBit)
         wallet.setFlag(.openableBit)
         wallet.capacity = 2
@@ -965,7 +989,7 @@ public enum CloakOfDarkness {
 
         let jar = GameObject(name: "jar", description: "A glass jar.")
         jar.location = stand
-        jar.setFlag(.contBit)
+        jar.setFlag(.containerBit)
         jar.setFlag(.openBit)
         jar.setFlag(.takeBit)
         jar.capacity = 6
@@ -979,13 +1003,13 @@ public enum CloakOfDarkness {
 
         let crate = GameObject(name: "crate", description: "A wooden crate.")
         crate.location = study
-        crate.setFlag(.contBit)
+        crate.setFlag(.containerBit)
         crate.capacity = 15
         world.registerObject(crate)
 
         let tray = GameObject(name: "tray", description: "A serving tray.")
         tray.location = stand
-        tray.setFlag(.contBit)
+        tray.setFlag(.containerBit)
         tray.setFlag(.takeBit)
         tray.setFlag(.surfaceBit)
         tray.capacity = 11

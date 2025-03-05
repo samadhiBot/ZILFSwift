@@ -67,7 +67,7 @@ import ZILFTestSupport
         #expect(cloak!.hasFlag(.takeBit))
         #expect(cloak!.hasFlag(.wearBit))
         #expect(cloak!.hasFlag(.wornBit))  // Initially worn
-        #expect(hook!.hasFlag(.contBit))
+        #expect(hook!.hasFlag(.containerBit))
         #expect(hook!.hasFlag(.surfaceBit))
     }
 
@@ -75,77 +75,78 @@ import ZILFTestSupport
         let world = CloakOfDarkness.create()
         let outputHandler = OutputCapture()
         let engine = GameEngine(world: world, outputHandler: outputHandler.handler)
-
-        // Debug: Print initial inventory
-        print("DEBUG: Initial inventory:")
-        engine.executeCommand(.inventory)
-        print("DEBUG: Inventory output: \(outputHandler.output)")
-        outputHandler.clear()
+        let parser = CommandParser(world: world)
 
         // Get objects and rooms we'll need
         let foyer = getRoom(named: "Foyer of the Opera House", from: world)!
         let bar = getRoom(named: "Foyer Bar", from: world)!
         let cloakroom = getRoom(named: "Cloakroom", from: world)!
         let cloak = getObject(named: "cloak", from: world)!
-        let hook = getObject(named: "small brass hook", from: world)!
 
         // 1. We start in the Foyer
         #expect(world.player.currentRoom === foyer)
         outputHandler.clear()
 
         // 2. Move to the cloakroom
-        print("DEBUG: Moving to cloakroom")
-        engine.executeCommand(.move(.west))
-        print("DEBUG: Cloakroom description: \(outputHandler.output)")
+        engine.executeCommand(parser.parse("west"))
         #expect(world.player.currentRoom === cloakroom)
         #expect(outputHandler.output.contains("small room"))
         outputHandler.clear()
 
-        // 3. Drop the cloak on the hook
-        // First, check that we have the cloak
-        print("DEBUG: Checking inventory before dropping cloak")
-        engine.executeCommand(.inventory)
-        print("DEBUG: Inventory output: \(outputHandler.output)")
+        // 3. Check inventory
+        engine.executeCommand(parser.parse("inventory"))
         #expect(outputHandler.output.contains("cloak"))
         outputHandler.clear()
 
-        // Use custom command to put the cloak on the hook
-        print("DEBUG: Dropping cloak")
-        engine.executeCommand(.drop(cloak))
-        print("DEBUG: Drop output: \(outputHandler.output)")
-        #expect(!world.player.contents.contains { $0.name == "cloak" })
+        // DEBUG: Inspect what objects are in the cloakroom
+        print("🔍 Objects in cloakroom:")
+        for obj in cloakroom.contents {
+            print("  - \(obj.name)")
+        }
+
+        // DEBUG: Inspect the room description to see how the hook is described
+        engine.executeCommand(parser.parse("look"))
+        print("🔍 Room description: \(outputHandler.output)")
         outputHandler.clear()
 
-        // 4. Go back to the foyer
-        print("DEBUG: Moving back to foyer")
-        engine.executeCommand(.move(.east))
-        print("DEBUG: Foyer output: \(outputHandler.output)")
+        // 4. Try using the exact name from the room description
+        // First, look for "brass hook" instead of just "hook"
+        engine.executeCommand(parser.parse("put cloak on brass hook"))
+        print("🔍 Response: \(outputHandler.output)")
+        #expect(!world.player.contents.contains(where: { $0 === cloak }))
+
+        // If the above fails, try alternate syntax
+        if world.player.contents.contains(where: { $0 === cloak }) {
+            outputHandler.clear()
+            engine.executeCommand(parser.parse("drop cloak"))
+            print("🔍 Drop response: \(outputHandler.output)")
+            #expect(!world.player.contents.contains(where: { $0 === cloak }))
+        }
+
+        outputHandler.clear()
+
+        // 5. Go back to the foyer
+        engine.executeCommand(parser.parse("east"))
         #expect(world.player.currentRoom === foyer)
         outputHandler.clear()
 
-        // 5. Go to the bar
-        print("DEBUG: Moving to bar")
-        engine.executeCommand(.move(.south))
-        print("DEBUG: Bar output: \(outputHandler.output)")
+        // 6. Go to the bar
+        engine.executeCommand(parser.parse("south"))
         #expect(world.player.currentRoom === bar)
-        // The bar should be lit now
-        print("DEBUG: Bar lit? \(bar.hasFlag(.lit))")
+
+        // The bar should be lit now because we left the cloak in the cloakroom
         #expect(bar.hasFlag(.lit))
         outputHandler.clear()
 
-        // 6. Examine the message
-        print("DEBUG: Examining message")
-        let message = getObject(named: "message", from: world)!
-        engine.executeCommand(.examine(message))
-        print("DEBUG: Message output: \(outputHandler.output)")
+        // 7. Examine the message
+        engine.executeCommand(parser.parse("examine message"))
 
-        // 7. Verify we won the game
+        // 8. Verify we won the game
         #expect(outputHandler.output.contains("You win"))
         #expect(!outputHandler.output.contains("You lose"))
 
         // The game should be over
         let isGameOver: Bool? = engine.isGameOver
-        print("DEBUG: isGameOver? \(String(describing: isGameOver))")
         #expect(isGameOver == true)
         #expect(outputHandler.output.contains("You win"))
     }

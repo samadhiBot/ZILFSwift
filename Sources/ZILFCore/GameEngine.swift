@@ -478,7 +478,7 @@ public class GameEngine {
 
     /// Handle AGAIN command (repeat last command)
     private func handleAgain() {
-        if let lastCommand = lastCommand {
+        if let lastCommand {
             outputHandler("(repeating the last command)")
             executeCommand(lastCommand)
         } else {
@@ -1155,7 +1155,7 @@ public class GameEngine {
     ///
     /// - Returns: A fresh game world
     private func recreateWorld() -> GameWorld {
-        if let worldCreator = worldCreator {
+        if let worldCreator {
             let freshWorld = worldCreator()
 
             // Register the engine in the new world's player

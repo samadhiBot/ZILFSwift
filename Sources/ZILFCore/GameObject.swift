@@ -19,7 +19,11 @@ public class GameObject {
     public var flags: Set<String> = []
 
     /// The container that holds this object.
-    public var location: GameObject?
+    private var _location: GameObject?
+    public var location: GameObject? {
+        get { return _location }
+        set { setLocation(newValue) }
+    }
 
     /// The identifier for this object.
     public var name: String
@@ -49,9 +53,10 @@ public class GameObject {
     public init(name: String, description: String, location: GameObject? = nil) {
         self.name = name
         self.description = description
-        if let location = location {
-            self.location = location
-            location.contents.append(self)
+        self._location = nil
+
+        if let location {
+            setLocation(location)
         }
     }
 
@@ -137,6 +142,25 @@ public class GameObject {
             return true
         }
         return false
+    }
+
+    // Public method to set location that handles the bidirectional relationship
+    public func setLocation(_ newLocation: GameObject?) {
+        // If we already have a location, remove from its contents
+        if let oldLocation = _location {
+            oldLocation.contents.removeAll { $0 === self }
+        }
+
+        // Update our location reference
+        _location = newLocation
+
+        // Add to new location's contents if not nil
+        if let newLocation {
+            // Only add if not already in contents to avoid duplicates
+            if !newLocation.contents.contains(where: { $0 === self }) {
+                newLocation.contents.append(self)
+            }
+        }
     }
 
     // MARK: - Flag Operations
@@ -444,7 +468,7 @@ public class GameObject {
             getState(forKey: key)
         }
         set {
-            if let newValue = newValue {
+            if let newValue {
                 setState(newValue, forKey: key)
             } else {
                 // If nil is assigned, remove the state
@@ -540,7 +564,7 @@ public extension GameWorld {
     func getGlobalObjects(localGlobal: Bool? = nil) -> [GameObject] {
         return globalObjects.filter { object in
             let objectType: String? = object.getState(forKey: .globalObjectType)
-            if let objectType = objectType {
+            if let objectType {
                 if let isLocalGlobal = localGlobal {
                     let targetType = isLocalGlobal ? String.localGlobalObject : String.globalObject
                     return objectType == targetType

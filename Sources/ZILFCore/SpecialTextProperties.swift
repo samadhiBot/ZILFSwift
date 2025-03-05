@@ -67,7 +67,7 @@ extension GameObject {
         }
 
         // If there's a visit count, check for visit-specific descriptions
-        if let visitCount = visitCount {
+        if let visitCount {
             if visitCount == 1, let initialDesc = getSpecialText(forKey: .initialDescription) {
                 return initialDesc
             }

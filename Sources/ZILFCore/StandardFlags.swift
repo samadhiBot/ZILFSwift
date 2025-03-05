@@ -5,14 +5,11 @@ import Foundation
 extension String {
     // General object flags
 
-    /// Flag for articles - beginning with vowel (enables "an" vs "a")
-    public static let vowelBit = "vowel"
-
     /// Flag for objects that can be attacked
     public static let attackBit = "attackable"
 
     /// Flag for containers (objects that can hold other objects)
-    public static let contBit = "container"
+    public static let containerBit = "container"
 
     /// Flag for devices that can be turned on/off
     public static let deviceBit = "device"
@@ -76,6 +73,9 @@ extension String {
 
     /// Flag for objects that should try to be taken when interacted with indirectly
     public static let tryTakeBit = "try-take"
+
+    /// Flag for articles - beginning with vowel (enables "an" vs "a")
+    public static let vowelBit = "vowel"
 
     /// Flag for objects that can be worn
     public static let wearBit = "wearable"
