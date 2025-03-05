@@ -8,6 +8,14 @@ public enum Command {
     /// - Parameter GameObject: The object to be closed
     case close(GameObject)
 
+    /// A custom command for extended verb support
+    ///
+    /// - Parameters:
+    ///   - verb: The verb string
+    ///   - objects: Array of game objects involved in the command
+    ///   - additionalData: Optional string data for the command (e.g., topics, text)
+    case customCommand(String, [GameObject], additionalData: String? = nil)
+
     /// Command to drop an item from the player's inventory
     ///
     /// - Parameter GameObject: The object to be dropped
@@ -46,12 +54,4 @@ public enum Command {
     ///
     /// - Parameter String: The original input text that wasn't recognized
     case unknown(String)
-
-    /// A custom command for extended verb support
-    ///
-    /// - Parameters:
-    ///   - verb: The verb string
-    ///   - objects: Array of game objects involved in the command
-    ///   - additionalData: Optional string data for the command (e.g., topics, text)
-    case customCommand(String, [GameObject], additionalData: String? = nil)
 }

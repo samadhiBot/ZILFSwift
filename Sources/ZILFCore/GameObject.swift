@@ -237,7 +237,7 @@ public class GameObject {
     ///
     /// - Returns: True if this is a global object.
     public func isGlobalObject() -> Bool {
-        let objectType: String? = getState(forKey: String.globalObjectType)
+        let objectType: String? = getState(forKey: .globalObjectType)
         return objectType != nil
     }
 
@@ -246,7 +246,7 @@ public class GameObject {
     /// - Parameter localGlobal: Whether to check for local-global (false = global).
     /// - Returns: True if this object is a global object of the specified type.
     public func isGlobalObject(localGlobal: Bool) -> Bool {
-        let objectType: String? = getState(forKey: String.globalObjectType)
+        let objectType: String? = getState(forKey: .globalObjectType)
         let targetType = localGlobal ? String.localGlobalObject : String.globalObject
         return objectType == targetType
     }
@@ -508,9 +508,6 @@ public extension String {
 
     /// Global object type value for local-global objects.
     static let localGlobalObject = "local-global"
-
-    /// Take bit flag name.
-    static let takeBit = "takeable"
 }
 
 // MARK: - GameWorld Extensions
@@ -542,7 +539,7 @@ public extension GameWorld {
     /// - Returns: Array of global objects of the specified type.
     func getGlobalObjects(localGlobal: Bool? = nil) -> [GameObject] {
         return globalObjects.filter { object in
-            let objectType: String? = object.getState(forKey: String.globalObjectType)
+            let objectType: String? = object.getState(forKey: .globalObjectType)
             if let objectType = objectType {
                 if let isLocalGlobal = localGlobal {
                     let targetType = isLocalGlobal ? String.localGlobalObject : String.globalObject
@@ -562,7 +559,7 @@ public extension GameWorld {
     /// - Returns: True if the object is accessible in this room.
     func isGlobalObjectAccessible(_ object: GameObject, in room: Room) -> Bool {
         // Get the object's global type
-        let objectType: String? = object.getState(forKey: String.globalObjectType)
+        let objectType: String? = object.getState(forKey: .globalObjectType)
         guard let objectType = objectType else {
             return false
         }
@@ -589,7 +586,7 @@ public extension Room {
     /// - Parameter object: The local-global object.
     func addLocalGlobal(_ object: GameObject) {
         // Make sure the object is registered as a local-global
-        let objectType: String? = object.getState(forKey: String.globalObjectType)
+        let objectType: String? = object.getState(forKey: .globalObjectType)
 
         if objectType == nil {
             // Register it as a local-global if not already registered

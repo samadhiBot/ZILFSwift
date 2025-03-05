@@ -111,6 +111,32 @@ public class CommandParser {
         case "quit", "q":
             return .quit
 
+        // Special handling for "take off" should come BEFORE the general "take" case
+        case "take" where words.count > 2 && words[1] == "off":
+            let objName = words.dropFirst(2).joined(separator: " ")
+            if let obj = findObjectInInventory(named: objName) {
+                if obj.hasFlag(String.wornBit) {
+                    return .customCommand("unwear", [obj])
+                } else {
+                    return .unknown("You're not wearing that.")
+                }
+            } else {
+                return .unknown("You don't have that.")
+            }
+        
+        // Add handling for "take X off" pattern
+        case "take" where words.count > 2 && words.last == "off":
+            let objName = words.dropFirst(1).dropLast().joined(separator: " ")
+            if let obj = findObjectInInventory(named: objName) {
+                if obj.hasFlag(String.wornBit) {
+                    return .customCommand("unwear", [obj])
+                } else {
+                    return .unknown("You're not wearing that.")
+                }
+            } else {
+                return .unknown("You don't have that.")
+            }
+
         case "take", "get":
             if words.count > 1 {
                 // Check for "take inventory" command
@@ -129,7 +155,6 @@ public class CommandParser {
             }
             return .unknown("Take what?")
 
-        // New verb handlers
         case "wear", "don":
             if words.count > 1 {
                 let objName = words.dropFirst().joined(separator: " ")
@@ -160,19 +185,6 @@ public class CommandParser {
                 }
             }
             return .unknown("Remove what?")
-
-        // Special handling for "take off" command
-        case "take" where words.count > 2 && words[1] == "off":
-            let objName = words.dropFirst(2).joined(separator: " ")
-            if let obj = findObjectInInventory(named: objName) {
-                if obj.hasFlag(String.wornBit) {
-                    return .customCommand("unwear", [obj])
-                } else {
-                    return .unknown("You're not wearing that.")
-                }
-            } else {
-                return .unknown("You don't have that.")
-            }
 
         case "turn":
             if words.count > 2 {
