@@ -104,13 +104,13 @@ public class GameWorld {
 
 extension GameWorld {
     enum NotFound: Error {
-        case objectNotFound
-        case roomNotFound
+        case objectNotFound(String)
+        case roomNotFound(String)
     }
 
     func findObject(named name: String) throws -> GameObject {
         guard let object = objects.first(where: { $0.name == name }) else {
-            throw NotFound.objectNotFound
+            throw NotFound.objectNotFound(name)
         }
         return object
     }
@@ -118,7 +118,7 @@ extension GameWorld {
     /// Helper function to get a room by name from the world
     func findRoom(named name: String) throws -> Room {
         guard let room = rooms.first(where: { $0.name == name }) else {
-            throw NotFound.roomNotFound
+            throw NotFound.roomNotFound(name)
         }
         return room
     }

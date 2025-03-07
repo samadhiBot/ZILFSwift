@@ -101,7 +101,7 @@ struct HelloWorldGameTests {
         engine.executeCommand(Command.take(lantern))
         print("Output after take lantern: \(outputHandler.output)")
         #expect(outputHandler.output.contains("Taken"))
-        #expect(world.player.contents.contains { $0.name == "lantern" })
+        #expect(world.player.inventory.contains { $0.name == "lantern" })
         outputHandler.clear()
 
         // Test examining the lantern after taking it
@@ -121,7 +121,7 @@ struct HelloWorldGameTests {
         // Test taking the coin
         engine.executeCommand(Command.take(world.objects.first { $0.name == "gold coin" }!))
         #expect(outputHandler.output.contains("Taken"))
-        #expect(world.player.contents.contains { $0.name == "gold coin" })
+        #expect(world.player.inventory.contains { $0.name == "gold coin" })
         outputHandler.clear()
 
         // Test inventory
@@ -145,7 +145,7 @@ struct HelloWorldGameTests {
         // Test trying to take the chest (which shouldn't be takeable)
         engine.executeCommand(Command.take(world.objects.first { $0.name == "treasure chest" }!))
         #expect(outputHandler.output.contains("You can't take that"))
-        #expect(!world.player.contents.contains { $0.name == "treasure chest" })
+        #expect(!world.player.inventory.contains { $0.name == "treasure chest" })
         outputHandler.clear()
 
         // Test going back to the main cavern
@@ -156,7 +156,7 @@ struct HelloWorldGameTests {
         // Test dropping the coin
         engine.executeCommand(Command.drop(world.objects.first { $0.name == "gold coin" }!))
         #expect(outputHandler.output.contains("Dropped"))
-        #expect(!world.player.contents.contains { $0.name == "gold coin" })
+        #expect(!world.player.inventory.contains { $0.name == "gold coin" })
         #expect(world.player.currentRoom?.contents.contains { $0.name == "gold coin" } ?? false)
         outputHandler.clear()
     }

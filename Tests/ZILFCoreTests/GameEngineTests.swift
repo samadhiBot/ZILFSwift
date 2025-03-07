@@ -45,7 +45,7 @@ struct GameEngineTests {
         // Test take
         engine.executeCommand(Command.take(coin))
         #expect(outputHandler.output.contains("Taken"))
-        #expect(player.contents.contains { $0 === coin })
+        #expect(player.inventory.contains { $0 === coin })
         outputHandler.clear()
 
         // Test inventory
@@ -58,7 +58,7 @@ struct GameEngineTests {
         engine.executeCommand(Command.drop(coin))
         #expect(outputHandler.output.contains("Dropped"))
         #expect(startRoom.contents.contains { $0 === coin })
-        #expect(!player.contents.contains { $0 === coin })
+        #expect(!player.inventory.contains { $0 === coin })
         outputHandler.clear()
     }
 

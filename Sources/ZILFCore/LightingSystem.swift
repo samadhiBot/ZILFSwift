@@ -44,7 +44,7 @@ extension GameWorld {
 
         // Add player's light sources if player is in this room
         if player.currentRoom === room {
-            for obj in player.contents where obj.hasFlag(.lightSource) {
+            for obj in player.inventory where obj.hasFlag(.lightSource) {
                 lightSources.append(obj)
             }
         }
@@ -118,7 +118,7 @@ extension GameWorld {
 
         // 4. Check if the player is in the room and has a light source
         if player.currentRoom === room {
-            let playerLightSources = player.contents.filter { obj in
+            let playerLightSources = player.inventory.filter { obj in
                 return obj.hasFlag(.lightSource) && obj.hasFlag(.lit)
             }
 
@@ -161,7 +161,7 @@ extension GameWorld {
     public func turnOffAllPlayerLights() -> Bool {
         var anyLightTurnedOff = false
 
-        for obj in player.contents {
+        for obj in player.inventory {
             if obj.hasFlag(.lightSource) && obj.hasFlag(.lit) {
                 obj.clearFlag(.lit)
                 anyLightTurnedOff = true
@@ -176,7 +176,7 @@ extension GameWorld {
     public func turnOnAllPlayerLights() -> Bool {
         var anyLightTurnedOn = false
 
-        for obj in player.contents {
+        for obj in player.inventory {
             if obj.hasFlag(.lightSource) && !obj.hasFlag(.lit) {
                 obj.setFlag(.lit)
                 anyLightTurnedOn = true

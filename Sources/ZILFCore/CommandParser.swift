@@ -421,7 +421,7 @@ public class CommandParser {
         let nameToFind = name.lowercased()
 
         // Check player's inventory
-        for obj in player.contents {
+        for obj in player.inventory {
             // Try exact match first
             if obj.name.lowercased() == nameToFind {
                 world.lastMentionedObject = obj
@@ -507,7 +507,7 @@ public class CommandParser {
         // If "it" is used, return the last mentioned object if it is in the player's inventory
         if name.lowercased() == "it" {
             if let lastObj = world.lastMentionedObject,
-                world.player.contents.contains(where: { $0 === lastObj })
+                world.player.inventory.contains(where: { $0 === lastObj })
             {
                 return lastObj
             }
@@ -516,7 +516,7 @@ public class CommandParser {
 
         let nameToFind = name.lowercased()
 
-        for obj in world.player.contents {
+        for obj in world.player.inventory {
             // Try exact match first
             if obj.name.lowercased() == nameToFind {
                 world.lastMentionedObject = obj

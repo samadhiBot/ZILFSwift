@@ -246,7 +246,7 @@ room.setFlag(.naturallyLit)  // Room is always lit
 room.clearFlag(.lit)  // Start as dark
 
 // Check in room.enterAction if player has light source:
-if player.contents.contains(where: { $0.hasFlag(.lightSource) && $0.hasFlag(.lit) }) {
+if player.inventory.contains(where: { $0.hasFlag(.lightSource) && $0.hasFlag(.lit) }) {
     room.setFlag(.lit)
 } else {
     room.clearFlag(.lit)

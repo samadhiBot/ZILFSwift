@@ -144,7 +144,7 @@ import ZILFTestSupport
             victoryMessage: "You've won the game!",
             world: world,
             condition: { _ in
-                return player.contents.contains { $0.name == "amulet" }
+                return player.inventory.contains { $0.name == "amulet" }
             }
         )
 

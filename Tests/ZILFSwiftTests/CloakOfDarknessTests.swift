@@ -33,7 +33,8 @@ import ZILFTestSupport
         // Verify objects
         let cloak = try world.findObject(named: "cloak")
         let message = try world.findObject(named: "message")
-        let hook = try world.findObject(named: "hook")
+        print("🎾", world.objects)
+        let hook = try world.findObject(named: "small brass hook")
 
         // Verify object locations
         #expect(cloak.location === world.player)
@@ -90,14 +91,14 @@ import ZILFTestSupport
         // First, look for "brass hook" instead of just "hook"
         engine.executeCommand(parser.parse("put cloak on brass hook"))
         print("🔍 Response: \(outputHandler.output)")
-        #expect(!world.player.contents.contains(where: { $0 === cloak }))
+        #expect(!world.player.inventory.contains(where: { $0 === cloak }))
 
         // If the above fails, try alternate syntax
-        if world.player.contents.contains(where: { $0 === cloak }) {
+        if world.player.inventory.contains(where: { $0 === cloak }) {
             outputHandler.clear()
             engine.executeCommand(parser.parse("drop cloak"))
             print("🔍 Drop response: \(outputHandler.output)")
-            #expect(!world.player.contents.contains(where: { $0 === cloak }))
+            #expect(!world.player.inventory.contains(where: { $0 === cloak }))
         }
 
         outputHandler.clear()
@@ -215,7 +216,7 @@ import ZILFTestSupport
 
         // Remove cloak
         engine.executeCommand(.drop(cloak))
-        #expect(!world.player.contents.contains { $0.name == "cloak" })
+        #expect(!world.player.inventory.contains { $0.name == "cloak" })
         outputHandler.clear()
 
         // Return to bar - should now be lit

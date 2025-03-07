@@ -30,7 +30,7 @@ let specialExit = SpecialExit(
     world: gameWorld,
     condition: { world in
         // Only available if player has the magic amulet
-        return world.player.contents.contains { $0.name == "magic amulet" }
+        return world.player.inventory.contains { $0.name == "magic amulet" }
     },
     successMessage: "The wall shimmers and you pass through!",
     failureMessage: "The wall feels solid."

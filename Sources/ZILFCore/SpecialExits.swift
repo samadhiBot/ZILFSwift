@@ -140,7 +140,7 @@ extension Room {
         let condition: (GameWorld?) -> Bool = { world in
             guard let world = world else { return false }
             // Check if player has the key
-            return world.player.contents.contains { $0 === key }
+            return world.player.inventory.contains { $0 === key }
         }
 
         let specialExit = SpecialExit(

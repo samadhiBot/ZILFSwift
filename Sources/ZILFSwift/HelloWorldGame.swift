@@ -211,7 +211,7 @@ struct HelloWorldGame {
             world: world,
             condition: { room in
                 // Check if the player has the golden amulet
-                return world.player.contents.contains { $0.name == "golden amulet" }
+                return world.player.inventory.contains { $0.name == "golden amulet" }
             }
         )
 

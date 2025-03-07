@@ -1095,7 +1095,7 @@ public class GameEngine {
 
             // Check if object is in an open container in the room or inventory
             let containersInRoom = room.contents.filter { $0.isContainer() && $0.isOpen() }
-            let containersInInventory = world.player.contents.filter {
+            let containersInInventory = world.player.inventory.filter {
                 $0.isContainer() && $0.isOpen()
             }
 

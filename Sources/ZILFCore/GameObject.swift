@@ -648,3 +648,9 @@ public extension Room {
         }
     }
 }
+
+extension GameObject: CustomDebugStringConvertible {
+    public var debugDescription: String {
+        name
+    }
+}
