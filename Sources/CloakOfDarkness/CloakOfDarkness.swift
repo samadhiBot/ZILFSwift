@@ -143,9 +143,19 @@ public enum CloakOfDarkness {
         closet.exits[.south] = study
 
         // Create objects and populate the world
-        createObjects(
-            world: world, foyer: foyer, bar: bar, cloakroom: cloakroom,
-            hallToStudy: hallToStudy, study: study, closet: closet)
+        // Create player inventory
+        createPlayerInventory(world: world)
+
+        // Create room-specific objects
+        createFoyerObjects(world: world, foyer: foyer)
+        createBarObjects(world: world, bar: bar)
+        createCloakroomObjects(world: world, cloakroom: cloakroom)
+        createHallwayObjects(world: world, hallToStudy: hallToStudy)
+        createStudyObjects(world: world, study: study)
+        createClosetObjects(world: world, closet: closet)
+
+        // Create global objects
+        createGlobalObjects(world: world, hallToStudy: hallToStudy)
 
         return world
     }
@@ -153,6 +163,7 @@ public enum CloakOfDarkness {
     // MARK: - Room Creation Methods
 
     /// Creates and configures the bar room.
+    ///
     /// - Returns: A configured bar room.
     private static func createBar() -> Room {
         let bar = Room(
@@ -246,6 +257,7 @@ public enum CloakOfDarkness {
     }
 
     /// Creates and configures the closet room.
+    ///
     /// - Returns: A configured closet room.
     private static func createCloset() -> Room {
         let closet = Room(
@@ -274,6 +286,7 @@ public enum CloakOfDarkness {
     }
 
     /// Creates and configures the cloakroom.
+    ///
     /// - Returns: A configured cloakroom.
     private static func createCloakroom() -> Room {
         let cloakroom = Room(
@@ -328,6 +341,7 @@ public enum CloakOfDarkness {
     }
 
     /// Creates and configures the main foyer.
+    ///
     /// - Returns: A configured foyer room.
     private static func createFoyer() -> Room {
         let foyer = Room(
@@ -360,6 +374,7 @@ public enum CloakOfDarkness {
     }
 
     /// Creates and configures the hallway to the study.
+    ///
     /// - Returns: A configured hallway room.
     private static func createHallToStudy() -> Room {
         let hallToStudy = Room(
@@ -385,6 +400,7 @@ public enum CloakOfDarkness {
     }
 
     /// Creates and configures the study room.
+    ///
     /// - Returns: A configured study room.
     private static func createStudy() -> Room {
         let study = Room(
@@ -411,39 +427,6 @@ public enum CloakOfDarkness {
     }
 
     // MARK: - Object Creation Methods
-
-    /// Creates all game objects and places them in the appropriate locations.
-    /// - Parameters:
-    ///   - world: The game world.
-    ///   - foyer: The foyer room.
-    ///   - bar: The bar room.
-    ///   - cloakroom: The cloakroom.
-    ///   - hallToStudy: The hallway to study.
-    ///   - study: The study room.
-    ///   - closet: The closet room.
-    private static func createObjects(
-        world: GameWorld,
-        foyer: Room,
-        bar: Room,
-        cloakroom: Room,
-        hallToStudy: Room,
-        study: Room,
-        closet: Room
-    ) {
-        // Create player inventory
-        createPlayerInventory(world: world)
-
-        // Create room-specific objects
-        createFoyerObjects(world: world, foyer: foyer)
-        createBarObjects(world: world, bar: bar)
-        createCloakroomObjects(world: world, cloakroom: cloakroom)
-        createHallwayObjects(world: world, hallToStudy: hallToStudy)
-        createStudyObjects(world: world, study: study)
-        createClosetObjects(world: world, closet: closet)
-
-        // Create global objects
-        createGlobalObjects(world: world, hallToStudy: hallToStudy)
-    }
 
     /// Creates objects for the bar room.
     /// - Parameters:

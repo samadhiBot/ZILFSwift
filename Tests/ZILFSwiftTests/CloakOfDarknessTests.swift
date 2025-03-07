@@ -33,7 +33,7 @@ import ZILFTestSupport
         // Verify objects
         let cloak = try world.findObject(named: "cloak")
         let message = try world.findObject(named: "message")
-        let hook = try world.findObject(named: "small brass hook")
+        let hook = try world.findObject(named: "hook")
 
         // Verify object locations
         #expect(cloak.location === world.player)
