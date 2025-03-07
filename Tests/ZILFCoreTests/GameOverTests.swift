@@ -18,7 +18,7 @@ import ZILFTestSupport
 
         let player = Player(startingRoom: room)
         let world = GameWorld(player: player)
-        world.registerRoom(room)
+        world.register(room: room)
 
         // Create a room with a deadly exit
         let deadlyRoom = Room(name: "Deadly Room", description: "A dangerous room")
@@ -28,7 +28,7 @@ import ZILFTestSupport
         room.setExit(direction: .north, room: deadlyRoom)
         deadlyRoom.setExit(direction: .south, room: room)
 
-        world.registerRoom(deadlyRoom)
+        world.register(room: deadlyRoom)
 
         // Setup output capture
         let outputHandler = OutputCapture()
@@ -58,7 +58,7 @@ import ZILFTestSupport
 
         let player = Player(startingRoom: room)
         let world = GameWorld(player: player)
-        world.registerRoom(room)
+        world.register(room: room)
 
         // Setup output capture
         let outputHandler = OutputCapture()
@@ -88,7 +88,7 @@ import ZILFTestSupport
 
         let player = Player(startingRoom: room)
         let world = GameWorld(player: player)
-        world.registerRoom(room)
+        world.register(room: room)
 
         // Create a room with a deadly exit
         let deadlyRoom = Room(name: "Deadly Room", description: "A dangerous room")
@@ -104,7 +104,7 @@ import ZILFTestSupport
             world: world
         )
 
-        world.registerRoom(deadlyRoom)
+        world.register(room: deadlyRoom)
 
         // Setup output capture
         let outputHandler = OutputCapture()
@@ -129,14 +129,14 @@ import ZILFTestSupport
 
         let player = Player(startingRoom: room)
         let world = GameWorld(player: player)
-        world.registerRoom(room)
+        world.register(room: room)
 
         // Add a victory condition
         let amulet = GameObject(name: "amulet", description: "A magical amulet.")
         amulet.setFlag(.takeBit)
         amulet.moveTo(player)
 
-        world.registerObject(amulet)
+        world.register(amulet)
 
         // Add a victory exit that requires the amulet
         room.setVictoryExit(

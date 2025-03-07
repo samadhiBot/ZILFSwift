@@ -52,11 +52,11 @@ struct HelloWorldGame {
 
         // Create game world
         let world = GameWorld(player: player)
-        world.registerRoom(entrance)
-        world.registerRoom(mainCavern)
-        world.registerRoom(treasureRoom)
-        world.registerRoom(secretRoom)
-        world.registerRoom(vaultRoom)
+        world.register(room: entrance)
+        world.register(room: mainCavern)
+        world.register(room: treasureRoom)
+        world.register(room: secretRoom)
+        world.register(room: vaultRoom)
 
         // Create objects
         let lantern = GameObject(
@@ -94,11 +94,11 @@ struct HelloWorldGame {
             location: secretRoom)
         ancientKey.setFlag("takeable")
 
-        world.registerObject(lantern)
-        world.registerObject(coin)
-        world.registerObject(chest)
-        world.registerObject(treasure)
-        world.registerObject(ancientKey)
+        world.register(lantern)
+        world.register(coin)
+        world.register(chest)
+        world.register(treasure)
+        world.register(ancientKey)
 
         // Add event examples
         world.queueEvent(name: "lantern-flicker", turns: 3) {
@@ -216,7 +216,7 @@ struct HelloWorldGame {
         )
 
         // Register the new room
-        world.registerRoom(pitRoom)
+        world.register(room: pitRoom)
 
         return world
     }

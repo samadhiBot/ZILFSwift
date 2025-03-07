@@ -30,16 +30,16 @@ public class GameWorld {
         player.setWorld(self)
     }
 
-    /// Adds a room to the game world.
-    /// - Parameter room: The room to register.
-    public func registerRoom(_ room: Room) {
-        rooms.append(room)
-    }
-
     /// Adds an object to the game world.
     /// - Parameter object: The object to register.
-    public func registerObject(_ object: GameObject) {
+    public func register(_ object: GameObject) {
         objects.append(object)
+    }
+
+    /// Adds a room to the game world.
+    /// - Parameter room: The room to register.
+    public func register(room: Room) {
+        rooms.append(room)
     }
 
     /// Schedules an event to run after a specified number of turns.
@@ -99,5 +99,27 @@ public class GameWorld {
         }
 
         return outputProduced
+    }
+}
+
+extension GameWorld {
+    enum NotFound: Error {
+        case objectNotFound
+        case roomNotFound
+    }
+
+    func findObject(named name: String) throws -> GameObject {
+        guard let object = objects.first(where: { $0.name == name }) else {
+            throw NotFound.objectNotFound
+        }
+        return object
+    }
+
+    /// Helper function to get a room by name from the world
+    func findRoom(named name: String) throws -> Room {
+        guard let room = rooms.first(where: { $0.name == name }) else {
+            throw NotFound.roomNotFound
+        }
+        return room
     }
 }

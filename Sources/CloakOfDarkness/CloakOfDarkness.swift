@@ -125,12 +125,12 @@ public enum CloakOfDarkness {
         let world = GameWorld(player: player)
 
         // Register rooms with the world
-        world.registerRoom(foyer)
-        world.registerRoom(bar)
-        world.registerRoom(cloakroom)
-        world.registerRoom(hallToStudy)
-        world.registerRoom(study)
-        world.registerRoom(closet)
+        world.register(room: foyer)
+        world.register(room: bar)
+        world.register(room: cloakroom)
+        world.register(room: hallToStudy)
+        world.register(room: study)
+        world.register(room: closet)
 
         // Set up exits
         foyer.exits[.south] = bar
@@ -452,13 +452,13 @@ public enum CloakOfDarkness {
     private static func createBarObjects(world: GameWorld, bar: Room) {
         // Message
         let message = GameObject(
-            name: "sign", 
+            name: "message", 
             description: "The message reads: \"No loitering in the bar without a drink.\"",
             location: bar,
             flags: []
         )
         message.firstDescription = "There seems to be some sort of message scrawled in the sawdust on the floor."
-        world.registerObject(message)
+        world.register(message)
 
         message.setExamineHandler { obj in
             let room = obj.location as? Room
@@ -501,7 +501,7 @@ public enum CloakOfDarkness {
             location: closet,
             flags: .takeBit
         )
-        world.registerObject(broom)
+        world.register(broom)
 
         broom.setExamineHandler { obj in
             print(
@@ -517,7 +517,7 @@ public enum CloakOfDarkness {
             location: closet,
             flags: .containerBit, .surfaceBit
         )
-        world.registerObject(shelf)
+        world.register(shelf)
 
         shelf.setExamineHandler { obj in
             print("A dusty wooden shelf attached to the wall.")
@@ -537,7 +537,7 @@ public enum CloakOfDarkness {
             location: cloakroom,
             flags: .containerBit, .surfaceBit
         )
-        world.registerObject(hook)
+        world.register(hook)
 
         hook.setExamineHandler { obj in
             print("Test: Normal examine replaced by a dequeue of the Table event.")
@@ -573,7 +573,7 @@ public enum CloakOfDarkness {
             return obj.location?.remove(obj) ?? false
         }
 
-        world.registerObject(apple)
+        world.register(apple)
 
         // Some grime on the floor
         let grime = GameObject(
@@ -582,7 +582,7 @@ public enum CloakOfDarkness {
             location: foyer,
             flags: []
         )
-        world.registerObject(grime)
+        world.register(grime)
 
         grime.setExamineHandler { obj in
             print("The floor is covered in years of accumulated dirt and grime.")
@@ -649,7 +649,7 @@ public enum CloakOfDarkness {
             foyer.addLocalGlobal(rug)
             bar.addLocalGlobal(rug)
         }
-        world.registerObject(rug)
+        world.register(rug)
 
         // Hallway sign
         let sign = GameObject(
@@ -660,7 +660,7 @@ public enum CloakOfDarkness {
         )
         sign.firstDescription = "A crude wooden sign hangs above the western exit."
         sign.text = "It reads, 'Welcome to the Study'"
-        world.registerObject(sign)
+        world.register(sign)
     }
 
     /// Creates objects for the hallway to study.
@@ -677,7 +677,7 @@ public enum CloakOfDarkness {
         sign.setFlag(.readBit)
         sign.firstDescription = "A crude wooden sign hangs above the western exit."
         sign.text = "It reads, 'Welcome to the Study'"
-        world.registerObject(sign)
+        world.register(sign)
     }
 
     /// Creates the player's initial inventory.
@@ -690,7 +690,7 @@ public enum CloakOfDarkness {
             location: world.player,
             flags: .takeBit, .wearBit, .wornBit
         )
-        world.registerObject(cloak)
+        world.register(cloak)
 
         cloak.setExamineHandler { obj in
             print("The cloak is unnaturally dark.")
@@ -710,7 +710,7 @@ public enum CloakOfDarkness {
             location: study,
             flags: .deviceBit
         )
-        world.registerObject(lightSwitch)
+        world.register(lightSwitch)
 
         lightSwitch.setExamineHandler { obj in
             print(
@@ -809,7 +809,7 @@ public enum CloakOfDarkness {
             location: study,
             flags: .deviceBit, .takeBit
         )
-        world.registerObject(flashlight)
+        world.register(flashlight)
 
         flashlight.setExamineHandler { obj in
             print("A cheap plastic flashlight. It is currently ", terminator: "")
@@ -929,7 +929,7 @@ public enum CloakOfDarkness {
             flags: .containerBit, .surfaceBit
         )
         stand.setCapacity(to: 15)
-        world.registerObject(stand)
+        world.register(stand)
 
         // Book
         let book = GameObject(
@@ -939,7 +939,7 @@ public enum CloakOfDarkness {
             flags: .takeBit, .readBit
         )
         book.text = "It tells of an adventurer who was tasked with testing out a library that was old and new at the same time."
-        world.registerObject(book)
+        world.register(book)
 
         // Other study objects
         let safe = GameObject(
@@ -948,7 +948,7 @@ public enum CloakOfDarkness {
             location: study,
             flags: .containerBit, .openableBit
         )
-        world.registerObject(safe)
+        world.register(safe)
 
         let bill = GameObject(
             name: "dollar", 
@@ -956,7 +956,7 @@ public enum CloakOfDarkness {
             location: safe,
             flags: .takeBit
         )
-        world.registerObject(bill)
+        world.register(bill)
 
         let glassCase = GameObject(
             name: "case", 
@@ -964,7 +964,7 @@ public enum CloakOfDarkness {
             location: study,
             flags: .containerBit, .transBit
         )
-        world.registerObject(glassCase)
+        world.register(glassCase)
 
         let muffin = GameObject(
             name: "muffin", 
@@ -972,7 +972,7 @@ public enum CloakOfDarkness {
             location: glassCase,
             flags: .takeBit, .edibleBit
         )
-        world.registerObject(muffin)
+        world.register(muffin)
 
         let sphere = GameObject(
             name: "sphere", 
@@ -980,7 +980,7 @@ public enum CloakOfDarkness {
             location: study,
             flags: .takeBit, .transBit, .containerBit
         )
-        world.registerObject(sphere)
+        world.register(sphere)
 
         let firefly = GameObject(
             name: "firefly", 
@@ -988,7 +988,7 @@ public enum CloakOfDarkness {
             location: sphere,
             flags: .takeBit, .lightSource, .lit
         )
-        world.registerObject(firefly)
+        world.register(firefly)
 
         let wallet = GameObject(
             name: "wallet", 
@@ -997,7 +997,7 @@ public enum CloakOfDarkness {
             flags: .containerBit, .takeBit, .openableBit
         )
         wallet.setCapacity(to: 2)
-        world.registerObject(wallet)
+        world.register(wallet)
 
         let jar = GameObject(
             name: "jar", 
@@ -1006,7 +1006,7 @@ public enum CloakOfDarkness {
             flags: .containerBit, .openBit, .takeBit
         )
         jar.setCapacity(to: 6)
-        world.registerObject(jar)
+        world.register(jar)
 
         let plum = GameObject(
             name: "plum", 
@@ -1014,7 +1014,7 @@ public enum CloakOfDarkness {
             location: jar,
             flags: .takeBit, .edibleBit
         )
-        world.registerObject(plum)
+        world.register(plum)
 
         let crate = GameObject(
             name: "crate", 
@@ -1023,7 +1023,7 @@ public enum CloakOfDarkness {
             flags: .containerBit
         )
         crate.setCapacity(to: 15)
-        world.registerObject(crate)
+        world.register(crate)
 
         let tray = GameObject(
             name: "tray", 
@@ -1032,6 +1032,6 @@ public enum CloakOfDarkness {
             flags: .containerBit, .takeBit, .surfaceBit
         )
         tray.setCapacity(to: 11)
-        world.registerObject(tray)
+        world.register(tray)
     }
 }

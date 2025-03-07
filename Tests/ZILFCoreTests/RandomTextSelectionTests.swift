@@ -58,8 +58,8 @@ struct RandomTextSelectionTests {
         let world = GameWorld(player: player)
         let object = GameObject(name: "Test Object", description: "A test object")
 
-        world.registerRoom(room)
-        world.registerObject(object)
+        world.register(room: room)
+        world.register(object)
 
         // Set up random text options
         let weatherDescriptions = [
@@ -121,7 +121,7 @@ struct RandomTextSelectionTests {
         let player = Player(startingRoom: room)
         let world = GameWorld(player: player)
 
-        world.registerRoom(room)
+        world.register(room: room)
 
         // Set up random room descriptions
         let forestDescriptions = [

@@ -25,8 +25,8 @@ struct LightingSystemTests {
         // Create a player and world
         let player = Player(startingRoom: brightRoom)
         let world = GameWorld(player: player)
-        world.registerRoom(brightRoom)
-        world.registerRoom(darkRoom)
+        world.register(room: brightRoom)
+        world.register(room: darkRoom)
 
         // Test if bright room is naturally lit
         #expect(world.isRoomLit(brightRoom))
@@ -98,7 +98,7 @@ struct LightingSystemTests {
 
         // Create a game world
         let world = GameWorld(player: player)
-        world.registerRoom(room)
+        world.register(room: room)
 
         // The room is dark by default and we've explicitly made it dark
         #expect(!world.isRoomLit(room))
@@ -153,7 +153,7 @@ struct LightingSystemTests {
 
         // Create a game world
         let world = GameWorld(player: player)
-        world.registerRoom(room)
+        world.register(room: room)
 
         // The room is dark by default and we've explicitly made it dark
         #expect(!world.isRoomLit(room))
@@ -204,7 +204,7 @@ struct LightingSystemTests {
 
         // Create a game world
         let world = GameWorld(player: player)
-        world.registerRoom(room)
+        world.register(room: room)
 
         // Manually track the light changes because we're having issues with the handler
         var becameLit = false

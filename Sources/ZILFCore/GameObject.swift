@@ -648,3 +648,7 @@ public extension Room {
         }
     }
 }
+
+extension GameObject: CustomStringConvertible {
+    
+}

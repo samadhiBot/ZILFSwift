@@ -39,8 +39,8 @@ struct ExtendedCommandsTests {
 
         let player = Player(startingRoom: room)
         let world = GameWorld(player: player)
-        world.registerRoom(room)
-        world.registerObject(hat)
+        world.register(room: room)
+        world.register(hat)
 
         // First move the hat to the player's inventory
         hat.moveTo(player)
@@ -70,8 +70,8 @@ struct ExtendedCommandsTests {
 
         let player = Player(startingRoom: room)
         let world = GameWorld(player: player)
-        world.registerRoom(room)
-        world.registerObject(hat)
+        world.register(room: room)
+        world.register(hat)
 
         // Create engine with output capture
         let outputHandler = OutputCapture()

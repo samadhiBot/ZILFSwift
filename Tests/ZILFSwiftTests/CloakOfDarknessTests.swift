@@ -11,22 +11,7 @@ import Testing
 import ZILFTestSupport
 
 @Suite struct CloakOfDarknessTests {
-
-    // MARK: - Helper Functions
-
-    /// Helper function to get an object by name from the world
-    func getObject(named name: String, from world: GameWorld) -> GameObject? {
-        return world.objects.first { $0.name == name }
-    }
-
-    /// Helper function to get a room by name from the world
-    func getRoom(named name: String, from world: GameWorld) -> Room? {
-        return world.rooms.first { $0.name == name }
-    }
-
-    // MARK: - Tests
-
-    @Test func testGameCreation() {
+    @Test func testGameCreation() throws {
         // Create the game world
         let world = CloakOfDarkness.create()
 
@@ -35,40 +20,32 @@ import ZILFTestSupport
         #expect(world.rooms.count == 6)  // Foyer, Bar, Cloakroom, Hallway, Study, Closet
 
         // Find rooms
-        let foyer = getRoom(named: "Foyer of the Opera House", from: world)
-        let bar = getRoom(named: "Foyer Bar", from: world)
-        let cloakroom = getRoom(named: "Cloakroom", from: world)
-
-        #expect(foyer != nil)
-        #expect(bar != nil)
-        #expect(cloakroom != nil)
+        let foyer = try world.findRoom(named: "Foyer of the Opera House")
+        let bar = try world.findRoom(named: "Foyer Bar")
+        let cloakroom = try world.findRoom(named: "Cloakroom")
 
         // Verify room connections
-        #expect(foyer?.getExit(direction: .south) === bar)
-        #expect(foyer?.getExit(direction: .west) === cloakroom)
-        #expect(bar?.getExit(direction: .north) === foyer)
-        #expect(cloakroom?.getExit(direction: .east) === foyer)
+        #expect(foyer.getExit(direction: .south) === bar)
+        #expect(foyer.getExit(direction: .west) === cloakroom)
+        #expect(bar.getExit(direction: .north) === foyer)
+        #expect(cloakroom.getExit(direction: .east) === foyer)
 
         // Verify objects
-        let cloak = getObject(named: "cloak", from: world)
-        let message = getObject(named: "message", from: world)
-        let hook = getObject(named: "small brass hook", from: world)
-
-        #expect(cloak != nil)
-        #expect(message != nil)
-        #expect(hook != nil)
+        let cloak = try world.findObject(named: "cloak")
+        let message = try world.findObject(named: "message")
+        let hook = try world.findObject(named: "small brass hook")
 
         // Verify object locations
-        #expect(cloak?.location === world.player)
-        #expect(message?.location === bar)
-        #expect(hook?.location === cloakroom)
+        #expect(cloak.location === world.player)
+        #expect(message.location === bar)
+        #expect(hook.location === cloakroom)
 
         // Verify object properties
-        #expect(cloak!.hasFlag(.takeBit))
-        #expect(cloak!.hasFlag(.wearBit))
-        #expect(cloak!.hasFlag(.wornBit))  // Initially worn
-        #expect(hook!.hasFlag(.containerBit))
-        #expect(hook!.hasFlag(.surfaceBit))
+        #expect(cloak.hasFlag(.takeBit))
+        #expect(cloak.hasFlag(.wearBit))
+        #expect(cloak.hasFlag(.wornBit))  // Initially worn
+        #expect(hook.hasFlag(.containerBit))
+        #expect(hook.hasFlag(.surfaceBit))
     }
 
     @Test func testWinGame() throws {
@@ -78,10 +55,10 @@ import ZILFTestSupport
         let parser = CommandParser(world: world)
 
         // Get objects and rooms we'll need
-        let foyer = getRoom(named: "Foyer of the Opera House", from: world)!
-        let bar = getRoom(named: "Foyer Bar", from: world)!
-        let cloakroom = getRoom(named: "Cloakroom", from: world)!
-        let cloak = getObject(named: "cloak", from: world)!
+        let foyer = try world.findRoom(named: "Foyer of the Opera House")
+        let bar = try world.findRoom(named: "Foyer Bar")
+        let cloakroom = try world.findRoom(named: "Cloakroom")
+        let cloak = try world.findObject(named: "cloak")
 
         // 1. We start in the Foyer
         #expect(world.player.currentRoom === foyer)
@@ -157,8 +134,8 @@ import ZILFTestSupport
         let engine = GameEngine(world: world, outputHandler: outputHandler.handler)
 
         // Get objects and rooms we'll need
-        let foyer = getRoom(named: "Foyer of the Opera House", from: world)!
-        let bar = getRoom(named: "Foyer Bar", from: world)!
+        let foyer = try world.findRoom(named: "Foyer of the Opera House")
+        let bar = try world.findRoom(named: "Foyer Bar")
 
         // 1. Start in the Foyer
         #expect(world.player.currentRoom === foyer)
@@ -172,7 +149,7 @@ import ZILFTestSupport
         outputHandler.clear()
 
         // 3. Disturb the message by trying to take it
-        let message = getObject(named: "message", from: world)!
+        let message = try world.findObject(named: "message")
         engine.executeCommand(.take(message))
         outputHandler.clear()
 
@@ -184,7 +161,7 @@ import ZILFTestSupport
         engine.executeCommand(.move(.north))
         engine.executeCommand(.move(.west))
 
-        let cloak = getObject(named: "cloak", from: world)!
+        let cloak = try world.findObject(named: "cloak")
         engine.executeCommand(.drop(cloak))
         outputHandler.clear()
 
@@ -213,7 +190,7 @@ import ZILFTestSupport
         let engine = GameEngine(world: world, outputHandler: outputHandler.handler)
 
         // Get the cloak
-        let cloak = getObject(named: "cloak", from: world)!
+        let cloak = try world.findObject(named: "cloak")
 
         // Examine the cloak
         engine.executeCommand(.examine(cloak))
@@ -221,7 +198,7 @@ import ZILFTestSupport
         outputHandler.clear()
 
         // Test that the cloak affects room lighting
-        let bar = getRoom(named: "Foyer Bar", from: world)!
+        let bar = try world.findRoom(named: "Foyer Bar")
 
         // Bar should be dark while wearing cloak
         engine.executeCommand(.move(.south))
@@ -260,8 +237,8 @@ import ZILFTestSupport
         let engine = GameEngine(world: world, outputHandler: outputHandler.handler)
 
         // Get objects and rooms we'll need
-        let cloakroom = getRoom(named: "Cloakroom", from: world)!
-        let cloak = getObject(named: "cloak", from: world)!
+        let cloakroom = try world.findRoom(named: "Cloakroom")
+        let cloak = try world.findObject(named: "cloak")
 
         // Move to the cloakroom
         engine.executeCommand(.move(.west))

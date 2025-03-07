@@ -9,11 +9,12 @@ struct CommandParserTests {
         let (world, parser, _, _, _) = try setupTestWorld()
 
         // Create a closeable object
-        let box = GameObject(name: "box", description: "A wooden box")
-        box.setFlag(.containerBit)
-        box.setFlag(.openBit)  // Start opened
-        world.player.currentRoom?.contents.append(box)
-        box.moveTo(world.player.currentRoom)
+        let box = GameObject(
+            name: "box",
+            description: "A wooden box",
+            location: world.player.currentRoom,
+            flags: [.containerBit, .openBit]
+        ) // Start opened
 
         // Test basic close command
         if case let .close(obj) = parser.parse("close box") {
@@ -111,7 +112,6 @@ struct CommandParserTests {
         let (world, parser, _, _, coin) = try setupTestWorld()
 
         // First take the coin so we can drop it
-        world.player.contents.append(coin)
         coin.moveTo(world.player)
 
         // Test drop object
@@ -211,10 +211,12 @@ struct CommandParserTests {
         let (world, parser, _, _, _) = try setupTestWorld()
 
         // Create a device
-        let lamp = GameObject(name: "lamp", description: "A brass lamp")
-        lamp.setFlag(.deviceBit)
-        world.player.currentRoom?.contents.append(lamp)
-        lamp.moveTo(world.player.currentRoom)
+        let lamp = GameObject(
+            name: "lamp",
+            description: "A brass lamp",
+            location: world.player.currentRoom,
+            flags: .deviceBit
+        )
 
         // Test flip command
         if case let .customCommand(verb, objects, _) = parser.parse("flip lamp") {
@@ -244,9 +246,11 @@ struct CommandParserTests {
         }
 
         // Test with non-device item
-        let book = GameObject(name: "book", description: "A heavy book")
-        world.player.currentRoom?.contents.append(book)
-        book.moveTo(world.player.currentRoom)
+        let book = GameObject(
+            name: "book",
+            description: "A heavy book",
+            location: world.player.currentRoom
+        )
 
         if case let .unknown(message) = parser.parse("flip book") {
             #expect(message.contains("You can't flip"))
@@ -362,10 +366,12 @@ struct CommandParserTests {
         let (world, parser, _, _, _) = try setupTestWorld()
 
         // Create an openable object
-        let box = GameObject(name: "box", description: "A wooden box")
-        box.setFlag(.containerBit)
-        world.player.currentRoom?.contents.append(box)
-        box.moveTo(world.player.currentRoom)
+        let box = GameObject(
+            name: "box",
+            description: "A wooden box",
+            location: world.player.currentRoom,
+            flags: .containerBit
+        )
 
         // Test basic open command
         if case let .open(obj) = parser.parse("open box") {
@@ -400,18 +406,25 @@ struct CommandParserTests {
         let (world, parser, _, _, _) = try setupTestWorld()
 
         // Create items for testing
-        let apple = GameObject(name: "apple", description: "A red apple")
-        world.player.contents.append(apple)
-        apple.moveTo(world.player)
+        let apple = GameObject(
+            name: "apple",
+            description: "A red apple",
+            location: world.player,
+            flags: .takeBit
+        )
 
-        let box = GameObject(name: "box", description: "A wooden box")
-        box.setFlag(.containerBit)
-        world.player.currentRoom?.contents.append(box)
-        box.moveTo(world.player.currentRoom)
+        let box = GameObject(
+            name: "box",
+            description: "A wooden box",
+            location: world.player.currentRoom,
+            flags: .containerBit
+        )
 
-        let table = GameObject(name: "table", description: "A wooden table")
-        world.player.currentRoom?.contents.append(table)
-        table.moveTo(world.player.currentRoom)
+        let table = GameObject(
+            name: "table",
+            description: "A wooden table",
+            location: world.player.currentRoom
+        )
 
         // Test "put X in Y"
         if case let .customCommand(verb, objects, _) = parser.parse("put apple in box") {
@@ -481,10 +494,12 @@ struct CommandParserTests {
         let (world, parser, _, _, _) = try setupTestWorld()
 
         // Create a readable object
-        let book = GameObject(name: "book", description: "A dusty book")
-        book.setFlag(.readBit)
-        world.player.currentRoom?.contents.append(book)
-        book.moveTo(world.player.currentRoom)
+        let book = GameObject(
+            name: "book",
+            description: "A dusty book",
+            location: world.player.currentRoom,
+            flags: .readBit
+        )
 
         // Test read command
         if case let .customCommand(verb, objects, _) = parser.parse("read book") {
@@ -505,9 +520,11 @@ struct CommandParserTests {
         }
 
         // Test with non-readable item
-        let rock = GameObject(name: "rock", description: "A gray rock")
-        world.player.currentRoom?.contents.append(rock)
-        rock.moveTo(world.player.currentRoom)
+        let rock = GameObject(
+            name: "rock",
+            description: "A gray rock",
+            location: world.player.currentRoom
+        )
 
         if case let .unknown(message) = parser.parse("read rock") {
             #expect(message.contains("nothing to read"))
@@ -527,11 +544,12 @@ struct CommandParserTests {
         let (world, parser, _, _, _) = try setupTestWorld()
 
         // Create a wearable item
-        let hat = GameObject(name: "hat", description: "A fancy hat")
-        hat.setFlag(.wearBit)
-        hat.setFlag(.wornBit)  // Mark as currently worn
-        world.player.contents.append(hat)
-        hat.moveTo(world.player)
+        let hat = GameObject(
+            name: "hat",
+            description: "A fancy hat",
+            location: world.player,
+            flags: [.wearBit, .wornBit]  // Mark as currently worn
+        )
 
         // Test "remove hat" command
         if case let .customCommand(verb, objects, _) = parser.parse("remove hat") {
@@ -627,11 +645,12 @@ struct CommandParserTests {
         let (world, parser, _, _, _) = try setupTestWorld()
 
         // Create a wearable item for testing
-        let hat = GameObject(name: "hat", description: "A fancy hat")
-        hat.setFlag(.wearBit)
-        hat.setFlag(.wornBit)  // Mark as currently worn
-        world.player.contents.append(hat)
-        hat.moveTo(world.player)
+        let hat = GameObject(
+            name: "hat",
+            description: "A fancy hat",
+            location: world.player,
+            flags: [.wearBit, .wornBit]  // Mark as currently worn
+        )
 
         // Test basic "take off hat" command
         if case let .customCommand(verb, objects, _) = parser.parse("take off hat") {
@@ -681,11 +700,12 @@ struct CommandParserTests {
         let (world, parser, _, _, _) = try setupTestWorld()
 
         // Create a wearable item for testing
-        let hat = GameObject(name: "hat", description: "A fancy hat")
-        hat.setFlag(.wearBit)
-        hat.setFlag(.wornBit)  // Mark as currently worn
-        world.player.contents.append(hat)
-        hat.moveTo(world.player)
+        let hat = GameObject(
+            name: "hat",
+            description: "A fancy hat",
+            location: world.player,
+            flags: [.wearBit, .wornBit]  // Mark as currently worn
+        )
 
         // This test specifically verifies that "take off hat" doesn't get
         // interpreted as a regular take command
@@ -708,10 +728,12 @@ struct CommandParserTests {
         }
 
         // Add a takeable object to the room to test precedence
-        let ball = GameObject(name: "ball", description: "A round ball")
-        ball.setFlag(.takeBit)
-        world.player.currentRoom?.contents.append(ball)
-        ball.moveTo(world.player.currentRoom)
+        let ball = GameObject(
+            name: "ball",
+            description: "A round ball",
+            location: world.player.currentRoom,
+            flags: .takeBit
+        )
 
         // Verify regular take still works
         if case let .take(obj) = parser.parse("take ball") {
@@ -725,10 +747,12 @@ struct CommandParserTests {
         let (world, parser, _, _, _) = try setupTestWorld()
 
         // Create a device
-        let lamp = GameObject(name: "lamp", description: "A brass lamp")
-        lamp.setFlag(.deviceBit)
-        world.player.currentRoom?.contents.append(lamp)
-        lamp.moveTo(world.player.currentRoom)
+        let lamp = GameObject(
+            name: "lamp",
+            description: "A brass lamp",
+            location: world.player.currentRoom,
+            flags: .deviceBit
+        )
 
         // Test turn on command
         if case let .customCommand(verb, objects, _) = parser.parse("turn on lamp") {
@@ -758,9 +782,11 @@ struct CommandParserTests {
         }
 
         // Test with non-device item
-        let book = GameObject(name: "book", description: "A heavy book")
-        world.player.currentRoom?.contents.append(book)
-        book.moveTo(world.player.currentRoom)
+        let book = GameObject(
+            name: "book",
+            description: "A heavy book",
+            location: world.player.currentRoom
+        )
 
         if case let .unknown(message) = parser.parse("turn on book") {
             #expect(message.contains("You can't turn on"))
@@ -804,10 +830,12 @@ struct CommandParserTests {
         let (world, parser, _, _, _) = try setupTestWorld()
 
         // Create a wearable item
-        let coat = GameObject(name: "coat", description: "A warm coat")
-        coat.setFlag(.wearBit)
-        world.player.contents.append(coat)
-        coat.moveTo(world.player)
+        let coat = GameObject(
+            name: "coat",
+            description: "A warm coat",
+            location: world.player,
+            flags: .wearBit
+        )
 
         // Test "wear coat" command
         if case let .customCommand(verb, objects, _) = parser.parse("wear coat") {
@@ -846,9 +874,11 @@ struct CommandParserTests {
         }
 
         // Test with non-wearable item
-        let rock = GameObject(name: "rock", description: "A gray rock")
-        world.player.contents.append(rock)
-        rock.moveTo(world.player)
+        let rock = GameObject(
+            name: "rock",
+            description: "A gray rock",
+            location: world.player
+        )
 
         if case let .unknown(message) = parser.parse("wear rock") {
             #expect(message.contains("can't wear"))
@@ -864,10 +894,12 @@ struct CommandParserTests {
         }
 
         // Test with item not in inventory
-        let scarf = GameObject(name: "scarf", description: "A woolen scarf")
-        scarf.setFlag(.wearBit)
-        world.player.currentRoom?.contents.append(scarf)
-        scarf.moveTo(world.player.currentRoom)
+        let scarf = GameObject(
+            name: "scarf",
+            description: "A woolen scarf",
+            location: world.player.currentRoom,
+            flags: .wearBit
+        )
 
         if case let .unknown(message) = parser.parse("wear scarf") {
             #expect(message.contains("don't have"))
@@ -890,14 +922,17 @@ struct CommandParserTests {
         let world = GameWorld(player: player)
 
         // Register rooms with the world
-        world.registerRoom(startRoom)
-        world.registerRoom(northRoom)
+        world.register(room: startRoom)
+        world.register(room: northRoom)
 
         // Add a takeable object
         let coin = GameObject(
-            name: "gold coin", description: "A shiny gold coin", location: startRoom)
-        coin.setFlag(.takeBit)
-        world.registerObject(coin)
+            name: "gold coin",
+            description: "A shiny gold coin",
+            location: startRoom,
+            flags: .takeBit
+        )
+        world.register(coin)
 
         let parser = CommandParser(world: world)
 

@@ -295,15 +295,15 @@ struct EventSystemTests {
 
         // Create the game world with the player
         let world = GameWorld(player: player)
-        world.registerRoom(kitchen)
-        world.registerRoom(garden)
+        world.register(room: kitchen)
+        world.register(room: garden)
 
         var kettle: GameObject?
 
         // Event-related state
         kettle = GameObject(name: "kettle", description: "A copper kettle.")
         kettle?.moveTo(kitchen)
-        world.registerObject(kettle!)
+        world.register(kettle!)
 
         // Move kettle to kitchen for event
         kettle?.moveTo(kitchen)

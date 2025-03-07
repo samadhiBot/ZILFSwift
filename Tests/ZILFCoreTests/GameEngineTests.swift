@@ -75,13 +75,13 @@ struct GameEngineTests {
 
         let player = Player(startingRoom: startRoom)
         let world = GameWorld(player: player)
-        world.registerRoom(startRoom)
-        world.registerRoom(northRoom)
+        world.register(room: startRoom)
+        world.register(room: northRoom)
 
         // Add a takeable object
         let coin = GameObject(name: "gold coin", description: "A shiny gold coin", location: startRoom)
         coin.setFlag("takeable")
-        world.registerObject(coin)
+        world.register(coin)
 
         return (world, player, startRoom, northRoom, coin)
     }

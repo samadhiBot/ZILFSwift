@@ -23,8 +23,8 @@ import Testing
         let world = GameWorld(player: player)
 
         // Register rooms
-        world.registerRoom(hall)
-        world.registerRoom(kitchen)
+        world.register(room: hall)
+        world.register(room: kitchen)
 
         // Set the world reference in rooms for local-global lookup
         hall.setState(world, forKey: "world")
@@ -87,8 +87,8 @@ import Testing
         let world = GameWorld(player: player)
 
         // Register rooms
-        world.registerRoom(hall)
-        world.registerRoom(kitchen)
+        world.register(room: hall)
+        world.register(room: kitchen)
 
         // Set the world reference in rooms for local-global lookup
         hall.setState(world, forKey: "world")

@@ -21,8 +21,8 @@ import Testing
         // Create a player and world
         let player = Player(startingRoom: room1)
         let world = GameWorld(player: player)
-        world.registerRoom(room1)
-        world.registerRoom(room2)
+        world.register(room: room1)
+        world.register(room: room2)
 
         // Create a special exit
         let specialExit = SpecialExit(
@@ -57,8 +57,8 @@ import Testing
         // Create a player and world
         let player = Player(startingRoom: room1)
         let world = GameWorld(player: player)
-        world.registerRoom(room1)
-        world.registerRoom(room2)
+        world.register(room: room1)
+        world.register(room: room2)
 
         // Create a variable to control exit visibility
         var exitRevealed = false
@@ -101,13 +101,13 @@ import Testing
         // Create a player and world
         let player = Player(startingRoom: room1)
         let world = GameWorld(player: player)
-        world.registerRoom(room1)
-        world.registerRoom(room2)
+        world.register(room: room1)
+        world.register(room: room2)
 
         // Create a key
         let key = GameObject(name: "brass key", description: "A shiny brass key")
         key.setFlag(.takeBit)
-        world.registerObject(key)
+        world.register(key)
 
         // Create a locked exit
         room1.setLockedExit(
@@ -148,8 +148,8 @@ import Testing
         // Create a player and world
         let player = Player(startingRoom: room1)
         let world = GameWorld(player: player)
-        world.registerRoom(room1)
-        world.registerRoom(room2)
+        world.register(room: room1)
+        world.register(room: room2)
 
         // Create a one-way exit from room1 to room2
         room1.setOneWayExit(
@@ -184,8 +184,8 @@ import Testing
         // Create a player and world
         let player = Player(startingRoom: room1)
         let world = GameWorld(player: player)
-        world.registerRoom(room1)
-        world.registerRoom(room2)
+        world.register(room: room1)
+        world.register(room: room2)
 
         // Create a variable to track script execution
         var scriptExecuted = false
@@ -221,8 +221,8 @@ import Testing
         // Create a player and world
         let player = Player(startingRoom: room1)
         let world = GameWorld(player: player)
-        world.registerRoom(room1)
-        world.registerRoom(room2)
+        world.register(room: room1)
+        world.register(room: room2)
 
         // Create a variable to control the condition
         var isConditionMet = false
