@@ -106,7 +106,7 @@ import Testing
 
         // Create a key
         let key = GameObject(name: "brass key", description: "A shiny brass key")
-        key.setFlag("takeable")
+        key.setFlag(.takeBit)
         world.registerObject(key)
 
         // Create a locked exit
@@ -127,9 +127,8 @@ import Testing
         #expect(!player.move(direction: .west))
         #expect(player.currentRoom === room1)
 
-        // Give the key to the player
-        key.location = player
-        player.contents.append(key)
+        // Give key to player
+        key.moveTo(player)
 
         // Now the exit should be available
         #expect(room1.isSpecialExitAvailable(direction: .west))

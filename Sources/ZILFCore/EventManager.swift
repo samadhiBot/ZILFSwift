@@ -13,7 +13,12 @@ public class EventManager {
     ///   - action: The function to execute when the event fires
     /// - Returns: The created event
     @discardableResult
-    public func scheduleEvent(name: String, turns: Int, priority: Int = 0, action: @escaping () -> Bool) -> GameEvent {
+    public func scheduleEvent(
+        name: String,
+        turns: Int,
+        priority: Int = 0,
+        action: @escaping () -> Bool
+    ) -> GameEvent {
         let event = GameEvent(name: name, turns: turns, priority: priority, action: action)
         eventQueue.append(event)
 

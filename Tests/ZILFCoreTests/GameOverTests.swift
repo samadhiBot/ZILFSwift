@@ -132,10 +132,9 @@ import ZILFTestSupport
         world.registerRoom(room)
 
         // Add a victory condition
-        let amulet = GameObject(name: "golden amulet", description: "A magical amulet")
-        amulet.setFlag("takeable")
-        amulet.location = player
-        player.contents.append(amulet)
+        let amulet = GameObject(name: "amulet", description: "A magical amulet.")
+        amulet.setFlag(.takeBit)
+        amulet.moveTo(player)
 
         world.registerObject(amulet)
 
@@ -145,7 +144,7 @@ import ZILFTestSupport
             victoryMessage: "You've won the game!",
             world: world,
             condition: { _ in
-                return player.contents.contains { $0.name == "golden amulet" }
+                return player.contents.contains { $0.name == "amulet" }
             }
         )
 

@@ -124,16 +124,6 @@ public enum CloakOfDarkness {
         let player = Player(startingRoom: foyer)
         let world = GameWorld(player: player)
 
-        // We no longer need to store the world in every object since we can access it through player
-        // However, we'll temporarily keep setting these states until we update all our object handlers
-        // This is a transitional solution while upgrading the API
-        foyer.gameWorld = world
-        bar.gameWorld = world
-        cloakroom.gameWorld = world
-        hallToStudy.gameWorld = world
-        study.gameWorld = world
-        closet.gameWorld = world
-
         // Register rooms with the world
         world.registerRoom(foyer)
         world.registerRoom(bar)
@@ -266,7 +256,7 @@ public enum CloakOfDarkness {
         // Closet enter action - update lighting based on switch
         closet.enterAction = { (room: Room) -> Bool in
             // Access the game world directly
-            let world = room.gameWorld
+            let world = room.findWorld()
 
             if let study = world?.rooms.first(where: { $0.name == "Study" }),
                 let lightSwitch = study.contents.first(where: { $0.name == "light switch" })
@@ -308,7 +298,7 @@ public enum CloakOfDarkness {
                 return true
             } else {
                 // Try to access the world from our room's stored state
-                let world = room.gameWorld
+                let world = room.findWorld()
 
                 // Try to find the hallway
                 if let world,
@@ -316,13 +306,10 @@ public enum CloakOfDarkness {
                 {
                     if let player, let currentRoom = player.currentRoom {
                         // Remove from current room
-                        if let index = currentRoom.contents.firstIndex(where: { $0 === player }) {
-                            currentRoom.contents.remove(at: index)
-                        }
+                        currentRoom.remove(player)
 
-                        // Add to hallToStudy
-                        hallToStudy.contents.append(player)
-                        player.location = hallToStudy
+                        // Use setLocation which handles adding to the destination's contents
+                        player.moveTo(hallToStudy)
 
                         // Execute enter actions in the new room
                         _ = hallToStudy.executeEnterAction()
@@ -355,7 +342,7 @@ public enum CloakOfDarkness {
         foyer.endTurnAction = { (room: Room) -> Bool in
             // For the end-turn action, we'll check for the named events
             // Access the world directly rather than through the player
-            if let world = room.gameWorld {
+            if let world = room.findWorld() {
                 // Return true if any of these events are in progress
                 if world.isEventScheduled(named: "I-APPLE-FUN") {
                     print("The Foyer routine detects that the Apple event will run this turn!")
@@ -455,7 +442,7 @@ public enum CloakOfDarkness {
         createClosetObjects(world: world, closet: closet)
 
         // Create global objects
-        createGlobalObjects(world: world)
+        createGlobalObjects(world: world, hallToStudy: hallToStudy)
     }
 
     /// Creates objects for the bar room.
@@ -465,16 +452,13 @@ public enum CloakOfDarkness {
     private static func createBarObjects(world: GameWorld, bar: Room) {
         // Message
         let message = GameObject(
-            name: "message",
-            description: "A message scrawled in the sawdust."
+            name: "sign", 
+            description: "The message reads: \"No loitering in the bar without a drink.\"",
+            location: bar,
+            flags: []
         )
-        message.location = bar
-        message.firstDescription =
-            "There seems to be some sort of message scrawled in the sawdust on the floor."
+        message.firstDescription = "There seems to be some sort of message scrawled in the sawdust on the floor."
         world.registerObject(message)
-
-        // Store the world directly in the message for closure access
-        message.gameWorld = world
 
         message.setExamineHandler { obj in
             let room = obj.location as? Room
@@ -512,36 +496,33 @@ public enum CloakOfDarkness {
     private static func createClosetObjects(world: GameWorld, closet: Room) {
         // Create a broom in the closet
         let broom = GameObject(
-            name: "broom",
-            description: "An old wooden broom with straw bristles."
+            name: "broom", 
+            description: "A plain wooden broom for sweeping.",
+            location: closet,
+            flags: .takeBit
         )
-        broom.location = closet
-        broom.setFlag(.takeBit)
+        world.registerObject(broom)
 
         broom.setExamineHandler { obj in
             print(
-                "An old wooden broom with straw bristles. It looks like it hasn't been used in years."
+                "A plain wooden broom for sweeping."
             )
             return true
         }
 
-        world.registerObject(broom)
-
         // Create a dusty shelf
         let shelf = GameObject(
-            name: "shelf",
-            description: "A dusty wooden shelf attached to the wall."
+            name: "shelf", 
+            description: "A narrow utility shelf.",
+            location: closet,
+            flags: .containerBit, .surfaceBit
         )
-        shelf.location = closet
-        shelf.setFlag(.containerBit)
-        shelf.setFlag(.surfaceBit)
+        world.registerObject(shelf)
 
         shelf.setExamineHandler { obj in
             print("A dusty wooden shelf attached to the wall.")
             return true
         }
-
-        world.registerObject(shelf)
     }
 
     /// Creates objects for the cloakroom.
@@ -551,20 +532,17 @@ public enum CloakOfDarkness {
     private static func createCloakroomObjects(world: GameWorld, cloakroom: Room) {
         // Hook
         let hook = GameObject(
-            name: "small brass hook",
-            description: "A small brass hook is on the wall."
+            name: "hook", 
+            description: "A brass hook mounted on the wall.",
+            location: cloakroom,
+            flags: .containerBit, .surfaceBit
         )
-        hook.location = cloakroom
-        hook.setFlag(.containerBit)
-        hook.setFlag(.surfaceBit)
         world.registerObject(hook)
 
         hook.setExamineHandler { obj in
             print("Test: Normal examine replaced by a dequeue of the Table event.")
             // Access the world directly rather than through the player
-            if let room = obj.location as? Room,
-                let world = room.gameWorld
-            {
+            if let world = obj.findWorld() {
                 _ = world.dequeueEvent(named: "I-TABLE-FUN")
             }
             return true
@@ -577,10 +555,12 @@ public enum CloakOfDarkness {
     ///   - foyer: The foyer room.
     private static func createFoyerObjects(world: GameWorld, foyer: Room) {
         // Create an apple in the foyer
-        let apple = GameObject(name: "apple", description: "A shiny red apple.")
-        apple.location = foyer
-        apple.setFlag(.takeBit)
-        apple.setFlag(.edibleBit)
+        let apple = GameObject(
+            name: "apple", 
+            description: "A shiny red apple.",
+            location: foyer,
+            flags: .takeBit, .edibleBit
+        )
 
         apple.setExamineHandler { obj in
             print("The apple is red and looks delicious.")
@@ -590,49 +570,53 @@ public enum CloakOfDarkness {
         apple.setCustomCommandHandler(verb: "eat") { obj, objects in
             print("You eat the apple. It's delicious!")
             // Remove the apple from the game world
-            if let location = obj.location {
-                if let index = location.contents.firstIndex(where: { $0 === obj }) {
-                    location.contents.remove(at: index)
-                }
-            }
-            return true
+            return obj.location?.remove(obj) ?? false
         }
 
         world.registerObject(apple)
 
-        // Create some grime in the foyer
+        // Some grime on the floor
         let grime = GameObject(
-            name: "grime",
-            description: "Years of dirt and grime cover the floor."
+            name: "grime", 
+            description: "Just some dirty spots on the marble floor.",
+            location: foyer,
+            flags: []
         )
-        grime.location = foyer
+        world.registerObject(grime)
 
         grime.setExamineHandler { obj in
             print("The floor is covered in years of accumulated dirt and grime.")
             return true
         }
-
-        world.registerObject(grime)
     }
 
     /// Creates global objects available throughout the game.
     /// - Parameter world: The game world.
-    private static func createGlobalObjects(world: GameWorld) {
-        // Ceiling (global object)
+    private static func createGlobalObjects(
+        world: GameWorld,
+        hallToStudy: GameObject
+    ) {
+        // Ceiling with cobwebs
         let ceiling = GameObject(
-            name: "ceiling",
-            description: "Nothing really noticeable about the ceiling."
+            name: "ceiling", 
+            description: "The high ceiling is covered with cobwebs.",
+            location: world.rooms.first(where: { $0.name == "Hallway to Study" }),
+            flags: []
         )
         world.globalObjects.append(ceiling)
 
         ceiling.setExamineHandler { obj in
-            print("Nothing really noticeable about the ceiling.")
+            print("The high ceiling is covered with cobwebs.")
             return true
         }
 
-        // Darkness (global object)
-        let darkness = GameObject(name: "darkness", description: "It's too dark to see anything.")
-        darkness.setFlag(.nArticleBit)
+        // Darkness
+        let darkness = GameObject(
+            name: "darkness", 
+            description: "It's too dark to see anything.",
+            location: nil,
+            flags: .nArticleBit
+        )
         world.globalObjects.append(darkness)
 
         darkness.setCustomCommandHandler(verb: "think-about") { obj, objects in
@@ -643,8 +627,13 @@ public enum CloakOfDarkness {
             return false
         }
 
-        // Rug (local global object)
-        let rug = GameObject(name: "rug", description: "A tatty old rug.")
+        // Rug
+        let rug = GameObject(
+            name: "rug", 
+            description: "A tatty old rug.",
+            location: world.rooms.first(where: { $0.name == "Study" }),
+            flags: []
+        )
 
         rug.setCustomCommandHandler(verb: "put-on") { obj, objects in
             if objects.contains(where: { $0 === obj }) {
@@ -661,6 +650,17 @@ public enum CloakOfDarkness {
             bar.addLocalGlobal(rug)
         }
         world.registerObject(rug)
+
+        // Hallway sign
+        let sign = GameObject(
+            name: "sign", 
+            description: "The sign reads: \"Study - Private, No Entry!\"",
+            location: hallToStudy,
+            flags: .readBit
+        )
+        sign.firstDescription = "A crude wooden sign hangs above the western exit."
+        sign.text = "It reads, 'Welcome to the Study'"
+        world.registerObject(sign)
     }
 
     /// Creates objects for the hallway to study.
@@ -673,7 +673,7 @@ public enum CloakOfDarkness {
             name: "sign",
             description: "It's a block of grey wood bearing hastily-painted words."
         )
-        sign.location = hallToStudy
+        sign.moveTo(hallToStudy)
         sign.setFlag(.readBit)
         sign.firstDescription = "A crude wooden sign hangs above the western exit."
         sign.text = "It reads, 'Welcome to the Study'"
@@ -684,14 +684,12 @@ public enum CloakOfDarkness {
     /// - Parameter world: The game world.
     private static func createPlayerInventory(world: GameWorld) {
         // Cloak
-        let cloak = GameObject(name: "cloak", description: "The cloak is unnaturally dark.")
-        // We need to explicitly add it to the player's contents
-        world.player.contents.append(cloak)
-        // Then set the location afterwards
-        cloak.location = world.player
-        cloak.setFlag(.takeBit)
-        cloak.setFlag(.wearBit)
-        cloak.setFlag(.wornBit)
+        let cloak = GameObject(
+            name: "cloak",
+            description: "The cloak is unnaturally dark.",
+            location: world.player,
+            flags: .takeBit, .wearBit, .wornBit
+        )
         world.registerObject(cloak)
 
         cloak.setExamineHandler { obj in
@@ -706,9 +704,12 @@ public enum CloakOfDarkness {
     ///   - study: The study room.
     private static func createStudyObjects(world: GameWorld, study: Room) {
         // Light switch
-        let lightSwitch = GameObject(name: "light switch", description: "An ordinary light switch.")
-        lightSwitch.location = study
-        lightSwitch.setFlag(.deviceBit)
+        let lightSwitch = GameObject(
+            name: "light switch", 
+            description: "An ordinary light switch.",
+            location: study,
+            flags: .deviceBit
+        )
         world.registerObject(lightSwitch)
 
         lightSwitch.setExamineHandler { obj in
@@ -802,10 +803,12 @@ public enum CloakOfDarkness {
         }
 
         // Flashlight
-        let flashlight = GameObject(name: "flashlight", description: "A cheap plastic flashlight.")
-        flashlight.location = study
-        flashlight.setFlag(.deviceBit)
-        flashlight.setFlag(.takeBit)
+        let flashlight = GameObject(
+            name: "flashlight", 
+            description: "A cheap plastic flashlight.",
+            location: study,
+            flags: .deviceBit, .takeBit
+        )
         world.registerObject(flashlight)
 
         flashlight.setExamineHandler { obj in
@@ -919,100 +922,116 @@ public enum CloakOfDarkness {
         }
 
         // Stand
-        let stand = GameObject(name: "stand", description: "A worn wooden stand.")
-        stand.location = study
-        stand.setFlag(.containerBit)
-        stand.setFlag(.surfaceBit)
-        stand.capacity = 15
+        let stand = GameObject(
+            name: "stand", 
+            description: "A worn wooden stand.",
+            location: study,
+            flags: .containerBit, .surfaceBit
+        )
+        stand.setCapacity(to: 15)
         world.registerObject(stand)
 
         // Book
         let book = GameObject(
-            name: "book",
-            description: "A tattered hard-cover book with a red binding."
+            name: "book", 
+            description: "A leather-bound book with gold lettering.",
+            location: stand,
+            flags: .takeBit, .readBit
         )
-        book.location = stand
-        book.setFlag(.takeBit)
-        book.setFlag(.readBit)
-        book.text =
-            "It tells of an adventurer who was tasked with testing out a library that was old and new at the same time."
+        book.text = "It tells of an adventurer who was tasked with testing out a library that was old and new at the same time."
         world.registerObject(book)
 
         // Other study objects
-        let safe = GameObject(name: "safe", description: "A small wall safe.")
-        safe.location = study
-        safe.setFlag(.containerBit)
-        safe.setFlag(.openableBit)
+        let safe = GameObject(
+            name: "safe", 
+            description: "A small wall safe.",
+            location: study,
+            flags: .containerBit, .openableBit
+        )
         world.registerObject(safe)
 
-        let bill = GameObject(name: "dollar", description: "A crisp one-dollar bill.")
-        bill.location = safe
-        bill.setFlag(.takeBit)
+        let bill = GameObject(
+            name: "dollar", 
+            description: "A crisp one-dollar bill.",
+            location: safe,
+            flags: .takeBit
+        )
         world.registerObject(bill)
 
-        let glassCase = GameObject(name: "case", description: "A large glass case.")
-        glassCase.location = study
-        glassCase.setFlag(.containerBit)
-        glassCase.setFlag(.transBit)
+        let glassCase = GameObject(
+            name: "case", 
+            description: "A large glass case.",
+            location: study,
+            flags: .containerBit, .transBit
+        )
         world.registerObject(glassCase)
 
-        let muffin = GameObject(name: "muffin", description: "A tasty-looking muffin.")
-        muffin.location = glassCase
-        muffin.setFlag(.takeBit)
-        muffin.setFlag(.edibleBit)
+        let muffin = GameObject(
+            name: "muffin", 
+            description: "A tasty-looking muffin.",
+            location: glassCase,
+            flags: .takeBit, .edibleBit
+        )
         world.registerObject(muffin)
 
-        let sphere = GameObject(name: "sphere", description: "A glass sphere.")
-        sphere.location = study
-        sphere.setFlag(.takeBit)
-        sphere.setFlag(.transBit)
-        sphere.setFlag(.containerBit)
+        let sphere = GameObject(
+            name: "sphere", 
+            description: "A glass sphere.",
+            location: study,
+            flags: .takeBit, .transBit, .containerBit
+        )
         world.registerObject(sphere)
 
         let firefly = GameObject(
-            name: "firefly",
-            description: "A tiny but brightly glowing firefly."
+            name: "firefly", 
+            description: "A tiny glowing firefly.",
+            location: sphere,
+            flags: .takeBit, .lightSource, .lit
         )
-        firefly.location = sphere
-        firefly.setFlag(.takeBit)
-        firefly.setFlag(.lightSource)
-        firefly.setFlag(.lit)
         world.registerObject(firefly)
 
-        let wallet = GameObject(name: "wallet", description: "A leather wallet.")
-        wallet.location = study
-        wallet.setFlag(.containerBit)
-        wallet.setFlag(.takeBit)
-        wallet.setFlag(.openableBit)
-        wallet.capacity = 2
+        let wallet = GameObject(
+            name: "wallet", 
+            description: "A leather wallet.",
+            location: study,
+            flags: .containerBit, .takeBit, .openableBit
+        )
+        wallet.setCapacity(to: 2)
         world.registerObject(wallet)
 
-        let jar = GameObject(name: "jar", description: "A glass jar.")
-        jar.location = stand
-        jar.setFlag(.containerBit)
-        jar.setFlag(.openBit)
-        jar.setFlag(.takeBit)
-        jar.capacity = 6
+        let jar = GameObject(
+            name: "jar", 
+            description: "A glass jar.",
+            location: stand,
+            flags: .containerBit, .openBit, .takeBit
+        )
+        jar.setCapacity(to: 6)
         world.registerObject(jar)
 
-        let plum = GameObject(name: "plum", description: "A ripe purple plum.")
-        plum.location = jar
-        plum.setFlag(.takeBit)
-        plum.setFlag(.edibleBit)
+        let plum = GameObject(
+            name: "plum", 
+            description: "A ripe purple plum.",
+            location: jar,
+            flags: .takeBit, .edibleBit
+        )
         world.registerObject(plum)
 
-        let crate = GameObject(name: "crate", description: "A wooden crate.")
-        crate.location = study
-        crate.setFlag(.containerBit)
-        crate.capacity = 15
+        let crate = GameObject(
+            name: "crate", 
+            description: "A wooden crate.",
+            location: study,
+            flags: .containerBit
+        )
+        crate.setCapacity(to: 15)
         world.registerObject(crate)
 
-        let tray = GameObject(name: "tray", description: "A serving tray.")
-        tray.location = stand
-        tray.setFlag(.containerBit)
-        tray.setFlag(.takeBit)
-        tray.setFlag(.surfaceBit)
-        tray.capacity = 11
+        let tray = GameObject(
+            name: "tray", 
+            description: "A serving tray.",
+            location: stand,
+            flags: .containerBit, .takeBit, .surfaceBit
+        )
+        tray.setCapacity(to: 11)
         world.registerObject(tray)
     }
 }

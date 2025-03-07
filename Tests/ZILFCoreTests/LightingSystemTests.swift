@@ -53,23 +53,21 @@ struct LightingSystemTests {
         lantern.makeLightSource(initiallyLit: true)
 
         // Manually add lantern to player's inventory
-        if let oldLocation = lantern.location,
-           let index = oldLocation.contents.firstIndex(where: { $0 === lantern }) {
-            oldLocation.contents.remove(at: index)
-        }
-        lantern.location = player
-        player.contents.append(lantern)
+//        if let oldLocation = lantern.location,
+//           let index = oldLocation.contents.firstIndex(where: { $0 === lantern }) {
+//            oldLocation.contents.remove(at: index)
+//        }
+        lantern.moveTo(player)
 
         // Verify lantern is in player's inventory
         #expect(player.contents.contains { $0 === lantern })
 
         // Move player to dark room (manually)
-        if let currentRoom = player.currentRoom,
-           let index = currentRoom.contents.firstIndex(where: { $0 === player }) {
-            currentRoom.contents.remove(at: index)
-        }
-        player.location = darkRoom
-        darkRoom.contents.append(player)
+//        if let currentRoom = player.currentRoom,
+//           let index = currentRoom.contents.firstIndex(where: { $0 === player }) {
+//            currentRoom.contents.remove(at: index)
+//        }
+        player.moveTo(darkRoom)
 
         // Verify player is in dark room
         #expect(player.currentRoom === darkRoom)
@@ -108,8 +106,7 @@ struct LightingSystemTests {
         // Create a lantern (off)
         let lantern = GameObject(name: "lantern", description: "A brass lantern")
         lantern.makeLightSource()
-        lantern.location = room
-        room.contents.append(lantern)
+        lantern.moveTo(room)
 
         // The room should still be dark
         #expect(!world.isRoomLit(room))
@@ -137,8 +134,10 @@ struct LightingSystemTests {
         // Test with multiple light sources
         let candle = GameObject(name: "candle", description: "A small candle")
         candle.makeLightSource(initiallyLit: true)
-        candle.location = player
-        player.contents.append(candle)
+        candle.moveTo(player)
+
+        // Verify player has the candle
+        #expect(player.contents.contains { $0 === candle })
 
         let allLightSources = world.availableLightSources(in: room)
         #expect(allLightSources.count == 2)
@@ -159,35 +158,30 @@ struct LightingSystemTests {
         // The room is dark by default and we've explicitly made it dark
         #expect(!world.isRoomLit(room))
 
-        // Create a glass box
-        let glassBox = GameObject(name: "glass box", description: "A transparent glass box")
+        // Create a glass box (transparent container)
+        let glassBox = GameObject(name: "glass box", description: "A clear glass box")
         glassBox.setFlag("container")
         glassBox.setFlag("open")
         glassBox.setFlag(.transparent)
-        glassBox.location = room
-        room.contents.append(glassBox)
+        glassBox.moveTo(room)
 
         // Create a light source inside the glass box
         let crystal = GameObject(name: "glowing crystal", description: "A crystal that emits a soft glow")
         crystal.makeLightSource(initiallyLit: true)
-        crystal.location = glassBox
-        glassBox.contents.append(crystal)
+        crystal.moveTo(glassBox)
 
         // The room should be lit because the crystal is visible through the glass
         #expect(world.isRoomLit(room))
 
-        // Create an opaque box
-        let woodenBox = GameObject(name: "wooden box", description: "A wooden box")
+        // Create a wooden box (non-transparent container)
+        let woodenBox = GameObject(name: "wooden box", description: "A solid wooden box")
         woodenBox.setFlag("container")
         woodenBox.setFlag("open")
         // Not transparent
-        woodenBox.location = room
-        room.contents.append(woodenBox)
+        woodenBox.moveTo(room)
 
         // Move the crystal to the wooden box
-        crystal.location = woodenBox
-        glassBox.contents.remove(at: 0)
-        woodenBox.contents.append(crystal)
+        crystal.moveTo(woodenBox)
 
         // The room should still be lit because the wooden box is open
         #expect(world.isRoomLit(room))

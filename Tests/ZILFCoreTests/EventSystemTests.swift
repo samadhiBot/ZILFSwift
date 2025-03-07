@@ -302,9 +302,11 @@ struct EventSystemTests {
 
         // Event-related state
         kettle = GameObject(name: "kettle", description: "A copper kettle.")
-        kettle?.location = kitchen
-        kitchen.contents.append(kettle!)
+        kettle?.moveTo(kitchen)
         world.registerObject(kettle!)
+
+        // Move kettle to kitchen for event
+        kettle?.moveTo(kitchen)
 
         // Add a recurring "clock" event
         world.queueEvent(name: "clock-tick", turns: -1) {

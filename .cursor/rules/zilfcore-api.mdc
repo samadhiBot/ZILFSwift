@@ -1,0 +1,11 @@
+---
+description: When creating or updating new swift code
+globs: *.swift
+---
+# ZILFCore API
+
+## GameObject creation
+
+- Always use `init(name:description:location:flags:)` when creating `GameObject` instances. Omit the `flags` param when empty.
+
+

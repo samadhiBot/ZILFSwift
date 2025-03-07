@@ -40,7 +40,8 @@ public class GameEngine {
     ///   - outputHandler: Function that handles text output from the game
     ///   - worldCreator: Optional function that creates a new world instance for game restarts
     public init(
-        world: GameWorld, outputHandler: @escaping (String) -> Void = { print($0) },
+        world: GameWorld,
+        outputHandler: @escaping (String) -> Void = { print($0) },
         worldCreator: (() -> GameWorld)? = nil
     ) {
         self.world = world
@@ -376,7 +377,7 @@ public class GameEngine {
 
             // Execute the traversal, including any custom behavior
             let destination = specialExit.destination
-            world.player.moveTo(destination: destination)
+            world.player.moveTo(destination)
 
             // Show success message if provided, otherwise look at new location
             if let successMessage = specialExit.successMessage {
@@ -610,7 +611,7 @@ public class GameEngine {
 
         // Drop the object in the current room
         if let room = world.player.currentRoom {
-            obj.moveTo(destination: room)
+            obj.moveTo(room)
             outputHandler("Dropped.")
 
             // Update last mentioned object
@@ -800,7 +801,7 @@ public class GameEngine {
         }
 
         // Put the object on the surface
-        obj.moveTo(destination: surface)
+        obj.moveTo(surface)
         outputHandler("You put the \(obj.name) on the \(surface.name).")
 
         // Update last mentioned object
@@ -838,7 +839,7 @@ public class GameEngine {
         }
 
         // Put the object in the container
-        obj.moveTo(destination: container)
+        obj.moveTo(container)
         outputHandler("You put the \(obj.name) in the \(container.name).")
 
         // Update last mentioned object
@@ -932,7 +933,7 @@ public class GameEngine {
         }
 
         // Take the object
-        obj.moveTo(destination: world.player)
+        obj.moveTo(world.player)
         outputHandler("Taken.")
 
         // Update last mentioned object

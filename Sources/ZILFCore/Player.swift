@@ -6,11 +6,6 @@ import Foundation
 /// to the player character, including movement between rooms and tracking the
 /// player's current location.
 public class Player: GameObject {
-    /// The current room the player is located in.
-    public var currentRoom: Room? {
-        return location as? Room
-    }
-
     /// The game engine instance managing this player.
     public private(set) var engine: GameEngine!
 
@@ -21,8 +16,17 @@ public class Player: GameObject {
     /// - Parameter startingRoom: The room where the player begins the game.
     public init(startingRoom: Room) {
         super.init(name: "player", description: "As good-looking as ever.")
-        self.location = startingRoom
-        startingRoom.contents.append(self)
+        self.moveTo(startingRoom)
+    }
+
+    /// The current room the player is located in.
+    public var currentRoom: Room? {
+        location as? Room
+    }
+
+    /// Objects contained within this object (alias for contents).
+    public var inventory: [GameObject] {
+        contents
     }
 
     /// Attempts to move the player in the specified direction.
@@ -53,13 +57,11 @@ public class Player: GameObject {
                 let destination = specialExit.destination
 
                 // Remove from old room
-                if let index = currentRoom.contents.firstIndex(where: { $0 === self }) {
-                    currentRoom.contents.remove(at: index)
-                }
+                currentRoom.remove(self)
 
-                // Add to new room
-                self.location = destination
-                destination.contents.append(self)
+                // Use setLocation instead of direct assignment to update location
+                // This automatically handles adding to the destination's contents
+                moveTo(destination)
 
                 // Trigger the room's enter action
                 destination.executeEnterAction()
@@ -80,13 +82,11 @@ public class Player: GameObject {
         }
 
         // Remove from old room
-        if let index = currentRoom.contents.firstIndex(where: { $0 === self }) {
-            currentRoom.contents.remove(at: index)
-        }
+        currentRoom.remove(self)
 
-        // Add to new room
-        self.location = newRoom
-        newRoom.contents.append(self)
+        // Use setLocation instead of direct assignment to update location
+        // This automatically handles adding to the destination's contents
+        moveTo(newRoom)
 
         // Trigger the room's enter action
         newRoom.executeEnterAction()
@@ -96,13 +96,13 @@ public class Player: GameObject {
 
     /// Sets the game engine for this player.
     /// - Parameter engine: The game engine to associate with this player.
-    internal func setEngine(_ engine: GameEngine) {
+    func setEngine(_ engine: GameEngine) {
         self.engine = engine
     }
 
     /// Sets the game world for this player.
     /// - Parameter world: The game world to associate with this player.
-    internal func setWorld(_ world: GameWorld) {
+    func setWorld(_ world: GameWorld) {
         self.world = world
     }
 }

@@ -58,9 +58,9 @@ public class Room: GameObject {
     /// - Parameters:
     ///   - name: The name of the room.
     ///   - description: The detailed description of the room.
-    public init(name: String, description: String) {
-        super.init(name: name, description: description)
-    }
+//    public init(name: String, description: String) {
+//        super.init(name: name, description: description)
+//    }
 
     /// Executes the begin-command action for this room.
     /// - Parameter command: The command to process.

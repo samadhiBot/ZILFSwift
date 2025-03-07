@@ -4,43 +4,26 @@ import Foundation
 /// Provides functionality for object relationships, state management, and interactions.
 @dynamicMemberLookup
 public class GameObject {
-    // MARK: - Properties
+    /// The maximum number of objects this object can contain.
+    public private(set) var capacity: Int?
 
-    /// Maximum number of objects this object can contain. -1 means unlimited capacity.
-    public var capacity: Int = -1
+    /// Any objects contained within this object.
+    public private(set) var contents: [GameObject] = []
 
-    /// Objects contained within this object.
-    public var contents: [GameObject] = []
+    /// The descriptive text for this object.
+    public private(set) var description: String
 
-    /// Descriptive text for this object.
-    public var description: String
-
-    /// Set of flags that define object behaviors and states.
-    public var flags: Set<String> = []
+    /// The set of flags that define object behaviors and states.
+    public private(set) var flags: Set<String> = []
 
     /// The container that holds this object.
-    private var _location: GameObject?
-    public var location: GameObject? {
-        get { return _location }
-        set { setLocation(newValue) }
-    }
+    public private(set) var location: GameObject?
 
     /// The identifier for this object.
     public var name: String
 
-    /// Dictionary storing dynamic state values.
-    internal var stateValues: [String: Any] = [:]
-
-    /// Reference to the game world this object belongs to.
-    public var gameWorld: GameWorld? {
-        get { stateValues["gameWorld"] as? GameWorld }
-        set { stateValues["gameWorld"] = newValue }
-    }
-
-    /// Objects contained within this object (alias for contents).
-    public var inventory: [GameObject] {
-        return contents
-    }
+    /// A dictionary storing dynamic state values.
+    var stateValues: [String: Any] = [:]
 
     // MARK: - Initialization
 
@@ -50,27 +33,20 @@ public class GameObject {
     ///   - name: The name of the object.
     ///   - description: The description of the object.
     ///   - location: The location of the object (optional).
-    public init(name: String, description: String, location: GameObject? = nil) {
+    ///   - flags: Array of flags to set on the object.
+    public init(
+        name: String,
+        description: String,
+        location: GameObject? = nil,
+        flags: [String] = []
+    ) {
         self.name = name
         self.description = description
-        self._location = nil
+        self.location = nil
+        flags.forEach { setFlag($0) }
 
         if let location {
-            setLocation(location)
-        }
-    }
-
-    /// Convenience initializer with location and flags.
-    ///
-    /// - Parameters:
-    ///   - name: The name of the object.
-    ///   - description: The description of the object.
-    ///   - location: The location of the object (optional).
-    ///   - flags: Array of flags to set on the object.
-    public convenience init(name: String, description: String, location: GameObject? = nil, flags: [String]) {
-        self.init(name: name, description: description, location: location)
-        for flag in flags {
-            setFlag(flag)
+            moveTo(location)
         }
     }
 
@@ -81,14 +57,35 @@ public class GameObject {
     ///   - description: The description of the object.
     ///   - location: The location of the object (optional).
     ///   - flags: Variadic list of flags to set on the object.
-    public convenience init(name: String, description: String, location: GameObject? = nil, flags: String...) {
-        self.init(name: name, description: description, location: location)
-        for flag in flags {
-            setFlag(flag)
-        }
+    public convenience init(
+        name: String,
+        description: String,
+        location: GameObject? = nil,
+        flags: String...
+    ) {
+        self.init(name: name, description: description, location: location, flags: flags)
     }
 
     // MARK: - Core Functions
+
+    /// Attempts to add an object to this container.
+    ///
+    /// - Parameter obj: The object to add to this container.
+    /// - Returns: True if the object was successfully added.
+    public func addToContainer(_ obj: GameObject) -> Bool {
+        if isContainer() && isOpen() {
+            // Check capacity if it's limited
+            if let capacity, contents.count >= capacity {
+                return false
+            }
+
+            // Use setLocation which handles removing from current location
+            // and adding to this container's contents
+            obj.moveTo(self)
+            return true
+        }
+        return false
+    }
 
     /// Checks if this object is inside another object, directly or indirectly.
     ///
@@ -108,59 +105,44 @@ public class GameObject {
     /// Adds this object to a container.
     ///
     /// - Parameter destination: The new location for this object.
-    public func moveTo(destination: GameObject) {
-        // Remove from current location if any
-        if let currentLocation = location,
-           let index = currentLocation.contents.firstIndex(where: { $0 === self }) {
-            currentLocation.contents.remove(at: index)
+    public func moveTo(_ destination: GameObject?) {
+        // If we already have a location, remove from its contents
+        if let oldLocation = location {
+            oldLocation.remove(self)
         }
 
-        // Update location and add to new container's contents
+        // Update our location reference
         location = destination
-        destination.contents.append(self)
+
+        // Add to new location's contents if not nil
+        if let destination {
+            // Only add if not already in contents to avoid duplicates
+            if !destination.contents.contains(where: { $0 === self }) {
+                destination.contents.append(self)
+            }
+        }
     }
-
-    /// Attempts to add an object to this container.
+    
+    /// Attempts to remove an object from `contents`.
     ///
-    /// - Parameter obj: The object to add to this container.
-    /// - Returns: True if the object was successfully added.
-    public func addToContainer(_ obj: GameObject) -> Bool {
-        if isContainer() && isOpen() {
-            // Check capacity if it's limited
-            if capacity >= 0 && contents.count >= capacity {
-                return false
-            }
-
-            // Remove from current location
-            if let loc = obj.location, let index = loc.contents.firstIndex(where: { $0 === obj }) {
-                loc.contents.remove(at: index)
-            }
-
-            // Add to this container
-            obj.location = self
-            contents.append(obj)
+    /// - Parameter obj: The object to remove.
+    /// - Returns: Whether the object was removed.
+    public func remove(_ obj: GameObject) -> Bool {
+        if contents.contains(where: { $0 === obj }) {
+            contents.removeAll { $0 === obj }
+            obj.moveTo(nil)
             return true
         }
         return false
     }
 
-    // Public method to set location that handles the bidirectional relationship
-    public func setLocation(_ newLocation: GameObject?) {
-        // If we already have a location, remove from its contents
-        if let oldLocation = _location {
-            oldLocation.contents.removeAll { $0 === self }
-        }
+    /// Remove all objects from `contents`.
+    public func removeAll() {
+        contents.removeAll()
+    }
 
-        // Update our location reference
-        _location = newLocation
-
-        // Add to new location's contents if not nil
-        if let newLocation {
-            // Only add if not already in contents to avoid duplicates
-            if !newLocation.contents.contains(where: { $0 === self }) {
-                newLocation.contents.append(self)
-            }
-        }
+    public func setCapacity(to capacity: Int?) {
+        self.capacity = capacity
     }
 
     // MARK: - Flag Operations
@@ -305,6 +287,13 @@ public class GameObject {
         // Could not find player
         return nil
     }
+    
+    /// Find the game world by traversing up the object graph.
+    ///
+    /// - Returns: The game world, or nil if not found.
+    public func findWorld() -> GameWorld? {
+        findPlayer()?.world
+    }
 
     // MARK: - State Management
 
@@ -313,7 +302,7 @@ public class GameObject {
     /// - Parameters:
     ///   - value: Value to store.
     ///   - key: Key to store it under.
-    internal func setState<T>(_ value: T, forKey key: String) {
+    func setState<T>(_ value: T, forKey key: String) {
         stateValues[key] = value
     }
 
@@ -321,14 +310,14 @@ public class GameObject {
     ///
     /// - Parameter key: Key to retrieve.
     /// - Returns: The stored value, or nil if not found.
-    internal func getState<T>(forKey key: String) -> T? {
+    func getState<T>(forKey key: String) -> T? {
         return stateValues[key] as? T
     }
 
     /// Remove a state value for this object.
     ///
     /// - Parameter key: Key to remove.
-    internal func removeState(forKey key: String) {
+    func removeState(forKey key: String) {
         stateValues.removeValue(forKey: key)
     }
 
@@ -336,7 +325,7 @@ public class GameObject {
     ///
     /// - Parameter key: The key to check.
     /// - Returns: True if the state exists and is true.
-    internal func hasState(_ key: String) -> Bool {
+    func hasState(_ key: String) -> Bool {
         getState(forKey: key) ?? false
     }
 

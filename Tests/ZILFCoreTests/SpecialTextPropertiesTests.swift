@@ -131,9 +131,12 @@ struct SpecialTextPropertiesTests {
         #expect(darkRoom.getRoomDescription(in: world) == "You can't see anything in the pitch darkness.")
 
         // With a light source, should see normal description
-        let lantern = GameObject(name: "lantern", description: "A brass lantern")
+        let lantern = GameObject(
+            name: "lantern",
+            description: "A brass lantern",
+            location: darkRoom
+        )
         lantern.makeLightSource(initiallyLit: true)
-        darkRoom.contents.append(lantern)
 
         #expect(darkRoom.getRoomDescription(in: world).contains("A well-furnished room"))
     }

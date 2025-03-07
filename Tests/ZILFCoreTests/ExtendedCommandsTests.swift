@@ -43,9 +43,7 @@ struct ExtendedCommandsTests {
         world.registerObject(hat)
 
         // First move the hat to the player's inventory
-        hat.location = player
-        room.contents.removeAll(where: { $0 === hat })
-        player.contents.append(hat)
+        hat.moveTo(player)
 
         let parser = CommandParser(world: world)
 
