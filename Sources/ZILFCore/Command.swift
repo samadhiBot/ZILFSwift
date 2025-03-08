@@ -5,49 +5,49 @@ public enum Command: Equatable, Hashable, Sendable {
     // MARK: Custom commands
 
     /// Defines a game-specific custom command.
-    case custom(Set<String>)
+    case custom([String])
 
     // MARK: Directional commands
 
     /// Move in the northern direction.
-    case north
+    case moveNorth
 
     /// Move in the northeastern direction.
-    case northeast
+    case moveNorthEast
 
     /// Move in the northwestern direction.
-    case northwest
+    case moveNorthWest
 
     /// Move in the southern direction.
-    case south
+    case moveSouth
 
     /// Move in the southeastern direction.
-    case southeast
+    case moveSouthEast
 
     /// Move in the southwestern direction.
-    case southwest
+    case moveSouthWest
 
     /// Move in the eastern direction.
-    case east
+    case moveEast
 
     /// Move in the western direction.
-    case west
+    case moveWest
 
     /// Move in the upward direction.
-    case up
+    case moveUp
 
     /// Move in the downward direction.
-    case down
+    case moveDown
 
-    /// Move in the inward direction.
-    case inward
+    /// Move into some target.
+    case moveInside
 
-    /// Move in the outward direction.
-    case outward
+    /// Move out of some target.
+    case moveOutside
 
     // MARK: Interaction commands
 
-    /// Attack a target.
+    /// Attack an object.
     case attack
 
     /// Burn an object.
@@ -152,7 +152,7 @@ public enum Command: Equatable, Hashable, Sendable {
     /// Consider or contemplate an object or concept.
     case thinkAbout
 
-    /// Throw an object at a target.
+    /// Throw an object at an object.
     case throwAt
 
     /// Deactivate a device.
@@ -240,18 +240,18 @@ extension Command {
         switch self {
         case .custom(let synonyms): Array(synonyms)
 
-        case .north: ["north", "n", "go-north"]
-        case .northeast: ["northeast", "ne", "go-northeast"]
-        case .northwest: ["northwest", "nw", "go-northwest"]
-        case .south: ["south", "s", "go-south"]
-        case .southeast: ["southeast", "se", "go-southeast"]
-        case .southwest: ["southwest", "sw", "go-southwest"]
-        case .east: ["east", "e", "go-east"]
-        case .west: ["west", "w", "go-west"]
-        case .up: ["up", "u", "go-up", "climb"]
-        case .down: ["down", "d", "go-down", "descend"]
-        case .inward: ["in"]
-        case .outward: ["out"]
+        case .moveNorth: ["north", "n", "go-north"]
+        case .moveNorthEast: ["northeast", "ne", "go-northeast"]
+        case .moveNorthWest: ["northwest", "nw", "go-northwest"]
+        case .moveSouth: ["south", "s", "go-south"]
+        case .moveSouthEast: ["southeast", "se", "go-southeast"]
+        case .moveSouthWest: ["southwest", "sw", "go-southwest"]
+        case .moveEast: ["east", "e", "go-east"]
+        case .moveWest: ["west", "w", "go-west"]
+        case .moveUp: ["up", "u", "go-up", "climb"]
+        case .moveDown: ["down", "d", "go-down", "descend"]
+        case .moveInside: ["in", "go-inside"]
+        case .moveOutside: ["out"]
 
         case .attack: ["attack", "kill", "destroy"]
         case .burn: ["burn", "light"]
@@ -259,7 +259,7 @@ extension Command {
         case .close: ["close", "shut"]
         case .dance: ["dance"]
         case .drink: ["drink", "sip", "quaff"]
-        case .drop: ["drop", "put down"]
+        case .drop: ["drop", "put-down"]
         case .eat: ["eat", "consume", "devour"]
         case .empty: ["empty"]
         case .examine: ["examine", "x", "look-at", "inspect"]
@@ -277,7 +277,7 @@ extension Command {
         case .pull: ["pull"]
         case .push: ["push"]
         case .putIn: ["put-in"]
-        case .putOn: ["put on", "place-on", "set-on"]
+        case .putOn: ["put-on", "place-on", "set-on"]
         case .read: ["read", "peruse"]
         case .remove: ["remove", "doff", "take-off"]
         case .rub: ["rub"]
@@ -324,3 +324,82 @@ extension Command: CustomStringConvertible {
         synonyms[0]
     }
 }
+
+extension Command: CaseIterable {
+    public static var allCases: [Command] {
+        [
+            .again,
+            .attack,
+            .brief,
+            .burn,
+            .climb,
+            .close,
+            .dance,
+            .drink,
+            .drop,
+            .eat,
+            .empty,
+            .examine,
+            .fill,
+            .flip,
+            .give,
+            .help,
+            .inventory,
+            .jump,
+            .lock,
+            .look,
+            .lookUnder,
+            .moveDown,
+            .moveEast,
+            .moveInside,
+            .moveNorth,
+            .moveNorthEast,
+            .moveNorthWest,
+            .moveOutside,
+            .moveSouth,
+            .moveSouthEast,
+            .moveSouthWest,
+            .moveUp,
+            .moveWest,
+            .no,
+            .open,
+            .pronouns,
+            .pull,
+            .push,
+            .putIn,
+            .putOn,
+            .quit,
+            .read,
+            .remove,
+            .restart,
+            .restore,
+            .rub,
+            .save,
+            .script,
+            .search,
+            .sing,
+            .smell,
+            .superbrief,
+            .swim,
+            .take,
+            .tell,
+            .thinkAbout,
+            .throwAt,
+            .turnOff,
+            .turnOn,
+            .undo,
+            .unlock,
+            .unscript,
+            .unwear,
+            .verbose,
+            .version,
+            .wait,
+            .wake,
+            .wave,
+            .waveHands,
+            .wear,
+            .yes,
+        ]
+    }
+}
+

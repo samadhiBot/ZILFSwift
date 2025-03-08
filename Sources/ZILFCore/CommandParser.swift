@@ -26,6 +26,10 @@ public class CommandParser {
             return .unknown("No command given")
         }
 
+        let commands = Command.allCases.compactMap { command in
+            command.synonyms.contains(firstWord)
+        }
+
         return switch firstWord {
             case "again", "g": .customCommand("again", [])
             case "brief": .customCommand("brief", [])
