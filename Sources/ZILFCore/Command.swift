@@ -239,6 +239,7 @@ extension Command {
     public var synonyms: [String] {
         switch self {
         case .custom(let synonyms): Array(synonyms)
+
         case .north: ["north", "n", "go-north"]
         case .northeast: ["northeast", "ne", "go-northeast"]
         case .northwest: ["northwest", "nw", "go-northwest"]
@@ -249,8 +250,9 @@ extension Command {
         case .west: ["west", "w", "go-west"]
         case .up: ["up", "u", "go-up", "climb"]
         case .down: ["down", "d", "go-down", "descend"]
-        case .in: ["in"]
-        case .out: ["out"]
+        case .inward: ["in"]
+        case .outward: ["out"]
+
         case .attack: ["attack", "kill", "destroy"]
         case .burn: ["burn", "light"]
         case .climb: ["climb"]
@@ -297,6 +299,7 @@ extension Command {
         case .waveHands: ["wave-hands"]
         case .wear: ["wear", "don", "put-on"]
         case .yes: ["yes"]
+
         case .again: ["again", "g", "repeat"]
         case .brief: ["brief"]
         case .help: ["help", "?", "info"]
