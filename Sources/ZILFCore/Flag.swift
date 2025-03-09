@@ -149,6 +149,13 @@ public enum Flag: Hashable {
     /// "The room is in mid-air, for those games with some type of flying."
     case isMidAirLocation
 
+    /// The room is naturally lit and doesn't require a light source.
+    ///
+    /// This is often used for outdoor rooms during daytime or rooms with ambient light.
+    /// In ZIL games, this was typically implemented by setting the ONBIT flag on rooms
+    /// that were naturally lit.
+    case isNaturallyLit
+
     /// The object is a not land.
     case isNotLand
 
@@ -303,13 +310,6 @@ public enum Flag: Hashable {
 
     /// A custom flag.
     case custom(String)
-
-    /// The room is naturally lit and doesn't require a light source.
-    ///
-    /// This is often used for outdoor rooms during daytime or rooms with ambient light.
-    /// In ZIL games, this was typically implemented by setting the ONBIT flag on rooms
-    /// that were naturally lit.
-    case isNaturallyLit
 }
 
 extension Flag {
