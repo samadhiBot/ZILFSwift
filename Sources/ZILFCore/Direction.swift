@@ -1,7 +1,7 @@
 import Foundation
 
 /// Directions for room connections.
-public enum Direction: Hashable {
+public enum Direction: Hashable, Sendable {
     /// The northern direction.
     case north
 
@@ -101,5 +101,24 @@ extension Direction {
         case .outward: "out"
         case .custom(let direction): direction
         }
+    }
+}
+
+extension Direction: CaseIterable {
+    public static var allCases: [Direction] {
+        [
+            .north,
+            .northEast,
+            .northWest,
+            .south,
+            .southEast,
+            .southWest,
+            .east,
+            .west,
+            .up,
+            .down,
+            .inward,
+            .outward,
+        ]
     }
 }

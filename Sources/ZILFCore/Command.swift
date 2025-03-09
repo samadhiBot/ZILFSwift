@@ -7,43 +7,8 @@ public enum Command: Equatable, Hashable, Sendable {
     /// Defines a game-specific custom command.
     case custom([String])
 
-    // MARK: Directional commands
-
-    /// Move in the northern direction.
-    case moveNorth
-
-    /// Move in the northeastern direction.
-    case moveNorthEast
-
-    /// Move in the northwestern direction.
-    case moveNorthWest
-
-    /// Move in the southern direction.
-    case moveSouth
-
-    /// Move in the southeastern direction.
-    case moveSouthEast
-
-    /// Move in the southwestern direction.
-    case moveSouthWest
-
-    /// Move in the eastern direction.
-    case moveEast
-
-    /// Move in the western direction.
-    case moveWest
-
-    /// Move in the upward direction.
-    case moveUp
-
-    /// Move in the downward direction.
-    case moveDown
-
-    /// Move into some target.
-    case moveInside
-
-    /// Move out of some target.
-    case moveOutside
+    /// Defines a fallback command when the input is not understood.
+    case unknown(String)
 
     // MARK: Interaction commands
 
@@ -100,6 +65,9 @@ public enum Command: Equatable, Hashable, Sendable {
 
     /// Look under an object.
     case lookUnder
+
+    /// Move the player in some direction.
+    case move
 
     /// Creates a command for a negative response.
     case no
@@ -244,19 +212,7 @@ extension Command {
     public var synonyms: [String] {
         switch self {
         case .custom(let synonyms): Array(synonyms)
-
-        case .moveNorth: ["north", "n", "go-north"]
-        case .moveNorthEast: ["northeast", "ne", "go-northeast"]
-        case .moveNorthWest: ["northwest", "nw", "go-northwest"]
-        case .moveSouth: ["south", "s", "go-south"]
-        case .moveSouthEast: ["southeast", "se", "go-southeast"]
-        case .moveSouthWest: ["southwest", "sw", "go-southwest"]
-        case .moveEast: ["east", "e", "go-east"]
-        case .moveWest: ["west", "w", "go-west"]
-        case .moveUp: ["up", "u", "go-up", "climb"]
-        case .moveDown: ["down", "d", "go-down", "descend"]
-        case .moveInside: ["in", "go-inside"]
-        case .moveOutside: ["out"]
+        case .unknown: []
 
         case .attack: ["attack", "kill", "destroy"]
         case .burn: ["burn", "light"]
@@ -276,6 +232,7 @@ extension Command {
         case .lock: ["lock"]
         case .look: ["look", "l", "look-around"]
         case .lookUnder: ["look-under"]
+        case .move: ["move", "go", "walk", "run"]
         case .no: ["no"]
         case .open: ["open"]
         case .pronouns: ["pronouns"]
@@ -354,18 +311,7 @@ extension Command: CaseIterable {
             .lock,
             .look,
             .lookUnder,
-            .moveDown,
-            .moveEast,
-            .moveInside,
-            .moveNorth,
-            .moveNorthEast,
-            .moveNorthWest,
-            .moveOutside,
-            .moveSouth,
-            .moveSouthEast,
-            .moveSouthWest,
-            .moveUp,
-            .moveWest,
+            .move,
             .no,
             .open,
             .pronouns,

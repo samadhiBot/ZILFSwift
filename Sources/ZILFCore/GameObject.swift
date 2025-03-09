@@ -122,7 +122,7 @@ public class GameObject {
             }
         }
     }
-    
+
     /// Attempts to remove an object from `contents`.
     ///
     /// - Parameter obj: The object to remove.
@@ -154,9 +154,9 @@ public class GameObject {
     public func hasFlag(_ flag: Flag) -> Bool {
         flags.contains(flag)
     }
-    
+
     /// Checks whether the object has all of the specified flags.
-    /// 
+    ///
     /// - Parameters:
     ///   - flags: The flags to check for.
     ///   - quantifier: Whether to match `all` or `any` of the specified flags.
@@ -245,7 +245,7 @@ public class GameObject {
         // Could not find player
         return nil
     }
-    
+
     /// Find the game world by traversing up the object graph.
     ///
     /// - Returns: The game world, or nil if not found.
@@ -360,12 +360,23 @@ public class GameObject {
     /// - Parameters:
     ///   - verb: The verb to handle.
     ///   - handler: The handler function that takes a GameObject and an array of objects and returns a Bool.
-    public func setCustomCommandHandler(verb: String, handler: @escaping (GameObject, [GameObject]) -> Bool) {
+    public func setCustomCommandHandler(
+        verb: String,
+        handler: @escaping (GameObject, [GameObject]) -> Bool
+    ) {
         let commandHandler: (GameObject, Command) -> Bool = { obj, command in
-            if case .customCommand(let cmdVerb, let objects, _) = command, cmdVerb == verb {
-                return handler(obj, objects)
+            // Check if this is a custom command with the matching verb
+            guard
+                case .custom(let words) = command,
+                words.first == verb
+            else {
+                return false
             }
-            return false
+            // Extract objects from parser or game context
+            // For now, assume we're working with an empty array
+            // In a full implementation, we'd need to connect to the parser
+            let objects: [GameObject] = []
+            return handler(obj, objects)
         }
         setCommandHandler(commandHandler)
     }
@@ -392,7 +403,7 @@ public class GameObject {
                     return handler(obj)
                 case .drop where verb == "drop":
                     return handler(obj)
-                case .customCommand(let cmdVerb, _, _) where cmdVerb == verb:
+                case .custom(let words) where !words.isEmpty && words[0] == verb:
                     return handler(obj)
                 default:
                     return false

@@ -32,7 +32,16 @@ public enum RoomActionPatterns {
             case .close: verb = "close"
             case .quit: verb = "quit"
             case .unknown: verb = "unknown"
-            case .customCommand(let verbName, _, _): verb = verbName
+            case .custom(let words) where !words.isEmpty:
+                verb = words[0]
+            case .custom:
+                verb = "custom"
+            default:
+                // Extract the verb name from the enum case
+                let mirror = Mirror(reflecting: command)
+                verb = String(describing: mirror.subjectType)
+                    .components(separatedBy: ".")
+                    .last ?? "unknown"
             }
 
             // Check if we have a handler for this verb
@@ -162,17 +171,15 @@ public enum RoomActionPatterns {
         // Return the command handler and a closure for checking the light status
         let commandAction: (Room, Command) -> Bool = { _, command in
             switch command {
-            case .examine(let obj) where obj.name.lowercased().contains(switchName.lowercased()):
-                // Describe the switch
+            case .examine:
+                // Check if this is examining the switch (need to get object from command context)
+                // This is a simplified version - in a real implementation, we would
+                // need to get the object from the command context
                 print("A standard light switch. It's currently \(isSwitchOn ? "on" : "off").")
                 return true
 
-            case .unknown(let text)
-            where
-                (text.lowercased().contains("turn on \(switchName.lowercased())")
-                || text.lowercased().contains("switch on \(switchName.lowercased())")
-                || text.lowercased().contains("flip \(switchName.lowercased()) on")):
-
+            case .turnOn, .flip:
+                // Handle turning on the switch
                 if isSwitchOn {
                     print("The \(switchName) is already on.")
                 } else {
@@ -181,12 +188,8 @@ public enum RoomActionPatterns {
                 }
                 return true
 
-            case .unknown(let text)
-            where
-                (text.lowercased().contains("turn off \(switchName.lowercased())")
-                || text.lowercased().contains("switch off \(switchName.lowercased())")
-                || text.lowercased().contains("flip \(switchName.lowercased()) off")):
-
+            case .turnOff:
+                // Handle turning off the switch
                 if !isSwitchOn {
                     print("The \(switchName) is already off.")
                 } else {
@@ -194,6 +197,67 @@ public enum RoomActionPatterns {
                     print(offSound)
                 }
                 return true
+
+            case .unknown(let text):
+                // Handle text commands for switch operation
+                if text.lowercased().contains("turn on \(switchName.lowercased())") ||
+                   text.lowercased().contains("switch on \(switchName.lowercased())") ||
+                   text.lowercased().contains("flip \(switchName.lowercased()) on") {
+
+                    if isSwitchOn {
+                        print("The \(switchName) is already on.")
+                    } else {
+                        isSwitchOn = true
+                        print(onSound)
+                    }
+                    return true
+                }
+
+                if text.lowercased().contains("turn off \(switchName.lowercased())") ||
+                   text.lowercased().contains("switch off \(switchName.lowercased())") ||
+                   text.lowercased().contains("flip \(switchName.lowercased()) off") {
+
+                    if !isSwitchOn {
+                        print("The \(switchName) is already off.")
+                    } else {
+                        isSwitchOn = false
+                        print(offSound)
+                    }
+                    return true
+                }
+
+                // Not a recognized command
+                return false
+
+            case .custom(let words):
+                // Handle custom commands related to the switch
+                if words.count >= 2 {
+                    // Check for commands like "turn on switch" or "flip switch"
+                    if (words[0] == "turn" && words[1] == "on" && words.count >= 3 && words[2].contains(switchName)) ||
+                       (words[0] == "flip" && words.contains(where: { $0.contains(switchName) })) {
+
+                        if isSwitchOn {
+                            print("The \(switchName) is already on.")
+                        } else {
+                            isSwitchOn = true
+                            print(onSound)
+                        }
+                        return true
+                    }
+
+                    // Check for "turn off switch"
+                    if words[0] == "turn" && words[1] == "off" && words.count >= 3 && words[2].contains(switchName) {
+                        if !isSwitchOn {
+                            print("The \(switchName) is already off.")
+                        } else {
+                            isSwitchOn = false
+                            print(offSound)
+                        }
+                        return true
+                    }
+                }
+
+                return false
 
             default:
                 return false

@@ -92,11 +92,11 @@ public class GameEngine {
             case .look, .inventory, .quit, .move, .take, .drop:
                 // These commands are allowed in darkness
                 break
-            case .customCommand(let verb, _, _):
+            case .custom(let words) where words.count > 1:
                 // Allow certain custom commands in darkness
-                if verb == "wait" || verb == "again" || verb == "version" || verb == "save"
-                    || verb == "restore" || verb == "restart" || verb == "undo" || verb == "brief"
-                    || verb == "verbose" || verb == "superbrief"
+                if words[0] == "wait" || words[0] == "again" || words[0] == "version" || words[0] == "save"
+                    || words[0] == "restore" || words[0] == "restart" || words[0] == "undo" || words[0] == "brief"
+                    || words[0] == "verbose" || words[0] == "superbrief"
                 {
                     break
                 } else {
@@ -150,51 +150,51 @@ public class GameEngine {
             handleQuit()
         case .unknown(let message):
             outputHandler(message)
-        case .customCommand(let verb, let objects, _):
-            switch verb {
+        case .custom(let words):
+            switch words[0] {
             case "wear":
-                if let obj = objects.first {
-                    handleWear(obj)
+                if words.count > 1 {
+                    handleWear(words[1])
                 } else {
                     outputHandler("Wear what?")
                 }
             case "unwear", "remove", "take_off":
-                if let obj = objects.first {
-                    handleUnwear(obj)
+                if words.count > 1 {
+                    handleUnwear(words[1])
                 } else {
                     outputHandler("Take off what?")
                 }
             case "put_on":
-                if let objects = getMultipleGameObjects(from: command), objects.count >= 2 {
-                    handlePutOn(objects[0], surface: objects[1])
+                if words.count >= 2 {
+                    handlePutOn(words[1], surface: words[2])
                 } else {
                     outputHandler("You need to specify what to put where.")
                 }
             case "put_in":
-                if let objects = getMultipleGameObjects(from: command), objects.count >= 2 {
-                    handlePutIn(objects[0], container: objects[1])
+                if words.count >= 2 {
+                    handlePutIn(words[1], container: words[2])
                 } else {
                     outputHandler("You need to specify what to put where.")
                 }
             case "turn_on":
-                if let obj = objects.first {
-                    handleTurnOn(obj)
+                if words.count > 1 {
+                    handleTurnOn(words[1])
                 }
             case "turn_off":
-                if let obj = objects.first {
-                    handleTurnOff(obj)
+                if words.count > 1 {
+                    handleTurnOff(words[1])
                 }
             case "flip":
-                if let obj = objects.first {
-                    handleFlip(obj)
+                if words.count > 1 {
+                    handleFlip(words[1])
                 }
             case "wait":
                 handleWait()
             case "again":
                 handleAgain()
             case "read":
-                if let obj = objects.first {
-                    handleRead(obj)
+                if words.count > 1 {
+                    handleRead(words[1])
                 }
             default:
                 outputHandler("Sorry, that command isn't implemented yet.")
@@ -405,10 +405,16 @@ public class GameEngine {
     /// - Returns: The first game object in the command or nil if none
     private func getGameObject(from command: Command) -> GameObject? {
         switch command {
-        case .take(let obj), .drop(let obj), .examine(let obj), .open(let obj), .close(let obj):
-            return obj
-        case .customCommand(_, let objects, _):
-            return objects.first
+        case .take, .drop, .examine, .open, .close:
+            // In the new structure, these commands don't directly contain objects
+            // We need to find the object using the CommandParser or context
+            // For now, return nil as this would need a broader refactoring
+            return nil
+        case .custom(let words) where words.count > 1:
+            // We'll need to find objects based on the words
+            // This will require integration with the CommandParser
+            // For now, return nil as this would need a broader refactoring
+            return nil
         default:
             return nil
         }
@@ -421,8 +427,10 @@ public class GameEngine {
     /// - Returns: Array of game objects or nil if none found
     private func getMultipleGameObjects(from command: Command) -> [GameObject]? {
         switch command {
-        case .customCommand(_, let objects, _):
-            return objects.isEmpty ? nil : objects
+        case .custom(let words) where words.count > 1:
+            // This would require integration with the CommandParser to find objects
+            // For now, return nil as this would need a broader refactoring
+            return nil
         default:
             return nil
         }
@@ -437,7 +445,10 @@ public class GameEngine {
         switch command {
         case .look: return "look"
         case .inventory: return "inventory"
-        case .move: return "move"
+        case .moveNorth, .moveSouth, .moveEast, .moveWest,
+             .moveUp, .moveDown, .moveNorthEast, .moveNorthWest,
+             .moveSouthEast, .moveSouthWest, .moveInside, .moveOutside:
+            return "move"
         case .take: return "take"
         case .drop: return "drop"
         case .examine: return "examine"
@@ -445,7 +456,17 @@ public class GameEngine {
         case .close: return "close"
         case .quit: return "quit"
         case .unknown: return "unknown"
-        case .customCommand(let verb, _, _): return verb
+        case .custom(let words) where !words.isEmpty:
+            return words[0]
+        case .custom:
+            return "custom"
+        default:
+            // Extract the verb name from the enum case
+            let mirror = Mirror(reflecting: command)
+            let verb = String(describing: mirror.subjectType)
+                .components(separatedBy: ".")
+                .last ?? "unknown"
+            return verb
         }
     }
 
@@ -655,22 +676,22 @@ public class GameEngine {
         }
 
         // Check if the object has a custom handler for this command
-        if obj.processCommand(.customCommand("flip", [obj], additionalData: nil)) {
+        if obj.processCommand(.custom(["flip"])) {
             // The object handled the flip command
             return
         }
 
         // Default behavior
-        if !obj.hasFlag(String.deviceBit) {
+        if !obj.hasFlag(.deviceBit) {
             outputHandler("That's not something you can flip.")
             return
         }
 
-        if obj.hasFlag(String.onBit) {
-            obj.clearFlag(String.onBit)
+        if obj.hasFlag(.onBit) {
+            obj.clearFlag(.onBit)
             outputHandler("You turn off \(obj.name).")
         } else {
-            obj.setFlag(String.onBit)
+            obj.setFlag(.onBit)
             outputHandler("You turn on \(obj.name).")
         }
 
@@ -864,7 +885,7 @@ public class GameEngine {
         }
 
         // Check if the object has a custom handler for this command
-        if obj.processCommand(.customCommand("read", [obj], additionalData: nil)) {
+        if obj.processCommand(.custom(["read"])) {
             // The object handled the read command
             return
         }
@@ -951,23 +972,23 @@ public class GameEngine {
         }
 
         // Check if the object has a custom handler for this command
-        if obj.processCommand(.customCommand("turn_off", [obj], additionalData: nil)) {
+        if obj.processCommand(.custom(["turn_off"])) {
             // The object handled the turn off command
             return
         }
 
         // Default behavior
-        if !obj.hasFlag(String.deviceBit) {
+        if !obj.hasFlag(.deviceBit) {
             outputHandler("That's not something you can turn off.")
             return
         }
 
-        if !obj.hasFlag(String.onBit) {
+        if !obj.hasFlag(.onBit) {
             outputHandler("That's already off.")
             return
         }
 
-        obj.clearFlag(String.onBit)
+        obj.clearFlag(.onBit)
         outputHandler("You turn off \(obj.name).")
 
         // Update last mentioned object
@@ -985,23 +1006,23 @@ public class GameEngine {
         }
 
         // Check if the object has a custom handler for this command
-        if obj.processCommand(.customCommand("turn_on", [obj], additionalData: nil)) {
+        if obj.processCommand(.custom(["turn_on"])) {
             // The object handled the turn on command
             return
         }
 
         // Default behavior
-        if !obj.hasFlag(String.deviceBit) {
+        if !obj.hasFlag(.deviceBit) {
             outputHandler("That's not something you can turn on.")
             return
         }
 
-        if obj.hasFlag(String.onBit) {
+        if obj.hasFlag(.onBit) {
             outputHandler("That's already on.")
             return
         }
 
-        obj.setFlag(String.onBit)
+        obj.setFlag(.onBit)
         outputHandler("You turn on \(obj.name).")
 
         // Update last mentioned object
