@@ -231,13 +231,13 @@ extension Command {
     /// Returns a command that matches the user input.
     ///
     /// - Parameter strings: User input expressed as an array of strings.
-    init?(from strings: [String]) {
-        guard let command = Self.allCases.first(where: { command in
-            command.synonyms.contains(strings[0])
-        }) else {
-            return nil
+    init(from strings: [String]) {
+        if let command = Self.allCases.first(where: {
+            $0.synonyms.contains(strings[0])
+        }) {
+            self = command
         }
-        self = command
+        self = .custom(strings)
     }
 
     /// Alternative string representations that resolve to this command.

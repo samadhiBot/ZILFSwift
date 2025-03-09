@@ -76,7 +76,7 @@ if world.didRoomBecomeDark(room) {
 ```swift
 // Create a room with dynamic lighting based on a light source
 let (enterAction, lookAction) = RoomActionPatterns.dynamicLighting(
-    lightSource: { lantern.hasFlag(.lit) },
+    lightSource: { lantern.hasFlag(.isLit) },
     enterDarkMessage: "You enter a pitch-black room.",
     enterLitMessage: "You enter a dimly lit room."
 )

@@ -33,18 +33,18 @@ extension GameWorld {
         var lightSources: [GameObject] = []
 
         // Room itself might be a light source
-        if room.hasFlag(.lightSource) {
+        if room.hasFlag(.isLightSource) {
             lightSources.append(room)
         }
 
         // Add light sources in the room
-        for obj in room.contents where obj.hasFlag(.lightSource) {
+        for obj in room.contents where obj.hasFlag(.isLightSource) {
             lightSources.append(obj)
         }
 
         // Add player's light sources if player is in this room
         if player.currentRoom === room {
-            for obj in player.inventory where obj.hasFlag(.lightSource) {
+            for obj in player.inventory where obj.hasFlag(.isLightSource) {
                 lightSources.append(obj)
             }
         }
@@ -90,7 +90,7 @@ extension GameWorld {
     /// - Parameter object: The object to check.
     /// - Returns: `true` if the object is a light source and is currently lit.
     public func isProvidingLight(_ object: GameObject) -> Bool {
-        return object.hasFlag(.lightSource) && object.hasFlag(.lit)
+        return object.hasFlag(.isLightSource) && object.hasFlag(.isOn)
     }
 
     /// Determines if a room is currently lit by any light source.
@@ -98,18 +98,18 @@ extension GameWorld {
     /// - Returns: `true` if the room has any source of light.
     public func isRoomLit(_ room: Room) -> Bool {
         // 1. If the room is naturally lit, it's always lit
-        if room.hasFlag(.naturallyLit) {
+        if room.hasFlag(.isNaturallyLit) {
             return true
         }
 
         // 2. If the room itself is a light source and is lit, it's lit
-        if room.hasFlag(.lightSource) && room.hasFlag(.lit) {
+        if room.hasFlag(.isLightSource) && room.hasFlag(.isOn) {
             return true
         }
 
         // 3. Check for light sources in the room
         let lightSources = room.contents.filter { obj in
-            return obj.hasFlag(.lightSource) && obj.hasFlag(.lit)
+            return obj.hasFlag(.isLightSource) && obj.hasFlag(.isOn)
         }
 
         if !lightSources.isEmpty {
@@ -119,7 +119,7 @@ extension GameWorld {
         // 4. Check if the player is in the room and has a light source
         if player.currentRoom === room {
             let playerLightSources = player.inventory.filter { obj in
-                return obj.hasFlag(.lightSource) && obj.hasFlag(.lit)
+                return obj.hasFlag(.isLightSource) && obj.hasFlag(.isOn)
             }
 
             if !playerLightSources.isEmpty {
@@ -131,11 +131,11 @@ extension GameWorld {
         for container in room.contents {
             if container.isContainer() {
                 // Light can pass through if container is transparent or open
-                let lightCanPass = container.hasFlag(.transparent) || container.hasFlag("open")
+                let lightCanPass = container.hasFlag(.isTransparent) || container.hasFlag(.isOpen)
 
                 if lightCanPass {
                     let containerLightSources = container.contents.filter { obj in
-                        return obj.hasFlag(.lightSource) && obj.hasFlag(.lit)
+                        return obj.hasFlag(.isLightSource) && obj.hasFlag(.isOn)
                     }
 
                     if !containerLightSources.isEmpty {
@@ -162,8 +162,8 @@ extension GameWorld {
         var anyLightTurnedOff = false
 
         for obj in player.inventory {
-            if obj.hasFlag(.lightSource) && obj.hasFlag(.lit) {
-                obj.clearFlag(.lit)
+            if obj.hasFlag(.isLightSource) && obj.hasFlag(.isOn) {
+                obj.clearFlag(.isOn)
                 anyLightTurnedOff = true
             }
         }
@@ -177,8 +177,8 @@ extension GameWorld {
         var anyLightTurnedOn = false
 
         for obj in player.inventory {
-            if obj.hasFlag(.lightSource) && !obj.hasFlag(.lit) {
-                obj.setFlag(.lit)
+            if obj.hasFlag(.isLightSource) && !obj.hasFlag(.isOn) {
+                obj.setFlag(.isOn)
                 anyLightTurnedOn = true
             }
         }
@@ -194,9 +194,9 @@ extension GameObject {
     /// Configures this object as a light source.
     /// - Parameter initiallyLit: Whether the light source starts in an active state.
     public func makeLightSource(initiallyLit: Bool = false) {
-        setFlag(.lightSource)
+        setFlag(.isLightSource)
         if initiallyLit {
-            setFlag(.lit)
+            setFlag(.isOn)
         }
     }
 
@@ -204,13 +204,13 @@ extension GameObject {
     /// - Returns: `true` if the light is now on, `false` if it's off or not a light source.
     @discardableResult
     public func toggleLight() -> Bool {
-        guard hasFlag(.lightSource) else { return false }
+        guard hasFlag(.isLightSource) else { return false }
 
-        if hasFlag(.lit) {
-            clearFlag(.lit)
+        if hasFlag(.isOn) {
+            clearFlag(.isOn)
             return false
         } else {
-            setFlag(.lit)
+            setFlag(.isOn)
             return true
         }
     }
@@ -219,9 +219,9 @@ extension GameObject {
     /// - Returns: `true` if the light was turned off, `false` if it wasn't a light source.
     @discardableResult
     public func turnLightOff() -> Bool {
-        guard hasFlag(.lightSource) else { return false }
+        guard hasFlag(.isLightSource) else { return false }
 
-        clearFlag(.lit)
+        clearFlag(.isOn)
         return true
     }
 
@@ -229,9 +229,9 @@ extension GameObject {
     /// - Returns: `true` if the light was turned on, `false` if it wasn't a light source.
     @discardableResult
     public func turnLightOn() -> Bool {
-        guard hasFlag(.lightSource) else { return false }
+        guard hasFlag(.isLightSource) else { return false }
 
-        setFlag(.lit)
+        setFlag(.isOn)
         return true
     }
 }
@@ -249,11 +249,11 @@ extension Room {
 
     /// Configures this room to require a light source (not naturally lit).
     public func makeDark() {
-        clearFlag(.naturallyLit)
+        clearFlag(.isNaturallyLit)
     }
 
     /// Configures this room to be naturally lit (doesn't require a light source).
     public func makeNaturallyLit() {
-        setFlag(.naturallyLit)
+        setFlag(.isNaturallyLit)
     }
 }

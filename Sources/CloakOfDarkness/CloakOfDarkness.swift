@@ -195,18 +195,18 @@ public enum CloakOfDarkness {
 
             if hasCloak {
                 // Player has cloak - set room to dark
-                room.clearFlag(.lit)
+                room.clearFlag(.isLit)
                 return false
             } else {
                 // Player doesn't have cloak - set room to lit
-                room.setFlag(.lit)
+                room.setFlag(.isLit)
                 return false
             }
         }
 
         // Bar begin-turn action - handle stumbling in dark
         bar.beginTurnAction = { (room: Room) -> Bool in
-            if !room.hasFlag(.lit) {
+            if !room.hasFlag(.isLit) {
                 // Get the command through the engine from game world directly
                 var command: Command? = nil
                 if let player = room.findPlayer() {
@@ -249,7 +249,7 @@ public enum CloakOfDarkness {
 
         // Override look handler for bar to make the description match test expectations
         bar.lookAction = { (room: Room) -> Bool in
-            if room.hasFlag(.lit) {
+            if room.hasFlag(.isLit) {
                 print(
                     "The bar, much rougher than you'd have guessed after the opulence of the foyer to the north, is completely empty. You can see a message scrawled in the sawdust on the floor."
                 )
@@ -284,9 +284,9 @@ public enum CloakOfDarkness {
                 let lightSwitch = study.contents.first(where: { $0.name == "light switch" })
             {
                 if lightSwitch.hasFlag(.onBit) {
-                    room.setFlag(.lit)
+                    room.setFlag(.isLit)
                 } else {
-                    room.clearFlag(.lit)
+                    room.clearFlag(.isLit)
                 }
             }
             return false
@@ -304,7 +304,7 @@ public enum CloakOfDarkness {
             description:
                 "The walls of this small room were clearly once lined with hooks, though now only one remains. The exit is a door to the east, but there is also a cramped opening to the west."
         )
-        cloakroom.setFlag(.lit)
+        cloakroom.setFlag(.isLit)
 
         // Custom enter action for the cloakroom
         cloakroom.enterAction = { (room: Room) -> Bool in
@@ -378,7 +378,7 @@ public enum CloakOfDarkness {
                 "You are standing in a spacious hall, splendidly decorated in red and gold, with glittering chandeliers overhead. The entrance from the street is to the north, and there are doorways south and west."
         )
 
-        foyer.setFlag(.lit)
+        foyer.setFlag(.isLit)
 
         // Foyer end-turn action
         foyer.endTurnAction = { (room: Room) -> Bool in
@@ -410,7 +410,7 @@ public enum CloakOfDarkness {
             description:
                 "The hallway leads to a Study to the west, and back to the Cloakroom to the east."
         )
-        hallToStudy.setFlag(.lit)
+        hallToStudy.setFlag(.isLit)
 
         // Hall enter action
         hallToStudy.enterAction = { (room: Room) -> Bool in
@@ -436,7 +436,7 @@ public enum CloakOfDarkness {
             description:
                 "A small room with a worn stand in the middle. A hallway lies east of here, a closet off to the west."
         )
-        study.setFlag(.lit)
+        study.setFlag(.isLit)
 
         // End-turn action for study
         study.endTurnAction = { (room: Room) -> Bool in
@@ -870,7 +870,7 @@ public enum CloakOfDarkness {
                     let currentRoom = player.currentRoom,
                     currentRoom.name == "Closet"
                 {
-                    currentRoom.setFlag(.lit)
+                    currentRoom.setFlag(.isLit)
                     print("The closet lights up!")
                 }
 
@@ -890,7 +890,7 @@ public enum CloakOfDarkness {
                     let currentRoom = player.currentRoom,
                     currentRoom.name == "Closet"
                 {
-                    currentRoom.clearFlag(.lit)
+                    currentRoom.clearFlag(.isLit)
                     print("The closet goes dark!")
                 }
 
@@ -912,7 +912,7 @@ public enum CloakOfDarkness {
                         let currentRoom = player.currentRoom,
                         currentRoom.name == "Closet"
                     {
-                        currentRoom.clearFlag(.lit)
+                        currentRoom.clearFlag(.isLit)
                         print("The closet goes dark!")
                     }
 
@@ -927,7 +927,7 @@ public enum CloakOfDarkness {
                         let currentRoom = player.currentRoom,
                         currentRoom.name == "Closet"
                     {
-                        currentRoom.setFlag(.lit)
+                        currentRoom.setFlag(.isLit)
                         print("The closet lights up!")
                     }
 
@@ -963,16 +963,16 @@ public enum CloakOfDarkness {
                     print("It's already on.")
                 } else {
                     obj.setFlag(.onBit)
-                    obj.setFlag(.lightSource)
-                    obj.setFlag(.lit)
+                    obj.setFlag(.isLightSource)
+                    obj.setFlag(.isLit)
                     print("You switch on the flashlight.")
 
                     // Find the player using the findPlayer helper
                     if let player = obj.findPlayer(),
                         let currentRoom = player.currentRoom,
-                        !currentRoom.hasFlag(.lit) && !currentRoom.hasFlag(.naturallyLit)
+                        !currentRoom.hasFlag(.isLit) && !currentRoom.hasFlag(.naturallyLit)
                     {
-                        currentRoom.setFlag(.lit)
+                        currentRoom.setFlag(.isLit)
                         print("The flashlight illuminates the area!")
                     }
                 }
@@ -987,7 +987,7 @@ public enum CloakOfDarkness {
                     print("It's already off.")
                 } else {
                     obj.clearFlag(.onBit)
-                    obj.clearFlag(.lit)
+                    obj.clearFlag(.isLit)
                     print("You switch off the flashlight.")
 
                     // Find the player using the findPlayer helper
@@ -997,10 +997,10 @@ public enum CloakOfDarkness {
                     {
                         // Check if room should now be dark
                         let hasOtherLight = player.inventory.contains {
-                            $0.hasFlag(.lightSource) && $0.hasFlag(.lit) && $0 !== obj
+                            $0.hasFlag(.isLightSource) && $0.hasFlag(.isLit) && $0 !== obj
                         }
                         if !hasOtherLight {
-                            currentRoom.clearFlag(.lit)
+                            currentRoom.clearFlag(.isLit)
                             print("The area goes dark!")
                         }
                     }
@@ -1015,7 +1015,7 @@ public enum CloakOfDarkness {
                 if obj.hasFlag(.onBit) {
                     // Turn it off
                     obj.clearFlag(.onBit)
-                    obj.clearFlag(.lit)
+                    obj.clearFlag(.isLit)
                     print("You switch off the flashlight.")
 
                     // Find the player using the findPlayer helper
@@ -1025,26 +1025,26 @@ public enum CloakOfDarkness {
                     {
                         // Check if room should now be dark
                         let hasOtherLight = player.inventory.contains {
-                            $0.hasFlag(.lightSource) && $0.hasFlag(.lit) && $0 !== obj
+                            $0.hasFlag(.isLightSource) && $0.hasFlag(.isLit) && $0 !== obj
                         }
                         if !hasOtherLight {
-                            currentRoom.clearFlag(.lit)
+                            currentRoom.clearFlag(.isLit)
                             print("The area goes dark!")
                         }
                     }
                 } else {
                     // Turn it on
                     obj.setFlag(.onBit)
-                    obj.setFlag(.lightSource)
-                    obj.setFlag(.lit)
+                    obj.setFlag(.isLightSource)
+                    obj.setFlag(.isLit)
                     print("You switch on the flashlight.")
 
                     // Find the player using the findPlayer helper
                     if let player = obj.findPlayer(),
                         let currentRoom = player.currentRoom,
-                        !currentRoom.hasFlag(.lit) && !currentRoom.hasFlag(.naturallyLit)
+                        !currentRoom.hasFlag(.isLit) && !currentRoom.hasFlag(.naturallyLit)
                     {
-                        currentRoom.setFlag(.lit)
+                        currentRoom.setFlag(.isLit)
                         print("The flashlight illuminates the area!")
                     }
                 }

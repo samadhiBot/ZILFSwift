@@ -25,53 +25,78 @@ public class CommandParser {
         guard let firstWord = words.first else {
             return .unknown("No command given")
         }
-
-        let commands = Command.allCases.compactMap { command in
-            command.synonyms.contains(firstWord)
-        }
-
-        return switch firstWord {
-            case "again", "g": .customCommand("again", [])
-            case "brief": .customCommand("brief", [])
-            case "close": handleClose(words)
-            case "d", "down": handleDirection(.down)
-            case "don": handleWear(words)
-            case "doff": handleRemove(words)
-            case "drop": handleDrop(words)
-            case "e", "east": handleDirection(.east)
-            case "examine", "x": handleExamine(words)
-            case "flip", "switch", "toggle": handleFlip(words)
-            case "get": handleTake(words)
-            case "go": handleGo(words)
-            case "i", "inventory": .inventory
-            case "l", "look": handleLook(words)
-            case "n", "north": handleDirection(.north)
-            case "open": handleOpen(words)
-            case "peruse": handleRead(words)
-            case "put": handlePut(words)
-            case "q", "quit": .quit
-            case "read": handleRead(words)
-            case "remove": handleRemove(words)
-            case "restart": .customCommand("restart", [])
-            case "restore": .customCommand("restore", [])
-            case "s", "south": handleDirection(.south)
-            case "save": .customCommand("save", [])
-            case "superbrief": .customCommand("superbrief", [])
-            case "take": handleTake(words)
-            case "turn": handleTurn(words)
-            case "u", "up": handleDirection(.up)
-            case "undo": .customCommand("undo", [])
-            case "verbose": .customCommand("verbose", [])
-            case "version": .customCommand("version", [])
-            case "w", "west": handleDirection(.west)
-            case "wait", "z": .customCommand("wait", [])
-            case "wear": handleWear(words)
-            default: .unknown("I don't understand that command.")
+        
+        // Try to create a command from the input
+        let command = Command(from: words)
+        
+        // Handle the command based on its type
+        switch command {
+        case .again:
+            return .again
+        case .brief:
+            return .brief
+        case .close:
+            return handleClose(words)
+        case .drop:
+            return handleDrop(words)
+        case .examine:
+            return handleExamine(words)
+        case .flip:
+            return handleFlip(words)
+        case .inventory:
+            return .inventory
+        case .look:
+            return handleLook(words)
+        case .moveNorth, .moveSouth, .moveEast, .moveWest, 
+             .moveUp, .moveDown, .moveNorthEast, .moveNorthWest,
+             .moveSouthEast, .moveSouthWest, .moveInside, .moveOutside:
+            return handleMove(command)
+        case .open:
+            return handleOpen(words)
+        case .putIn:
+            return handlePutIn(words)
+        case .putOn:
+            return handlePutOn(words)
+        case .quit:
+            return .quit
+        case .read:
+            return handleRead(words)
+        case .remove:
+            return handleRemove(words)
+        case .restart:
+            return .restart
+        case .restore:
+            return .restore
+        case .save:
+            return .save
+        case .superbrief:
+            return .superbrief
+        case .take:
+            return handleTake(words)
+        case .turnOff, .turnOn:
+            return handleTurn(command, words)
+        case .undo:
+            return .undo
+        case .verbose:
+            return .verbose
+        case .version:
+            return .version
+        case .wait:
+            return .wait
+        case .wear:
+            return handleWear(words)
+        case .custom(let customWords):
+            // Handle custom commands that weren't recognized
+            return .unknown("I don't understand that command.")
+        case .help:
+            return .help
+        default:
+            return .unknown("I don't understand that command.")
         }
     }
 
     // MARK: - Command Handlers
-
+    
     /// Handles the close command
     private func handleClose(_ words: [String]) -> Command {
         guard words.count > 1 else {
@@ -88,11 +113,6 @@ public class CommandParser {
         }
 
         return .unknown("I don't see \(articleFor(objName)) \(objName) here.")
-    }
-
-    /// Handles a direction command
-    private func handleDirection(_ direction: Direction) -> Command {
-        return .move(direction)
     }
 
     /// Handles the drop command
@@ -136,7 +156,7 @@ public class CommandParser {
         let objName = words.dropFirst().joined(separator: " ")
         if let obj = findObject(named: objName) {
             if obj.hasFlag(.deviceBit) {
-                return .customCommand("flip", [obj])
+                return .flip(obj)
             }
             return .unknown("You can't flip \(articleFor(objName)) \(objName).")
         }
@@ -144,12 +164,27 @@ public class CommandParser {
         return .unknown("I don't see \(articleFor(objName)) \(objName) here.")
     }
 
-    /// Handles the go command
-    private func handleGo(_ words: [String]) -> Command {
-        guard words.count > 1, let direction = Direction.from(string: words[1]) else {
+    /// Handles move commands
+    private func handleMove(_ command: Command) -> Command {
+        // Map the movement command to a direction
+        let direction: Direction
+        switch command {
+        case .moveNorth: direction = .north
+        case .moveSouth: direction = .south
+        case .moveEast: direction = .east
+        case .moveWest: direction = .west
+        case .moveUp: direction = .up
+        case .moveDown: direction = .down
+        case .moveNorthEast: direction = .northeast
+        case .moveNorthWest: direction = .northwest
+        case .moveSouthEast: direction = .southeast
+        case .moveSouthWest: direction = .southwest
+        case .moveInside: direction = .in
+        case .moveOutside: direction = .out
+        default: 
             return .unknown("Go where?")
         }
-
+        
         return .move(direction)
     }
 
@@ -200,62 +235,68 @@ public class CommandParser {
         return .unknown("I don't see \(articleFor(objName)) \(objName) here.")
     }
 
-    /// Handles the put command
-    private func handlePut(_ words: [String]) -> Command {
-        guard words.count > 1 else {
+    /// Handles the put-in command
+    private func handlePutIn(_ words: [String]) -> Command {
+        // Need at least "put X in Y"
+        guard words.count >= 4 else {
             return .unknown("Put what where?")
         }
-
-        // Pattern 1: "put on X" - Wear X
-        if words.count > 2 && words[1] == "on" && words.count >= 3 {
+        
+        let objIndex = words.firstIndex(where: { $0 == "in" })
+        guard let prepositionIndex = objIndex, prepositionIndex > 1 else {
+            return .unknown("I don't understand what you want to put where.")
+        }
+        
+        let directObjName = words[1..<prepositionIndex].joined(separator: " ")
+        let containerName = words[(prepositionIndex+1)...].joined(separator: " ")
+        
+        guard let directObj = findObject(named: directObjName) else {
+            return .unknown("I don't see \(articleFor(directObjName)) \(directObjName) here.")
+        }
+        
+        guard let container = findObject(named: containerName) else {
+            return .unknown("I don't see \(articleFor(containerName)) \(containerName) here.")
+        }
+        
+        return .putIn(directObj, container)
+    }
+    
+    /// Handles the put-on command
+    private func handlePutOn(_ words: [String]) -> Command {
+        // Handle "put on X" (wear X)
+        if words.count >= 3 && words[1] == "on" {
             let objName = words.dropFirst(2).joined(separator: " ")
             if let obj = findObjectInInventory(named: objName) {
-                if obj.hasFlag(String.wearBit) {
-                    return .customCommand("wear", [obj])
+                if obj.hasFlag(.wearBit) {
+                    return .wear(obj)
                 } else {
                     return .unknown("You can't wear \(articleFor(objName)) \(objName).")
                 }
             }
             return .unknown("You don't have \(articleFor(objName)) \(objName).")
         }
-
-        // Pattern 2: "put X on" - Wear X if wearable
-        if words.count >= 3 && words.last == "on" {
-            let objName = words.dropFirst(1).dropLast().joined(separator: " ")
-            if let obj = findObjectInInventory(named: objName) {
-                if obj.hasFlag(String.wearBit) {
-                    return .customCommand("wear", [obj])
-                } else {
-                    return .unknown("You can't wear \(articleFor(objName)) \(objName).")
-                }
-            }
-            return .unknown("You don't have \(articleFor(objName)) \(objName).")
-        }
-
-        // Pattern 3 & 4: "put X on/in Y" - Need to find both objects
+        
+        // Handle "put X on Y"
         if words.count >= 4 {
-            let objIndex = words.firstIndex { $0 == "on" || $0 == "in" }
-            if let prepositionIndex = objIndex, prepositionIndex > 1 {
-                let preposition = words[prepositionIndex]
-                let directObjName = words[1..<prepositionIndex].joined(separator: " ")
-                let indirectObjName = words[(prepositionIndex+1)...].joined(separator: " ")
-
-                guard let directObj = findObject(named: directObjName) else {
-                    return .unknown("I don't see \(articleFor(directObjName)) \(directObjName) here.")
-                }
-
-                guard let indirectObj = findObject(named: indirectObjName) else {
-                    return .unknown("I don't see \(articleFor(indirectObjName)) \(indirectObjName) here.")
-                }
-
-                if preposition == "on" {
-                    return .customCommand("put-on", [directObj, indirectObj])
-                } else if preposition == "in" {
-                    return .customCommand("put-in", [directObj, indirectObj])
-                }
+            let objIndex = words.firstIndex(where: { $0 == "on" })
+            guard let prepositionIndex = objIndex, prepositionIndex > 1 else {
+                return .unknown("I don't understand what you want to put where.")
             }
+            
+            let directObjName = words[1..<prepositionIndex].joined(separator: " ")
+            let surfaceName = words[(prepositionIndex+1)...].joined(separator: " ")
+            
+            guard let directObj = findObject(named: directObjName) else {
+                return .unknown("I don't see \(articleFor(directObjName)) \(directObjName) here.")
+            }
+            
+            guard let surface = findObject(named: surfaceName) else {
+                return .unknown("I don't see \(articleFor(surfaceName)) \(surfaceName) here.")
+            }
+            
+            return .putOn(directObj, surface)
         }
-
+        
         return .unknown("Put what where?")
     }
 
@@ -268,7 +309,7 @@ public class CommandParser {
         let objName = words.dropFirst().joined(separator: " ")
         if let obj = findObject(named: objName) {
             if obj.hasFlag(.readBit) {
-                return .customCommand("read", [obj])
+                return .read(obj)
             }
             return .unknown("There's nothing to read on \(articleFor(objName)) \(objName).")
         }
@@ -284,8 +325,8 @@ public class CommandParser {
 
         let objName = words.dropFirst().joined(separator: " ")
         if let obj = findObjectInInventory(named: objName) {
-            if obj.hasFlag(String.wornBit) {
-                return .customCommand("unwear", [obj])
+            if obj.hasFlag(.wornBit) {
+                return .unwear(obj)
             } else {
                 return .unknown("You're not wearing that.")
             }
@@ -309,8 +350,8 @@ public class CommandParser {
         if words.count > 2 && words[1] == "off" {
             let objName = words.dropFirst(2).joined(separator: " ")
             if let obj = findObjectInInventory(named: objName) {
-                if obj.hasFlag(String.wornBit) {
-                    return .customCommand("unwear", [obj])
+                if obj.hasFlag(.wornBit) {
+                    return .unwear(obj)
                 } else {
                     return .unknown("You're not wearing that.")
                 }
@@ -323,8 +364,8 @@ public class CommandParser {
         if words.count > 2 && words.last == "off" {
             let objName = words.dropFirst(1).dropLast().joined(separator: " ")
             if let obj = findObjectInInventory(named: objName) {
-                if obj.hasFlag(String.wornBit) {
-                    return .customCommand("unwear", [obj])
+                if obj.hasFlag(.wornBit) {
+                    return .unwear(obj)
                 } else {
                     return .unknown("You're not wearing that.")
                 }
@@ -346,33 +387,34 @@ public class CommandParser {
         return .unknown("I don't see \(articleFor(objName)) \(objName) here.")
     }
 
-    /// Handles the turn command
-    private func handleTurn(_ words: [String]) -> Command {
-        guard words.count > 2 else {
-            return .unknown("Turn what on or off?")
+    /// Handles turn on/off commands
+    private func handleTurn(_ command: Command, _ words: [String]) -> Command {
+        // Determine if it's turn on or turn off
+        let isOn = command == .turnOn
+        let actionWord = isOn ? "on" : "off"
+        
+        // Extract object name from different patterns:
+        // "turn on X", "turn X on"
+        var objName = ""
+        
+        if words.count >= 3 && words[1] == actionWord {
+            // "turn on X"
+            objName = words.dropFirst(2).joined(separator: " ")
+        } else if words.count >= 3 && words.last == actionWord {
+            // "turn X on"
+            objName = words.dropFirst(1).dropLast().joined(separator: " ")
+        } else {
+            return .unknown("Turn what \(actionWord)?")
         }
-
-        if words[1] == "on" {
-            let objName = words.dropFirst(2).joined(separator: " ")
-            if let obj = findObject(named: objName) {
-                if obj.hasFlag(.deviceBit) {
-                    return .customCommand("turn_on", [obj])
-                }
-                return .unknown("You can't turn on \(articleFor(objName)) \(objName).")
+        
+        if let obj = findObject(named: objName) {
+            if obj.hasFlag(.deviceBit) {
+                return isOn ? .turnOn(obj) : .turnOff(obj)
             }
-            return .unknown("I don't see \(articleFor(objName)) \(objName) here.")
-        } else if words[1] == "off" {
-            let objName = words.dropFirst(2).joined(separator: " ")
-            if let obj = findObject(named: objName) {
-                if obj.hasFlag(.deviceBit) {
-                    return .customCommand("turn_off", [obj])
-                }
-                return .unknown("You can't turn off \(articleFor(objName)) \(objName).")
-            }
-            return .unknown("I don't see \(articleFor(objName)) \(objName) here.")
+            return .unknown("You can't turn \(actionWord) \(articleFor(objName)) \(objName).")
         }
-
-        return .unknown("Turn what on or off?")
+        
+        return .unknown("I don't see \(articleFor(objName)) \(objName) here.")
     }
 
     /// Handles the wear command
@@ -383,8 +425,8 @@ public class CommandParser {
 
         let objName = words.dropFirst().joined(separator: " ")
         if let obj = findObjectInInventory(named: objName) {
-            if obj.hasFlag(String.wearBit) {
-                return .customCommand("wear", [obj])
+            if obj.hasFlag(.wearBit) {
+                return .wear(obj)
             } else {
                 return .unknown("You can't wear that.")
             }

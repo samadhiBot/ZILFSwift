@@ -119,11 +119,11 @@ struct LightingSystemTests {
 
         // Test toggle functionality
         lantern.toggleLight()
-        #expect(!lantern.hasFlag(.lit))
+        #expect(!lantern.hasFlag(.isLit))
         #expect(!world.isRoomLit(room))
 
         lantern.toggleLight()
-        #expect(lantern.hasFlag(.lit))
+        #expect(lantern.hasFlag(.isLit))
         #expect(world.isRoomLit(room))
 
         // Test getting all light sources

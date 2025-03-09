@@ -113,7 +113,7 @@ import ZILFTestSupport
         #expect(world.player.currentRoom === bar)
 
         // The bar should be lit now because we left the cloak in the cloakroom
-        #expect(bar.hasFlag(.lit))
+        #expect(bar.hasFlag(.isLit))
         outputHandler.clear()
 
         // 7. Examine the message
@@ -146,7 +146,7 @@ import ZILFTestSupport
         engine.executeCommand(.move(.south))
         #expect(world.player.currentRoom === bar)
         // The bar should be dark
-        #expect(!bar.hasFlag(.lit))
+        #expect(!bar.hasFlag(.isLit))
         outputHandler.clear()
 
         // 3. Disturb the message by trying to take it
@@ -169,7 +169,7 @@ import ZILFTestSupport
         // 6. Go back to the now-lit bar
         engine.executeCommand(.move(.east))
         engine.executeCommand(.move(.south))
-        #expect(bar.hasFlag(.lit))
+        #expect(bar.hasFlag(.isLit))
         outputHandler.clear()
 
         // 7. Examine the message
@@ -203,7 +203,7 @@ import ZILFTestSupport
 
         // Bar should be dark while wearing cloak
         engine.executeCommand(.move(.south))
-        #expect(!bar.hasFlag(.lit))
+        #expect(!bar.hasFlag(.isLit))
 
         // Try to do something in the dark
         engine.executeCommand(.look)
@@ -222,7 +222,7 @@ import ZILFTestSupport
         // Return to bar - should now be lit
         engine.executeCommand(.move(.east))
         engine.executeCommand(.move(.south))
-        #expect(bar.hasFlag(.lit))
+        #expect(bar.hasFlag(.isLit))
         outputHandler.clear()
 
         // Now we can see clearly

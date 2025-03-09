@@ -303,71 +303,76 @@ public enum Flag: Hashable {
 
     /// A custom flag.
     case custom(String)
+
+    /// The room is naturally lit and doesn't require a light source.
+    ///
+    /// This is often used for outdoor rooms during daytime or rooms with ambient light.
+    /// In ZIL games, this was typically implemented by setting the ONBIT flag on rooms
+    /// that were naturally lit.
+    case isNaturallyLit
 }
 
 extension Flag {
-    /// Attempts to find a predefined flag matching the specified Zil string, returning what it
-    /// finds. If no matching flag exists, it creates a new flag based on the Zil string.
+    /// Returns a predefined flag matching the original Zil.
     ///
-    /// - Parameter zil: The flag's original Zil string value.
+    /// If no matching flag exists, it creates a custom flag based on the Zil string.
     ///
-    /// - Returns: A predefined flag if a match was found, or a new custom `Flag` based on the
-    ///            Zil string
-    public static func findOrCreate(_ zil: String) -> Flag {
-        switch zil {
-        case "vowelBit": .beginsWithVowel
-        case "dropBit": .catchesDroppedItems
-        case "touchBit": .hasBeenTouched
-        case "actorBit": .isActor
-        case "attackBit": .isAttackable
-        case "wornBit": .isBeingWorn
-        case "partBit": .isBodyPart
-        case "burnBit": .isBurnable
-        case "climbBit": .isClimbable
-        case "contBit": .isContainer
-        case "rmungBit": .isDestroyed
-        case "deviceBit": .isDevice
-        case "doorBit": .isDoor
-        case "drinkBit": .isDrinkable
-        case "rlandBit": .isDryLand
-        case "edibleBit": .isEdible
-        case "femaleBit": .isFemale
-        case "fightBit": .isFightable
-        case "flameBit": .isFlammable
-        case "foodBit": .isFood
-        case "inBit": .isInNotOn
-        case "integralBit": .isIntegral
-        case "invisible": .isInvisible
-        case "lightBit": .isLightSource
-        case "lockedBit": .isLocked
-        case "mazeBit": .isMaze
-        case "rairBit": .isMidAirLocation
-        case "nonlandBit": .isNotLand
-        case "onBit": .isOn
-        case "openBit": .isOpen
-        case "openableBit": .isOpenable
-        case "outsideBit": .isOutside
-        case "personBit": .isPerson
-        case "pluralBit": .isPlural
-        case "readBit": .isReadable
-        case "sacredBit": .isSacred
-        case "searchBit": .isSearchable
-        case "staggered": .isStaggered
-        case "surfaceBit": .isSurface
-        case "takeBit": .isTakable
-        case "toolBit": .isTool
-        case "transBit": .isTransparent
-        case "turnBit": .isTurnable
-        case "vehBit": .isVehicle
-        case "rwaterBit": .isWaterLocation
-        case "weaponBit": .isWeapon
-        case "wearBit": .isWearable
-        case "trytakeBit": .noImplicitTake
-        case "narticleBit": .omitArticle
-        case "ndescBit": .omitDescription
-        case "nallBit": .omitFromTakeAll
-        case "kludgeBit": .shouldKludge
-        default: .custom(zil)
+    /// - Parameter zil: A string containing the original Zil flag.
+    public init(_ zil: String) {
+        switch zil.lowercased() {
+        case "vowelbit": self = .beginsWithVowel
+        case "dropbit": self = .catchesDroppedItems
+        case "touchbit": self = .hasBeenTouched
+        case "actorbit": self = .isActor
+        case "attackbit": self = .isAttackable
+        case "wornbit": self = .isBeingWorn
+        case "partbit": self = .isBodyPart
+        case "burnbit": self = .isBurnable
+        case "climbbit": self = .isClimbable
+        case "contbit": self = .isContainer
+        case "rmungbit": self = .isDestroyed
+        case "devicebit": self = .isDevice
+        case "doorbit": self = .isDoor
+        case "drinkbit": self = .isDrinkable
+        case "rlandbit": self = .isDryLand
+        case "ediblebit": self = .isEdible
+        case "femalebit": self = .isFemale
+        case "fightbit": self = .isFightable
+        case "flamebit": self = .isFlammable
+        case "foodbit": self = .isFood
+        case "inbit": self = .isInNotOn
+        case "integralbit": self = .isIntegral
+        case "invisible": self = .isInvisible
+        case "lightbit": self = .isLightSource
+        case "lockedbit": self = .isLocked
+        case "mazebit": self = .isMaze
+        case "rairbit": self = .isMidAirLocation
+        case "nonlandbit": self = .isNotLand
+        case "onbit": self = .isOn
+        case "openbit": self = .isOpen
+        case "openablebit": self = .isOpenable
+        case "outsidebit": self = .isOutside
+        case "personbit": self = .isPerson
+        case "pluralbit": self = .isPlural
+        case "readbit": self = .isReadable
+        case "sacredbit": self = .isSacred
+        case "searchbit": self = .isSearchable
+        case "staggered": self = .isStaggered
+        case "surfacebit": self = .isSurface
+        case "takebit": self = .isTakable
+        case "toolbit": self = .isTool
+        case "transbit": self = .isTransparent
+        case "turnbit": self = .isTurnable
+        case "vehbit": self = .isVehicle
+        case "rwaterbit": self = .isWaterLocation
+        case "weaponbit": self = .isWeapon
+        case "wearbit": self = .isWearable
+        case "trytakebit": self = .noImplicitTake
+        case "narticlebit": self = .omitArticle
+        case "ndescbit": self = .omitDescription
+        case "nallbit": self = .omitFromTakeAll
+        case "kludgebit": self = .shouldKludge
+        default: self = .custom(zil)
         }
     }
 }

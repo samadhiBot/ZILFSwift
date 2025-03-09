@@ -47,7 +47,7 @@ Common flags include:
 - `.surfaceBit`: Object is a surface (things can be placed on it)
 - `.openBit`: Object is open
 - `.openableBit`: Object can be opened/closed
-- `.lightSource`: Object emits light
+- `.isLightSource`: Object emits light
 - `.lit`: Object is currently emitting light
 - `.transBit`: Object is transparent (can see inside when closed)
 - `.readBit`: Object can be read
@@ -243,13 +243,13 @@ ZIL handles dark rooms with the LIGHTBIT flag. In ZILFCore:
 room.setFlag(.naturallyLit)  // Room is always lit
 
 // Dark room unless player has a light source
-room.clearFlag(.lit)  // Start as dark
+room.clearFlag(.isLit)  // Start as dark
 
 // Check in room.enterAction if player has light source:
-if player.inventory.contains(where: { $0.hasFlag(.lightSource) && $0.hasFlag(.lit) }) {
-    room.setFlag(.lit)
+if player.inventory.contains(where: { $0.hasFlag(.isLightSource) && $0.hasFlag(.isLit) }) {
+    room.setFlag(.isLit)
 } else {
-    room.clearFlag(.lit)
+    room.clearFlag(.isLit)
 }
 ```
 
