@@ -4,8 +4,15 @@ globs: *.swift
 ---
 # ZILFCore API
 
-## GameObject creation
+## GameObjects
 
 - Always use `init(name:description:location:flags:)` when creating `GameObject` instances. Omit the `flags` param when empty.
+- Always use dynamic member lookup when accessing dynamic state values.
 
+## Command parsing
 
+- Always use `init?(from:)` when finding a `Command` in the user's input.
+
+## Flags
+
+- Always use the correct `Flag`

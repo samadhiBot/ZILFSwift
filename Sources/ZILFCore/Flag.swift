@@ -7,7 +7,7 @@ import Foundation
 /// by Steve Meretzky (1995), or
 /// [ZIL Course](https://github.com/ZoBoRf/ZILCourse/blob/master/ZILCourse.pdf)
 /// by Marc Blank (1982).
-public enum Flag {
+public enum Flag: Hashable {
     /// The object's description begins with a vowel.
     ///
     /// "The object's DESC begins with a vowel; any verb default which prints an indefinite article

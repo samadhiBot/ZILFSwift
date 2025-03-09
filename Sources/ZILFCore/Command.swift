@@ -228,11 +228,16 @@ public enum Command: Equatable, Hashable, Sendable {
 }
 
 extension Command {
-    /// Checks whether a string matches a command.
+    /// Returns a command that matches the user input.
     ///
-    /// - Returns: Whether the string matches a command.
-    public func matches(_ string: String) -> Bool {
-        synonyms.contains(string.lowercased())
+    /// - Parameter strings: User input expressed as an array of strings.
+    init?(from strings: [String]) {
+        guard let command = Self.allCases.first(where: { command in
+            command.synonyms.contains(strings[0])
+        }) else {
+            return nil
+        }
+        self = command
     }
 
     /// Alternative string representations that resolve to this command.

@@ -8,22 +8,22 @@ public class GameObject {
     public private(set) var capacity: Int?
 
     /// Any objects contained within this object.
-    public private(set) var contents: [GameObject] = []
+    public private(set) var contents = [GameObject]()
 
     /// The descriptive text for this object.
     public private(set) var description: String
 
     /// The set of flags that define object behaviors and states.
-    public private(set) var flags: Set<String> = []
+    public private(set) var flags = Set<Flag>()
 
-    /// The container that holds this object.
+    /// The room or container that holds this object.
     public private(set) var location: GameObject?
 
-    /// The identifier for this object.
+    /// The object's identifier.
     public var name: String
 
     /// A dictionary storing dynamic state values.
-    var stateValues: [String: Any] = [:]
+    var stateValues = [String: Any]()
 
     // MARK: - Initialization
 
@@ -38,7 +38,7 @@ public class GameObject {
         name: String,
         description: String,
         location: GameObject? = nil,
-        flags: [String] = []
+        flags: [Flag] = []
     ) {
         self.name = name
         self.description = description
@@ -61,7 +61,7 @@ public class GameObject {
         name: String,
         description: String,
         location: GameObject? = nil,
-        flags: String...
+        flags: Flag...
     ) {
         self.init(name: name, description: description, location: location, flags: flags)
     }
@@ -151,91 +151,91 @@ public class GameObject {
     ///
     /// - Parameter flag: The flag to check for.
     /// - Returns: True if the object has the specified flag.
-    public func hasFlag(_ flag: String) -> Bool {
+    public func hasFlag(_ flag: Flag) -> Bool {
         return flags.contains(flag)
     }
 
     /// Adds a flag to the object.
     ///
     /// - Parameter flag: The flag to add.
-    public func setFlag(_ flag: String) {
+    public func setFlag(_ flag: Flag) {
         flags.insert(flag)
     }
 
     /// Removes a flag from the object.
     ///
     /// - Parameter flag: The flag to remove.
-    public func clearFlag(_ flag: String) {
+    public func clearFlag(_ flag: Flag) {
         flags.remove(flag)
     }
 
     /// Sets multiple flags at once.
     ///
     /// - Parameter flags: The flags to set.
-    public func setFlags(_ flags: String...) {
+    public func setFlags(_ flags: Flag...) {
         for flag in flags {
             setFlag(flag)
         }
     }
 
-    // MARK: - Container Operations
-
-    /// Checks if this object is a container.
-    ///
-    /// - Returns: True if the object is a container.
-    public func isContainer() -> Bool {
-        return hasFlag("container")
-    }
-
-    /// Checks if this object is open.
-    ///
-    /// - Returns: True if the object is open.
-    public func isOpen() -> Bool {
-        return hasFlag("open")
-    }
-
-    /// Checks if this object can be opened.
-    ///
-    /// - Returns: True if the object can be opened.
-    public func isOpenable() -> Bool {
-        return hasFlag("openable")
-    }
-
-    /// Checks if the contents of this object are visible.
-    ///
-    /// - Returns: True if the contents are visible.
-    public func canSeeInside() -> Bool {
-        return isContainer() && (isOpen() || hasFlag("transparent"))
-    }
-
-    /// Attempts to open this object.
-    ///
-    /// - Returns: True if the object was successfully opened.
-    public func open() -> Bool {
-        if isContainer() && isOpenable() && !isOpen() {
-            setFlag("open")
-            return true
-        }
-        return false
-    }
-
-    /// Attempts to close this object.
-    ///
-    /// - Returns: True if the object was successfully closed.
-    public func close() -> Bool {
-        if isContainer() && isOpenable() && isOpen() {
-            clearFlag("open")
-            return true
-        }
-        return false
-    }
-
-    /// Checks if object is takeable.
-    ///
-    /// - Returns: True if the object can be taken.
-    public func isTakeable() -> Bool {
-        return hasFlag(.takeBit)
-    }
+//    // MARK: - Container Operations
+//
+//    /// Checks if this object is a container.
+//    ///
+//    /// - Returns: True if the object is a container.
+//    public func isContainer() -> Bool {
+//        return hasFlag(.isContainer)
+//    }
+//
+//    /// Checks if this object is open.
+//    ///
+//    /// - Returns: True if the object is open.
+//    public func isOpen() -> Bool {
+//        return hasFlag(.isOpen)
+//    }
+//
+//    /// Checks if this object can be opened.
+//    ///
+//    /// - Returns: True if the object can be opened.
+//    public func isOpenable() -> Bool {
+//        return hasFlag(.isOpenable)
+//    }
+//
+//    /// Checks if the contents of this object are visible.
+//    ///
+//    /// - Returns: True if the contents are visible.
+//    public func canSeeInside() -> Bool {
+//        return isContainer() && (isOpen() || hasFlag("transparent"))
+//    }
+//
+//    /// Attempts to open this object.
+//    ///
+//    /// - Returns: True if the object was successfully opened.
+//    public func open() -> Bool {
+//        if isContainer() && isOpenable() && !isOpen() {
+//            setFlag("open")
+//            return true
+//        }
+//        return false
+//    }
+//
+//    /// Attempts to close this object.
+//    ///
+//    /// - Returns: True if the object was successfully closed.
+//    public func close() -> Bool {
+//        if isContainer() && isOpenable() && isOpen() {
+//            clearFlag("open")
+//            return true
+//        }
+//        return false
+//    }
+//
+//    /// Checks if object is takeable.
+//    ///
+//    /// - Returns: True if the object can be taken.
+//    public func isTakeable() -> Bool {
+//        return hasFlag(.takeBit)
+//    }
 
     // MARK: - Global Object Operations
 
