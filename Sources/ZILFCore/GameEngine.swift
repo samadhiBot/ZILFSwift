@@ -762,7 +762,7 @@ public class GameEngine {
         outputHandler("Opened.")
 
         // If this is a container and it has contents, describe them
-        if obj.isContainer() && obj.canSeeInside() {
+        if obj.hasFlags(.isContainer, .isTransparent) {
             let contents = obj.contents
             if !contents.isEmpty {
                 outputHandler("You see:")
@@ -827,7 +827,7 @@ public class GameEngine {
         }
 
         // Check if destination is a container
-        if !container.isContainer() {
+        if !container.hasFlag(.isContainer) {
             outputHandler("You can't put anything in that.")
             return
         }
@@ -1094,9 +1094,11 @@ public class GameEngine {
             }
 
             // Check if object is in an open container in the room or inventory
-            let containersInRoom = room.contents.filter { $0.isContainer() && $0.isOpen() }
+            let containersInRoom = room.contents.filter {
+                $0.hasFlags(.isContainer, .isOpen)
+            }
             let containersInInventory = world.player.inventory.filter {
-                $0.isContainer() && $0.isOpen()
+                $0.hasFlags(.isContainer, .isOpen)
             }
 
             let allContainers = containersInRoom + containersInInventory

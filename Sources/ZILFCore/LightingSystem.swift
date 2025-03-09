@@ -128,19 +128,13 @@ extension GameWorld {
         }
 
         // 5. Check transparent containers in the room for light sources
-        for container in room.contents {
-            if container.isContainer() {
-                // Light can pass through if container is transparent or open
-                let lightCanPass = container.hasFlag(.isTransparent) || container.hasFlag(.isOpen)
-
-                if lightCanPass {
-                    let containerLightSources = container.contents.filter { obj in
-                        return obj.hasFlag(.isLightSource) && obj.hasFlag(.isOn)
-                    }
-
-                    if !containerLightSources.isEmpty {
-                        return true
-                    }
+        for container in room.contents where container.hasFlag(.isContainer) {
+            // Light can pass through if container is transparent or open
+            if container.hasFlags(.isTransparent, .isOpen, matching: .any) {
+                if container.contents.contains(where: { obj in
+                    obj.hasFlags(.isLightSource, .isOn)
+                }) {
+                    return true
                 }
             }
         }

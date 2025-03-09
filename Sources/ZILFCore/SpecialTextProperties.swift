@@ -103,13 +103,10 @@ extension GameObject {
     /// Get text that describes the contents of this object
     /// - Returns: Text description of contents
     public func getContentsDescription() -> String {
-        guard isContainer() else { return "" }
+        guard hasFlag(.isContainer) else { return "" }
 
-        if !canSeeInside() {
-            if let closedText = getSpecialText(forKey: .closedText) {
-                return closedText
-            }
-            return "It's closed."
+        if !hasFlag(.isTransparent) {
+            return getSpecialText(forKey: .closedText) ?? "It's closed."
         }
 
         if contents.isEmpty {
@@ -184,9 +181,10 @@ extension Room {
                 result += "\n  \(obj.name)"
 
                 // If it's an open container, show its contents
-                if obj.isContainer() && obj.canSeeInside() && !obj.contents.isEmpty {
-                    let containedItems = obj.contents.map { "    \($0.name)" }.joined(
-                        separator: "\n")
+                if obj.hasFlags(.isContainer, .isTransparent) && !obj.contents.isEmpty {
+                    let containedItems = obj.contents
+                        .map { "    \($0.name)"}
+                        .joined(separator: "\n")
                     result += "\n" + containedItems
                 }
             }

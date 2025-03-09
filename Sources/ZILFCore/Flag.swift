@@ -376,3 +376,16 @@ extension Flag {
         }
     }
 }
+
+// MARK: - Flag.Quantifier
+
+extension Flag {
+    /// A logical quantifier used when matching against flags.
+    public enum Quantifier {
+        /// Match all flags.
+        case all
+
+        /// Match any flag.
+        case any
+    }
+}

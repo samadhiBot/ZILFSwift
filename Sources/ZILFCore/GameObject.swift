@@ -73,7 +73,7 @@ public class GameObject {
     /// - Parameter obj: The object to add to this container.
     /// - Returns: True if the object was successfully added.
     public func addToContainer(_ obj: GameObject) -> Bool {
-        if isContainer() && isOpen() {
+        if obj.hasFlags(.isContainer, .isOpen) {
             // Check capacity if it's limited
             if let capacity, contents.count >= capacity {
                 return false
@@ -147,12 +147,29 @@ public class GameObject {
 
     // MARK: - Flag Operations
 
-    /// Checks if the object has a specific flag.
+    /// Checks whether the object has a specific flag.
     ///
     /// - Parameter flag: The flag to check for.
-    /// - Returns: True if the object has the specified flag.
+    /// - Returns: `true` if the object has the specified flag.
     public func hasFlag(_ flag: Flag) -> Bool {
-        return flags.contains(flag)
+        flags.contains(flag)
+    }
+    
+    /// Checks whether the object has all of the specified flags.
+    /// 
+    /// - Parameters:
+    ///   - flags: The flags to check for.
+    ///   - quantifier: Whether to match `all` or `any` of the specified flags.
+    ///
+    /// - Returns: `true` if the object has all of the specified flags.
+    public func hasFlags(
+        _ flags: Flag...,
+        matching quantifier: Flag.Quantifier = .all
+    ) -> Bool {
+        switch quantifier {
+        case .all: flags.allSatisfy { hasFlag($0) }
+        case .any: flags.contains { hasFlag($0) }
+        }
     }
 
     /// Adds a flag to the object.
@@ -160,13 +177,6 @@ public class GameObject {
     /// - Parameter flag: The flag to add.
     public func setFlag(_ flag: Flag) {
         flags.insert(flag)
-    }
-
-    /// Removes a flag from the object.
-    ///
-    /// - Parameter flag: The flag to remove.
-    public func clearFlag(_ flag: Flag) {
-        flags.remove(flag)
     }
 
     /// Sets multiple flags at once.
@@ -178,64 +188,12 @@ public class GameObject {
         }
     }
 
-//    // MARK: - Container Operations
-//
-//    /// Checks if this object is a container.
-//    ///
-//    /// - Returns: True if the object is a container.
-//    public func isContainer() -> Bool {
-//        return hasFlag(.isContainer)
-//    }
-//
-//    /// Checks if this object is open.
-//    ///
-//    /// - Returns: True if the object is open.
-//    public func isOpen() -> Bool {
-//        return hasFlag(.isOpen)
-//    }
-//
-//    /// Checks if this object can be opened.
-//    ///
-//    /// - Returns: True if the object can be opened.
-//    public func isOpenable() -> Bool {
-//        return hasFlag(.isOpenable)
-//    }
-//
-//    /// Checks if the contents of this object are visible.
-//    ///
-//    /// - Returns: True if the contents are visible.
-//    public func canSeeInside() -> Bool {
-//        return isContainer() && (isOpen() || hasFlag("transparent"))
-//    }
-//
-//    /// Attempts to open this object.
-//    ///
-//    /// - Returns: True if the object was successfully opened.
-//    public func open() -> Bool {
-//        if isContainer() && isOpenable() && !isOpen() {
-//            setFlag("open")
-//            return true
-//        }
-//        return false
-//    }
-//
-//    /// Attempts to close this object.
-//    ///
-//    /// - Returns: True if the object was successfully closed.
-//    public func close() -> Bool {
-//        if isContainer() && isOpenable() && isOpen() {
-//            clearFlag("open")
-//            return true
-//        }
-//        return false
-//    }
-//
-//    /// Checks if object is takeable.
-//    ///
-//    /// - Returns: True if the object can be taken.
-//    public func isTakeable() -> Bool {
-//        return hasFlag(.takeBit)
-//    }
+    /// Removes a flag from the object.
+    ///
+    /// - Parameter flag: The flag to remove.
+    public func clearFlag(_ flag: Flag) {
+        flags.remove(flag)
+    }
 
     // MARK: - Global Object Operations
 

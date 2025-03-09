@@ -58,19 +58,19 @@ struct GameModelTests {
     @Test func objectFlags() {
         let obj = GameObject(name: "Object", description: "Test object")
 
-        #expect(!obj.hasFlag("takeable"))
-        obj.setFlag("takeable")
-        #expect(obj.hasFlag("takeable"))
-        obj.clearFlag("takeable")
-        #expect(!obj.hasFlag("takeable"))
+        #expect(!obj.hasFlag(.isTakable))
+        obj.setFlag(.isTakable)
+        #expect(obj.hasFlag(.isTakable))
+        obj.clearFlag(.isTakable)
+        #expect(!obj.hasFlag(.isTakable))
     }
 
     @Test func testItReference() throws {
         let room = Room(name: "Room", description: "A test room")
         let obj1 = GameObject(name: "red ball", description: "A red ball", location: room)
-        obj1.setFlag("takeable")
+        obj1.setFlag(.isTakable)
         let obj2 = GameObject(name: "blue book", description: "A blue book", location: room)
-        obj2.setFlag("takeable")
+        obj2.setFlag(.isTakable)
 
         let player = Player(startingRoom: room)
         let world = GameWorld(player: player)
@@ -115,52 +115,51 @@ struct GameModelTests {
     @Test func testContainers() {
         let room = Room(name: "Room", description: "A test room")
         let box = GameObject(name: "wooden box", description: "A simple wooden box.", location: room)
-        box.setFlag("container")
-        box.setFlag("openable")
+        box.setFlag(.isContainer)
+        box.setFlag(.isOpenable)
 
         let coin = GameObject(name: "gold coin", description: "A shiny gold coin.", location: box)
-        coin.setFlag("takeable")
+        coin.setFlag(.isTakable)
 
         // Test initial state
-        #expect(box.isContainer())
-        #expect(box.isOpenable())
-        #expect(!box.isOpen())
+        #expect(box.hasFlags(.isContainer, .isOpenable))
+        #expect(!box.hasFlag(.isOpen))
 
         // Test opening
         let openResult = box.open()
         #expect(openResult)
-        #expect(box.isOpen())
+        #expect(box.hasFlag(.isOpen))
 
         // Test closing
         let closeResult = box.close()
         #expect(closeResult)
-        #expect(!box.isOpen())
+        #expect(!box.hasFlag(.isOpen))
 
         // Test visibility of contents
-        #expect(!box.canSeeInside())
+        #expect(!box.hasFlag(.isTransparent))
         box.open()
-        #expect(box.canSeeInside())
+        #expect(box.hasFlag(.isTransparent))
 
         // Test with transparent container
         let glass = GameObject(name: "glass jar", description: "A transparent glass jar.", location: room)
-        glass.setFlag("container")
-        glass.setFlag("openable")
-        glass.setFlag("transparent")
+        glass.setFlag(.isContainer)
+        glass.setFlag(.isOpenable)
+        glass.setFlag(.isTransparent)
 
         let marble = GameObject(name: "marble", description: "A small glass marble.", location: glass)
 
-        #expect(glass.canSeeInside()) // Should be visible even when closed
+        #expect(glass.hasFlag(.isTransparent)) // Should be visible even when closed
     }
 
     @Test func testTakingFromContainer() throws {
         let room = Room(name: "Room", description: "A test room")
         let box = GameObject(name: "wooden box", description: "A simple wooden box.", location: room)
-        box.setFlag("container")
-        box.setFlag("openable")
-        box.setFlag("open")  // Start with open box
+        box.setFlag(.isContainer)
+        box.setFlag(.isOpenable)
+        box.setFlag(.isOpen)  // Start with open box
 
         let coin = GameObject(name: "gold coin", description: "A shiny gold coin.", location: box)
-        coin.setFlag("takeable")
+        coin.setFlag(.isTakable)
 
         let player = Player(startingRoom: room)
         let world = GameWorld(player: player)
