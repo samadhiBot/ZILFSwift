@@ -3,39 +3,23 @@ import Testing
 import ZILFTestSupport
 
 struct ExtendedCommandsTests {
-    @Test func testExtendedCommandCreation() {
-        // Test creating wear commands
-        let obj = GameObject(name: "hat", description: "A fancy hat")
-        let wearCommand = Command.wear(obj)
+    @Test func testCommandCreation() {
+        // Test creating basic commands
+        let wearCommand = Command.wear
+        #expect(wearCommand == .wear)
 
-        if case let .customCommand(verb, objects, _) = wearCommand {
-            #expect(verb == "wear")
-            #expect(objects.count == 1)
-            #expect(objects[0] === obj)
-        } else {
-            #expect(false, "Expected a customCommand for wear")
-        }
-
-        // Test creating unwear commands
-        let unwearCommand = Command.unwear(obj)
-
-        if case let .customCommand(verb, objects, _) = unwearCommand {
-            #expect(verb == "unwear")
-            #expect(objects.count == 1)
-            #expect(objects[0] === obj)
-        } else {
-            #expect(false, "Expected a customCommand for unwear")
-        }
+        let unwearCommand = Command.unwear
+        #expect(unwearCommand == .unwear)
     }
 
-    @Test func testExtendedVerbParsing() {
+    @Test func testVerbParsing() {
         // Create test objects and world
         let room = Room(name: "Test Room", description: "A test room")
         room.makeNaturallyLit() // Make the room naturally lit
 
         let hat = GameObject(name: "hat", description: "A fancy hat", location: room)
-        hat.setFlag(String.takeBit)
-        hat.setFlag(String.wearBit)
+        hat.setFlag(.isTakable)
+        hat.setFlag(.isWearable)
 
         let player = Player(startingRoom: room)
         let world = GameWorld(player: player)
@@ -49,24 +33,17 @@ struct ExtendedCommandsTests {
 
         // Test parsing a wear command
         let command = parser.parse("wear hat")
-
-        if case let .customCommand(verb, objects, _) = command {
-            #expect(verb == "wear")
-            #expect(objects.count == 1)
-            #expect(objects[0] === hat)
-        } else {
-            #expect(false, "Expected a customCommand for 'wear hat'")
-        }
+        #expect(command == .wear)
     }
 
-    @Test func testExtendedVerbExecution() {
+    @Test func testVerbExecution() {
         // Create test objects and world
         let room = Room(name: "Test Room", description: "A test room")
         room.makeNaturallyLit() // Make the room naturally lit
 
         let hat = GameObject(name: "hat", description: "A fancy hat", location: room)
-        hat.setFlag(String.takeBit)
-        hat.setFlag(String.wearBit)
+        hat.setFlag(.isTakable)
+        hat.setFlag(.isWearable)
 
         let player = Player(startingRoom: room)
         let world = GameWorld(player: player)
@@ -77,24 +54,27 @@ struct ExtendedCommandsTests {
         let outputHandler = OutputCapture()
         let engine = GameEngine(world: world, outputHandler: outputHandler.handler)
 
-        // First take the hat
-        engine.executeCommand(Command.take(hat))
+        // Move hat to inventory
+        hat.moveTo(player)
         outputHandler.clear()
 
+        // Set the hat as the last mentioned object so it's the context for the command
+        world.lastMentionedObject = hat
+
         // Execute wear command
-        engine.executeCommand(Command.wear(hat))
+        engine.executeCommand(.wear)
 
         // Verify hat is now worn
-        #expect(hat.hasFlag(String.wornBit), "Hat should be worn after wear command")
+        #expect(hat.hasFlag(.isBeingWorn), "Hat should be worn after wear command")
         #expect(outputHandler.output.contains("You put on"), "Output should indicate hat was worn")
 
         outputHandler.clear()
 
         // Execute unwear command
-        engine.executeCommand(Command.unwear(hat))
+        engine.executeCommand(.unwear)
 
         // Verify hat is no longer worn
-        #expect(!hat.hasFlag(String.wornBit), "Hat should not be worn after unwear command")
+        #expect(!hat.hasFlag(.isBeingWorn), "Hat should not be worn after unwear command")
         #expect(outputHandler.output.contains("You take off"), "Output should indicate hat was taken off")
     }
 }

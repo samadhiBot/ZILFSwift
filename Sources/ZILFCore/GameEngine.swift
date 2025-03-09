@@ -103,6 +103,9 @@ public class GameEngine {
                     outputHandler("It's too dark to see.")
                     return
                 }
+            case .wait, .again, .version, .save, .restore, .restart, .undo, .brief, .verbose, .superbrief:
+                // These meta commands are allowed in darkness
+                break
             default:
                 outputHandler("It's too dark to see.")
                 return
@@ -134,70 +137,200 @@ public class GameEngine {
             handleLook()
         case .inventory:
             handleInventory()
-        case .move(let direction):
-            handleMove(direction: direction)
-        case .take(let obj):
-            handleTake(obj)
-        case .drop(let obj):
-            handleDrop(obj)
-        case .examine(let obj):
-            handleExamine(obj)
-        case .open(let obj):
-            handleOpen(obj)
-        case .close(let obj):
-            handleClose(obj)
+        case .move:
+            if let direction = extractDirectionFromCommand(command) {
+                handleMove(direction: direction)
+            } else {
+                outputHandler("Which way do you want to go?")
+            }
+        case .take:
+            if let obj = getObjectFromContext() {
+                handleTake(obj)
+            } else {
+                outputHandler("Take what?")
+            }
+        case .drop:
+            if let obj = getObjectFromContext() {
+                handleDrop(obj)
+            } else {
+                outputHandler("Drop what?")
+            }
+        case .examine:
+            if let obj = getObjectFromContext() {
+                handleExamine(obj)
+            } else {
+                outputHandler("Examine what?")
+            }
+        case .open:
+            if let obj = getObjectFromContext() {
+                handleOpen(obj)
+            } else {
+                outputHandler("Open what?")
+            }
+        case .close:
+            if let obj = getObjectFromContext() {
+                handleClose(obj)
+            } else {
+                outputHandler("Close what?")
+            }
         case .quit:
             handleQuit()
         case .unknown(let message):
             outputHandler(message)
+        case .wear:
+            if let obj = getObjectFromContext() {
+                handleWear(obj)
+            } else {
+                outputHandler("Wear what?")
+            }
+        case .unwear:
+            if let obj = getObjectFromContext() {
+                handleUnwear(obj)
+            } else {
+                outputHandler("Take off what?")
+            }
+        case .putIn:
+            if let objects = getMultipleGameObjects(from: command), objects.count >= 2 {
+                handlePutIn(objects[0], container: objects[1])
+            } else {
+                outputHandler("You need to specify what to put where.")
+            }
+        case .putOn:
+            if let objects = getMultipleGameObjects(from: command), objects.count >= 2 {
+                handlePutOn(objects[0], surface: objects[1])
+            } else {
+                outputHandler("You need to specify what to put where.")
+            }
+        case .turnOn:
+            if let obj = getObjectFromContext() {
+                handleTurnOn(obj)
+            } else {
+                outputHandler("Turn on what?")
+            }
+        case .turnOff:
+            if let obj = getObjectFromContext() {
+                handleTurnOff(obj)
+            } else {
+                outputHandler("Turn off what?")
+            }
+        case .flip:
+            if let obj = getObjectFromContext() {
+                handleFlip(obj)
+            } else {
+                outputHandler("Flip what?")
+            }
+        case .wait:
+            handleWait()
+        case .again:
+            handleAgain()
+        case .read:
+            if let obj = getObjectFromContext() {
+                handleRead(obj)
+            } else {
+                outputHandler("Read what?")
+            }
         case .custom(let words):
+            if words.isEmpty {
+                outputHandler("I don't understand.")
+                return
+            }
+
             switch words[0] {
             case "wear":
                 if words.count > 1 {
-                    handleWear(words[1])
+                    if let obj = findObject(named: words[1]) {
+                        handleWear(obj)
+                    } else {
+                        outputHandler("You don't see that here.")
+                    }
                 } else {
                     outputHandler("Wear what?")
                 }
             case "unwear", "remove", "take_off":
                 if words.count > 1 {
-                    handleUnwear(words[1])
+                    if let obj = findObject(named: words[1]) {
+                        handleUnwear(obj)
+                    } else {
+                        outputHandler("You don't see that here.")
+                    }
                 } else {
                     outputHandler("Take off what?")
                 }
-            case "put_on":
-                if words.count >= 2 {
-                    handlePutOn(words[1], surface: words[2])
+            case "put_on", "place_on", "set_on":
+                if words.count >= 3 {
+                    if let obj = findObject(named: words[1]),
+                       let surface = findObject(named: words[2]) {
+                        handlePutOn(obj, surface: surface)
+                    } else {
+                        outputHandler("You don't see that here.")
+                    }
                 } else {
                     outputHandler("You need to specify what to put where.")
                 }
             case "put_in":
-                if words.count >= 2 {
-                    handlePutIn(words[1], container: words[2])
+                if words.count >= 3 {
+                    if let obj = findObject(named: words[1]),
+                       let container = findObject(named: words[2]) {
+                        handlePutIn(obj, container: container)
+                    } else {
+                        outputHandler("You don't see that here.")
+                    }
                 } else {
                     outputHandler("You need to specify what to put where.")
                 }
             case "turn_on":
                 if words.count > 1 {
-                    handleTurnOn(words[1])
+                    if let obj = findObject(named: words[1]) {
+                        handleTurnOn(obj)
+                    } else {
+                        outputHandler("You don't see that here.")
+                    }
+                } else {
+                    outputHandler("Turn on what?")
                 }
             case "turn_off":
                 if words.count > 1 {
-                    handleTurnOff(words[1])
+                    if let obj = findObject(named: words[1]) {
+                        handleTurnOff(obj)
+                    } else {
+                        outputHandler("You don't see that here.")
+                    }
+                } else {
+                    outputHandler("Turn off what?")
                 }
-            case "flip":
+            case "flip", "switch", "toggle":
                 if words.count > 1 {
-                    handleFlip(words[1])
+                    if let obj = findObject(named: words[1]) {
+                        handleFlip(obj)
+                    } else {
+                        outputHandler("You don't see that here.")
+                    }
+                } else {
+                    outputHandler("Flip what?")
                 }
             case "wait":
                 handleWait()
             case "again":
                 handleAgain()
-            case "read":
+            case "read", "peruse":
                 if words.count > 1 {
-                    handleRead(words[1])
+                    if let obj = findObject(named: words[1]) {
+                        handleRead(obj)
+                    } else {
+                        outputHandler("You don't see that here.")
+                    }
+                } else {
+                    outputHandler("Read what?")
                 }
             default:
                 outputHandler("Sorry, that command isn't implemented yet.")
+            }
+        default:
+            // Check if this is a direction command (move)
+            if let direction = extractDirectionFromCommand(command) {
+                handleMove(direction: direction)
+            } else {
+                outputHandler("I don't know how to do that.")
             }
         }
 
@@ -445,10 +578,7 @@ public class GameEngine {
         switch command {
         case .look: return "look"
         case .inventory: return "inventory"
-        case .moveNorth, .moveSouth, .moveEast, .moveWest,
-             .moveUp, .moveDown, .moveNorthEast, .moveNorthWest,
-             .moveSouthEast, .moveSouthWest, .moveInside, .moveOutside:
-            return "move"
+        case .move: return "move"
         case .take: return "take"
         case .drop: return "drop"
         case .examine: return "examine"
@@ -456,6 +586,24 @@ public class GameEngine {
         case .close: return "close"
         case .quit: return "quit"
         case .unknown: return "unknown"
+        case .wear: return "wear"
+        case .unwear: return "unwear"
+        case .putIn: return "put_in"
+        case .putOn: return "put_on"
+        case .turnOn: return "turn_on"
+        case .turnOff: return "turn_off"
+        case .wait: return "wait"
+        case .again: return "again"
+        case .read: return "read"
+        case .flip: return "flip"
+        case .save: return "save"
+        case .restore: return "restore"
+        case .restart: return "restart"
+        case .undo: return "undo"
+        case .brief: return "brief"
+        case .verbose: return "verbose"
+        case .superbrief: return "superbrief"
+        case .version: return "version"
         case .custom(let words) where !words.isEmpty:
             return words[0]
         case .custom:
@@ -463,11 +611,58 @@ public class GameEngine {
         default:
             // Extract the verb name from the enum case
             let mirror = Mirror(reflecting: command)
-            let verb = String(describing: mirror.subjectType)
-                .components(separatedBy: ".")
-                .last ?? "unknown"
-            return verb
+            let label = mirror.children.first?.label ?? String(describing: command)
+            return label
         }
+    }
+
+    /// Extracts direction from a movement command
+    ///
+    /// - Parameter command: The command to extract direction from
+    ///
+    /// - Returns: Direction if available, nil otherwise
+    private func extractDirectionFromCommand(_ command: Command) -> Direction? {
+        switch command {
+        case .move:
+            // In the new Command structure, we need to get the direction from context
+            // This would typically come from the CommandParser
+            // For now, we'll return nil and need to enhance this
+            return nil
+        case .custom(let words):
+            // Check if the custom command has a direction word
+            guard !words.isEmpty else { return nil }
+
+            // Convert common direction words to Direction
+            switch words[0].lowercased() {
+            case "north", "n": return .north
+            case "south", "s": return .south
+            case "east", "e": return .east
+            case "west", "w": return .west
+            case "northeast", "ne": return .northEast
+            case "northwest", "nw": return .northWest
+            case "southeast", "se": return .southEast
+            case "southwest", "sw": return .southWest
+            case "up", "u": return .up
+            case "down", "d": return .down
+            case "in", "inside": return .inward
+            case "out", "outside": return .outward
+            default: return nil
+            }
+        default:
+            return nil
+        }
+    }
+
+    /// Gets the current object from context
+    ///
+    /// - Returns: The object in the current context or nil
+    private func getObjectFromContext() -> GameObject? {
+        // This is a placeholder method that would normally use the CommandParser and
+        // game state to figure out which object a command like "take" or "examine"
+        // is referring to.
+
+        // For now, we'll try to use the last mentioned object
+        return world.lastMentionedObject
     }
 
     /// Get a list of visible exit directions from a room
@@ -519,26 +714,26 @@ public class GameEngine {
         }
 
         // Check if the object has a custom handler for this command
-        if obj.processCommand(.close(obj)) {
+        if obj.processCommand(.close) {
             // The object handled the close command
             return
         }
 
         // Default behavior
         // Check if object is openable
-        if !obj.isOpenable() {
+        if !obj.hasFlag(.isOpenable) {
             outputHandler("You can't close that.")
             return
         }
 
         // Check if already closed
-        if !obj.isOpen() {
+        if !obj.hasFlag(.isOpen) {
             outputHandler("That's already closed.")
             return
         }
 
         // Close the object
-        let _ = obj.close()
+        obj.clearFlag(.isOpen)
         outputHandler("Closed.")
 
         // Update last mentioned object
@@ -618,7 +813,7 @@ public class GameEngine {
     /// - Parameter obj: The object to be dropped
     private func handleDrop(_ obj: GameObject) {
         // Check if the object has a custom handler for this command
-        if obj.processCommand(.drop(obj)) {
+        if obj.processCommand(.drop) {
             // The object handled the drop command
             return
         }
@@ -653,7 +848,7 @@ public class GameEngine {
         }
 
         // Check if the object has a custom handler for this command
-        if obj.processCommand(.examine(obj)) {
+        if obj.processCommand(.examine) {
             // The object handled the examine command
             return
         }
@@ -682,16 +877,16 @@ public class GameEngine {
         }
 
         // Default behavior
-        if !obj.hasFlag(.deviceBit) {
+        if !obj.hasFlag(.isDevice) {
             outputHandler("That's not something you can flip.")
             return
         }
 
-        if obj.hasFlag(.onBit) {
-            obj.clearFlag(.onBit)
+        if obj.hasFlag(.isOn) {
+            obj.clearFlag(.isOn)
             outputHandler("You turn off \(obj.name).")
         } else {
-            obj.setFlag(.onBit)
+            obj.setFlag(.isOn)
             outputHandler("You turn on \(obj.name).")
         }
 
@@ -735,7 +930,7 @@ public class GameEngine {
 
         // Check if the current room has a custom handler for this direction
         if let currentRoom = player.location as? Room,
-            currentRoom.processCommand(.move(direction))
+            currentRoom.processCommand(.move)
         {
             // The room handled the move command
             return
@@ -760,26 +955,26 @@ public class GameEngine {
         }
 
         // Check if the object has a custom handler for this command
-        if obj.processCommand(.open(obj)) {
+        if obj.processCommand(.open) {
             // The object handled the open command
             return
         }
 
         // Default behavior
         // Check if object is openable
-        if !obj.isOpenable() {
+        if !obj.hasFlag(.isOpenable) {
             outputHandler("You can't open that.")
             return
         }
 
         // Check if already open
-        if obj.isOpen() {
+        if obj.hasFlag(.isOpen) {
             outputHandler("That's already open.")
             return
         }
 
         // Open the object
-        let _ = obj.open()
+        obj.setFlag(.isOpen)
         outputHandler("Opened.")
 
         // If this is a container and it has contents, describe them
@@ -816,7 +1011,7 @@ public class GameEngine {
         }
 
         // Check if destination is a surface
-        if !surface.hasFlag(.surfaceBit) {
+        if !surface.hasFlag(.isSurface) {
             outputHandler("You can't put anything on that.")
             return
         }
@@ -854,7 +1049,7 @@ public class GameEngine {
         }
 
         // Check if container is open
-        if !container.isOpen() {
+        if !container.hasFlag(.isOpen) {
             outputHandler("The \(container.name) is closed.")
             return
         }
@@ -891,7 +1086,7 @@ public class GameEngine {
         }
 
         // Default behavior
-        if !obj.hasFlag(String.readBit) {
+        if !obj.hasFlag(.isReadable) {
             outputHandler("There's nothing to read on \(obj.name).")
             return
         }
@@ -935,7 +1130,7 @@ public class GameEngine {
         }
 
         // Check if the object has a custom handler for this command
-        if obj.processCommand(.take(obj)) {
+        if obj.processCommand(.take) {
             // The object handled the take command
             return
         }
@@ -948,7 +1143,7 @@ public class GameEngine {
         }
 
         // Check if object is takeable
-        if !obj.isTakeable() {
+        if !obj.hasFlag(.isTakable) {
             outputHandler("You can't take that.")
             return
         }
@@ -978,17 +1173,17 @@ public class GameEngine {
         }
 
         // Default behavior
-        if !obj.hasFlag(.deviceBit) {
+        if !obj.hasFlag(.isDevice) {
             outputHandler("That's not something you can turn off.")
             return
         }
 
-        if !obj.hasFlag(.onBit) {
+        if !obj.hasFlag(.isOn) {
             outputHandler("That's already off.")
             return
         }
 
-        obj.clearFlag(.onBit)
+        obj.clearFlag(.isOn)
         outputHandler("You turn off \(obj.name).")
 
         // Update last mentioned object
@@ -1012,17 +1207,17 @@ public class GameEngine {
         }
 
         // Default behavior
-        if !obj.hasFlag(.deviceBit) {
+        if !obj.hasFlag(.isDevice) {
             outputHandler("That's not something you can turn on.")
             return
         }
 
-        if obj.hasFlag(.onBit) {
+        if obj.hasFlag(.isOn) {
             outputHandler("That's already on.")
             return
         }
 
-        obj.setFlag(.onBit)
+        obj.setFlag(.isOn)
         outputHandler("You turn on \(obj.name).")
 
         // Update last mentioned object
@@ -1040,13 +1235,13 @@ public class GameEngine {
         }
 
         // Check if the object is worn
-        if !obj.hasFlag(String.wornBit) {
+        if !obj.hasFlag(.isBeingWorn) {
             outputHandler("You're not wearing \(obj.name).")
             return
         }
 
         // Unwear the object
-        obj.clearFlag(String.wornBit)
+        obj.clearFlag(.isBeingWorn)
         outputHandler("You take off \(obj.name).")
     }
 
@@ -1066,19 +1261,19 @@ public class GameEngine {
         }
 
         // Check if the object is wearable
-        if !obj.hasFlag(String.wearBit) {
+        if !obj.hasFlag(.isWearable) {
             outputHandler("You can't wear \(obj.name).")
             return
         }
 
         // Check if the object is already worn
-        if obj.hasFlag(String.wornBit) {
+        if obj.hasFlag(.isBeingWorn) {
             outputHandler("You're already wearing \(obj.name).")
             return
         }
 
         // Wear the object
-        obj.setFlag(String.wornBit)
+        obj.setFlag(.isBeingWorn)
         outputHandler("You put on \(obj.name).")
     }
 
@@ -1196,5 +1391,45 @@ public class GameEngine {
 
             return freshWorld
         }
+    }
+
+    /// Helper method to find objects by name
+    ///
+    /// - Parameter name: The name of the object to find
+    ///
+    /// - Returns: The found GameObject if it exists and is accessible
+    private func findObject(named name: String) -> GameObject? {
+        // Look in inventory
+        if let obj = world.player.inventory.first(where: { $0.name.lowercased() == name.lowercased() }) {
+            return obj
+        }
+
+        // Look in current room
+        if let room = world.player.currentRoom,
+           let obj = room.contents.first(where: { $0.name.lowercased() == name.lowercased() }) {
+            return obj
+        }
+
+        // Look in open containers in the room
+        if let room = world.player.currentRoom {
+            let containers = room.contents.filter { $0.hasFlags(.isContainer, .isOpen) }
+            for container in containers {
+                if let obj = container.contents.first(where: { $0.name.lowercased() == name.lowercased() }) {
+                    return obj
+                }
+            }
+        }
+
+        // Check if this is a global object accessible from the current room
+        if let room = world.player.currentRoom {
+            // Find global objects by name
+            let globalObjects = world.globalObjects.filter { $0.isGlobalObject() }
+            if let obj = globalObjects.first(where: { $0.name.lowercased() == name.lowercased() }),
+               world.isGlobalObjectAccessible(obj, in: room) {
+                return obj
+            }
+        }
+
+        return nil
     }
 }
