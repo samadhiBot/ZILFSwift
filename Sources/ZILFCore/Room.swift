@@ -53,14 +53,11 @@ public class Room: GameObject {
     /// Called when the room is being looked at (M-LOOK in ZIL).
     /// - Returns: `true` if the action produced a description (prevents default description).
     public var lookAction: ((Room) -> Bool)?
-
-    /// Creates a new room with the specified name and description.
-    /// - Parameters:
-    ///   - name: The name of the room.
-    ///   - description: The detailed description of the room.
-//    public init(name: String, description: String) {
-//        super.init(name: name, description: description)
-//    }
+    
+    /// Whether the room is currently lit.
+    public var isLit: Bool {
+        hasFlag(.isOn) || hasFlag(.isNaturallyLit)
+    }
 
     /// Executes the begin-command action for this room.
     /// - Parameter command: The command to process.
@@ -138,20 +135,5 @@ public class Room: GameObject {
     ///   - room: The destination room.
     public func setExit(direction: Direction, room: Room) {
         exits[direction] = room
-    }
-}
-
-// MARK: - Equatable
-
-extension Room: Equatable {
-    /// Compares two rooms for equality.
-    ///
-    /// Rooms are considered equal if they reference the same object instance.
-    /// - Parameters:
-    ///   - lhs: The first room to compare.
-    ///   - rhs: The second room to compare.
-    /// - Returns: `true` if the rooms are the same instance.
-    public static func == (lhs: Room, rhs: Room) -> Bool {
-        return lhs === rhs
     }
 }

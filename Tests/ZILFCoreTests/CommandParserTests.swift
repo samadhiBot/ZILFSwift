@@ -13,7 +13,7 @@ struct CommandParserTests {
             name: "box",
             description: "A wooden box",
             location: world.player.currentRoom,
-            flags: [.containerBit, .openBit]
+            flags: [.isContainer, .isOpen]
         ) // Start opened
 
         // Test basic close command
@@ -215,7 +215,7 @@ struct CommandParserTests {
             name: "lamp",
             description: "A brass lamp",
             location: world.player.currentRoom,
-            flags: .deviceBit
+            flags: .isDevice
         )
 
         // Test flip command
@@ -370,7 +370,7 @@ struct CommandParserTests {
             name: "box",
             description: "A wooden box",
             location: world.player.currentRoom,
-            flags: .containerBit
+            flags: .isContainer
         )
 
         // Test basic open command
@@ -410,14 +410,14 @@ struct CommandParserTests {
             name: "apple",
             description: "A red apple",
             location: world.player,
-            flags: .takeBit
+            flags: .isTakable
         )
 
         let box = GameObject(
             name: "box",
             description: "A wooden box",
             location: world.player.currentRoom,
-            flags: .containerBit
+            flags: .isContainer
         )
 
         let table = GameObject(
@@ -498,7 +498,7 @@ struct CommandParserTests {
             name: "book",
             description: "A dusty book",
             location: world.player.currentRoom,
-            flags: .readBit
+            flags: .isReadable
         )
 
         // Test read command
@@ -548,7 +548,7 @@ struct CommandParserTests {
             name: "hat",
             description: "A fancy hat",
             location: world.player,
-            flags: [.wearBit, .wornBit]  // Mark as currently worn
+            flags: [.isWearable, .isBeingWorn]  // Mark as currently worn
         )
 
         // Test "remove hat" command
@@ -579,7 +579,7 @@ struct CommandParserTests {
         }
 
         // Test when not wearing the item
-        hat.clearFlag(.wornBit)
+        hat.clearFlag(.isBeingWorn)
         if case let .unknown(message) = parser.parse("remove hat") {
             #expect(message.contains("not wearing"))
         } else {
@@ -649,7 +649,7 @@ struct CommandParserTests {
             name: "hat",
             description: "A fancy hat",
             location: world.player,
-            flags: [.wearBit, .wornBit]  // Mark as currently worn
+            flags: [.isWearable, .isBeingWorn]  // Mark as currently worn
         )
 
         // Test basic "take off hat" command
@@ -680,7 +680,7 @@ struct CommandParserTests {
         }
 
         // Test when not wearing the item
-        hat.clearFlag(.wornBit)
+        hat.clearFlag(.isBeingWorn)
         if case let .unknown(message) = parser.parse("take off hat") {
             #expect(message.contains("not wearing"))
         } else {
@@ -704,7 +704,7 @@ struct CommandParserTests {
             name: "hat",
             description: "A fancy hat",
             location: world.player,
-            flags: [.wearBit, .wornBit]  // Mark as currently worn
+            flags: [.isWearable, .isBeingWorn]  // Mark as currently worn
         )
 
         // This test specifically verifies that "take off hat" doesn't get
@@ -732,7 +732,7 @@ struct CommandParserTests {
             name: "ball",
             description: "A round ball",
             location: world.player.currentRoom,
-            flags: .takeBit
+            flags: .isTakable
         )
 
         // Verify regular take still works
@@ -751,7 +751,7 @@ struct CommandParserTests {
             name: "lamp",
             description: "A brass lamp",
             location: world.player.currentRoom,
-            flags: .deviceBit
+            flags: .isDevice
         )
 
         // Test turn on command
@@ -834,7 +834,7 @@ struct CommandParserTests {
             name: "coat",
             description: "A warm coat",
             location: world.player,
-            flags: .wearBit
+            flags: .isWearable
         )
 
         // Test "wear coat" command
@@ -898,7 +898,7 @@ struct CommandParserTests {
             name: "scarf",
             description: "A woolen scarf",
             location: world.player.currentRoom,
-            flags: .wearBit
+            flags: .isWearable
         )
 
         if case let .unknown(message) = parser.parse("wear scarf") {
@@ -930,7 +930,7 @@ struct CommandParserTests {
             name: "gold coin",
             description: "A shiny gold coin",
             location: startRoom,
-            flags: .takeBit
+            flags: .isTakable
         )
         world.register(coin)
 

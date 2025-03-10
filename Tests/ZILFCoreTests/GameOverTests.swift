@@ -133,7 +133,7 @@ import ZILFTestSupport
 
         // Add a victory condition
         let amulet = GameObject(name: "amulet", description: "A magical amulet.")
-        amulet.setFlag(.takeBit)
+        amulet.setFlag(.isTakable)
         amulet.moveTo(player)
 
         world.register(amulet)

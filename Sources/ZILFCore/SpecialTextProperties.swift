@@ -127,9 +127,6 @@ extension Room {
     ///   - forceBrief: Whether to use the brief description
     /// - Returns: The appropriate room description
     public func getRoomDescription(in world: GameWorld, forceBrief: Bool = false) -> String {
-        // Check if the room is lit
-        let isRoomLit = world.isRoomLit(self)
-
         // Get the current visit count or default to 0
         let visitCount: Int = getState(forKey: "visitCount") ?? 0
 
@@ -146,7 +143,7 @@ extension Room {
         }
 
         // Get the main description based on lighting and visit count
-        return getCurrentDescription(visitCount: visitCount + 1, isLit: isRoomLit)
+        return getCurrentDescription(visitCount: visitCount + 1, isLit: isLit)
     }
 
     /// Get a full description of the room including contents and exits
@@ -156,7 +153,7 @@ extension Room {
         var result = getRoomDescription(in: world)
 
         // If the room is dark, don't show contents or exits
-        if !world.isRoomLit(self) {
+        if isLit {
             return result
         }
 

@@ -75,7 +75,7 @@ public class GameEngine {
             return
         }
 
-        let isRoomDark = !world.isRoomLit(currentRoom)
+        let isRoomDark = !currentRoom.isLit
 
         if isRoomDark {
             // Check if the current room has a handler for this command

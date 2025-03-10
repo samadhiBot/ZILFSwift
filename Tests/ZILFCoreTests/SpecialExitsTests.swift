@@ -106,7 +106,7 @@ import Testing
 
         // Create a key
         let key = GameObject(name: "brass key", description: "A shiny brass key")
-        key.setFlag(.takeBit)
+        key.setFlag(.isTakable)
         world.register(key)
 
         // Create a locked exit

@@ -29,30 +29,30 @@ ZIL uses flags for object properties. In ZILFCore, these are implemented as stri
 
 // Swift:
 let apple = GameObject(name: "apple", description: "A juicy apple.")
-apple.setFlag(.takeBit)  // or "takebit"
-apple.setFlag(.edibleBit)  // or "ediblebit"
+apple.setFlag(.isTakable)  // or "takebit"
+apple.setFlag(.isEdible)  // or "ediblebit"
 
 // Or using the convenience initializer/method:
-let apple = GameObject(name: "apple", description: "A juicy apple.", flags: .takeBit, .edibleBit)
-apple.setFlags(.takeBit, .edibleBit)
+let apple = GameObject(name: "apple", description: "A juicy apple.", flags: .isTakable, .isEdible)
+apple.setFlags(.isTakable, .isEdible)
 ```
 
 Common flags include:
 
-- `.takeBit`: Object can be picked up
-- `.edibleBit`: Object can be eaten
-- `.wearBit`: Object can be worn
-- `.wornBit`: Object is currently being worn
+- `.isTakable`: Object can be picked up
+- `.isEdible`: Object can be eaten
+- `.isWearable`: Object can be worn
+- `.isBeingWorn`: Object is currently being worn
 - `.contBit`: Object is a container
-- `.surfaceBit`: Object is a surface (things can be placed on it)
-- `.openBit`: Object is open
-- `.openableBit`: Object can be opened/closed
+- `.isSurface`: Object is a surface (things can be placed on it)
+- `.isOpen`: Object is open
+- `.isOpenable`: Object can be opened/closed
 - `.isLightSource`: Object emits light
-- `.lit`: Object is currently emitting light
-- `.transBit`: Object is transparent (can see inside when closed)
-- `.readBit`: Object can be read
-- `.nArticleBit`: Object name has no article ("grime" vs "a grime")
-- `.pluralBit`: Object name is plural ("grapes" vs "grape")
+- `.isOn`: Object is currently emitting light
+- `.isTransparent`: Object is transparent (can see inside when closed)
+- `.isReadable`: Object can be read
+- `.omitArticle`: Object name has no article ("grime" vs "a grime")
+- `.isPlural`: Object name is plural ("grapes" vs "grape")
 - `.personBit`: Object is a person
 - `.femaleBit`: Object is female
 - `.naturallyLit`: Room is naturally lit
@@ -243,13 +243,13 @@ ZIL handles dark rooms with the LIGHTBIT flag. In ZILFCore:
 room.setFlag(.naturallyLit)  // Room is always lit
 
 // Dark room unless player has a light source
-room.clearFlag(.isLit)  // Start as dark
+room.clearFlag(.isOn)  // Start as dark
 
 // Check in room.enterAction if player has light source:
-if player.inventory.contains(where: { $0.hasFlag(.isLightSource) && $0.hasFlag(.isLit) }) {
-    room.setFlag(.isLit)
+if player.inventory.contains(where: { $0.hasFlag(.isLightSource) && $0.hasFlag(.isOn) }) {
+    room.setFlag(.isOn)
 } else {
-    room.clearFlag(.isLit)
+    room.clearFlag(.isOn)
 }
 ```
 

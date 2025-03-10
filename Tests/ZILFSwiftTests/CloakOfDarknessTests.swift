@@ -42,11 +42,11 @@ import ZILFTestSupport
         #expect(hook.location === cloakroom)
 
         // Verify object properties
-        #expect(cloak.hasFlag(.takeBit))
-        #expect(cloak.hasFlag(.wearBit))
-        #expect(cloak.hasFlag(.wornBit))  // Initially worn
-        #expect(hook.hasFlag(.containerBit))
-        #expect(hook.hasFlag(.surfaceBit))
+        #expect(cloak.hasFlag(.isTakable))
+        #expect(cloak.hasFlag(.isWearable))
+        #expect(cloak.hasFlag(.isBeingWorn))  // Initially worn
+        #expect(hook.hasFlag(.isContainer))
+        #expect(hook.hasFlag(.isSurface))
     }
 
     @Test func testWinGame() throws {
@@ -113,7 +113,7 @@ import ZILFTestSupport
         #expect(world.player.currentRoom === bar)
 
         // The bar should be lit now because we left the cloak in the cloakroom
-        #expect(bar.hasFlag(.isLit))
+        #expect(bar.hasFlag(.isOn))
         outputHandler.clear()
 
         // 7. Examine the message
@@ -146,7 +146,7 @@ import ZILFTestSupport
         engine.executeCommand(.move(.south))
         #expect(world.player.currentRoom === bar)
         // The bar should be dark
-        #expect(!bar.hasFlag(.isLit))
+        #expect(!bar.hasFlag(.isOn))
         outputHandler.clear()
 
         // 3. Disturb the message by trying to take it
@@ -169,11 +169,11 @@ import ZILFTestSupport
         // 6. Go back to the now-lit bar
         engine.executeCommand(.move(.east))
         engine.executeCommand(.move(.south))
-        #expect(bar.hasFlag(.isLit))
+        #expect(bar.hasFlag(.isOn))
         outputHandler.clear()
 
         // 7. Examine the message
-        engine.executeCommand(.examine(message))
+        engine.executeCommand(.examine(message, with: nil))
 
         // 8. Verify we lost the game
         #expect(outputHandler.output.contains("You lose"))
@@ -194,7 +194,7 @@ import ZILFTestSupport
         let cloak = try world.findObject(named: "cloak")
 
         // Examine the cloak
-        engine.executeCommand(.examine(cloak))
+        engine.executeCommand(.examine(cloak, with: nil))
         #expect(outputHandler.output.contains("dark"))
         outputHandler.clear()
 
@@ -203,7 +203,7 @@ import ZILFTestSupport
 
         // Bar should be dark while wearing cloak
         engine.executeCommand(.move(.south))
-        #expect(!bar.hasFlag(.isLit))
+        #expect(!bar.hasFlag(.isOn))
 
         // Try to do something in the dark
         engine.executeCommand(.look)
@@ -222,7 +222,7 @@ import ZILFTestSupport
         // Return to bar - should now be lit
         engine.executeCommand(.move(.east))
         engine.executeCommand(.move(.south))
-        #expect(bar.hasFlag(.isLit))
+        #expect(bar.hasFlag(.isOn))
         outputHandler.clear()
 
         // Now we can see clearly

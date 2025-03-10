@@ -1,115 +1,6 @@
 import Foundation
 import ZILFCore
 
-// MARK: - Command Verbs
-
-extension String {
-    /// Examine an object to get more information about it.
-    public static let examine = "examine"
-
-    /// Consume an edible object.
-    public static let eat = "eat"
-
-    /// Toggle a switch or device.
-    public static let flip = "flip"
-
-    /// Place an object on something.
-    public static let putOn = "put-on"
-
-    /// Read the text of an object.
-    public static let read = "read"
-
-    /// Consider or contemplate an object or concept.
-    public static let thinkAbout = "think-about"
-
-    /// Activate a device.
-    public static let turnOn = "turn-on"
-
-    /// Deactivate a device.
-    public static let turnOff = "turn-off"
-}
-
-// MARK: - Directions
-
-extension String {
-    /// Direction to move northward.
-    public static let north = "north"
-
-    /// Direction to move eastward.
-    public static let east = "east"
-
-    /// Direction to move southward.
-    public static let south = "south"
-
-    /// Direction to move westward.
-    public static let west = "west"
-}
-
-// MARK: - Command Handler Functions
-
-/// Handles commands directed at the apple object.
-/// - Parameters:
-///   - obj: The apple game object.
-///   - command: The player's command.
-/// - Returns: `true` if the command was handled, `false` otherwise.
-private func handleAppleCommands(_ obj: GameObject, _ command: Command) -> Bool {
-    if case .examine = command {
-        print("The apple is green and tasty-looking.")
-        // Queue event to run after 3 turns
-        if let world = obj.findWorld() {
-            world.eventManager.scheduleEvent(
-                name: "I-APPLE-FUN",
-                turns: 3,
-                action: {
-                    true
-                }
-            )
-        }
-        return true
-    } else if case .customCommand(let verb, let objects, _) = command, verb == "eat" {
-        if objects.contains(where: { $0 === obj }) {
-            print("Oh no! It was actually a poison apple (mostly so we could test JIGS-UP).")
-            // Use our new helper method to find the player
-            if let player = obj.findPlayer() {
-                player.engine.gameOver(message: "You've been poisoned by the apple.")
-            }
-            return true
-        }
-    }
-    return false
-}
-
-/// Handles commands directed at the message object.
-/// - Parameters:
-///   - obj: The message game object.
-///   - command: The player's command.
-/// - Returns: `true` if the command was handled, `false` otherwise.
-private func handleMessageCommands(_ obj: GameObject, _ command: Command) -> Bool {
-    if case .examine = command {
-        let room = obj.location as? Room
-        let disturbed = (room?.disturbed as Int?) ?? 0
-
-        print("The message simply reads: \"You ", terminator: "")
-        if disturbed > 1 {
-            print("lose.\"")
-            // Use our new findPlayer helper method
-            if let player = obj.findPlayer() {
-                player.engine.gameOver(message: "You lose", isVictory: false)
-            }
-        } else {
-            print("win.\"")
-            // Use our new findPlayer helper method
-            if let player = obj.findPlayer() {
-                player.engine.gameOver(message: "You win", isVictory: true)
-            }
-        }
-        return true
-    }
-    return false
-}
-
-// MARK: - Cloak of Darkness Game Implementation
-
 /// Implementation of the classic "Cloak of Darkness" demo game.
 ///
 /// This is a Swift implementation of the classic interactive fiction demo
@@ -190,23 +81,23 @@ public enum CloakOfDarkness {
 
             // Check if player has cloak and it's being worn
             let hasCloak = player?.inventory.contains {
-                $0.name == "cloak" && $0.hasFlag(.wornBit)
+                $0.name == "cloak" && $0.hasFlag(.isBeingWorn)
             } ?? false
 
             if hasCloak {
                 // Player has cloak - set room to dark
-                room.clearFlag(.isLit)
+                room.clearFlag(.isOn)
                 return false
             } else {
                 // Player doesn't have cloak - set room to lit
-                room.setFlag(.isLit)
+                room.setFlag(.isOn)
                 return false
             }
         }
 
         // Bar begin-turn action - handle stumbling in dark
         bar.beginTurnAction = { (room: Room) -> Bool in
-            if !room.hasFlag(.isLit) {
+            if !room.hasFlag(.isOn) {
                 // Get the command through the engine from game world directly
                 var command: Command? = nil
                 if let player = room.findPlayer() {
@@ -226,10 +117,10 @@ public enum CloakOfDarkness {
                         return false
                     case .move(let direction) where direction == .north:
                         return false
-                    case .examine(let obj) where obj.name == "message":
+                    case .examine(let obj, _) where obj?.name == "message":
                         // Allow examining the message even in the dark
                         return false
-                    case .customCommand(let verb, _, _) where verb == "think-about":
+                    case .thinkAbout:
                         return false
                     default:
                         // Continue with the dark room handling
@@ -249,7 +140,7 @@ public enum CloakOfDarkness {
 
         // Override look handler for bar to make the description match test expectations
         bar.lookAction = { (room: Room) -> Bool in
-            if room.hasFlag(.isLit) {
+            if room.hasFlag(.isOn) {
                 print(
                     "The bar, much rougher than you'd have guessed after the opulence of the foyer to the north, is completely empty. You can see a message scrawled in the sawdust on the floor."
                 )
@@ -283,10 +174,10 @@ public enum CloakOfDarkness {
             if let study = world?.rooms.first(where: { $0.name == "Study" }),
                 let lightSwitch = study.contents.first(where: { $0.name == "light switch" })
             {
-                if lightSwitch.hasFlag(.onBit) {
-                    room.setFlag(.isLit)
+                if lightSwitch.hasFlag(.isOn) {
+                    room.setFlag(.isOn)
                 } else {
-                    room.clearFlag(.isLit)
+                    room.clearFlag(.isOn)
                 }
             }
             return false
@@ -304,7 +195,7 @@ public enum CloakOfDarkness {
             description:
                 "The walls of this small room were clearly once lined with hooks, though now only one remains. The exit is a door to the east, but there is also a cramped opening to the west."
         )
-        cloakroom.setFlag(.isLit)
+        cloakroom.setFlag(.isOn)
 
         // Custom enter action for the cloakroom
         cloakroom.enterAction = { (room: Room) -> Bool in
@@ -332,7 +223,7 @@ public enum CloakOfDarkness {
 
             // Check if player is wearing the cloak
             let hasCloak = player?.inventory.contains {
-                $0.name == "cloak" && $0.hasFlag(.wornBit)
+                $0.name == "cloak" && $0.hasFlag(.isBeingWorn)
             } ?? false
 
             if hasCloak {
@@ -378,7 +269,7 @@ public enum CloakOfDarkness {
                 "You are standing in a spacious hall, splendidly decorated in red and gold, with glittering chandeliers overhead. The entrance from the street is to the north, and there are doorways south and west."
         )
 
-        foyer.setFlag(.isLit)
+        foyer.setFlag(.isOn)
 
         // Foyer end-turn action
         foyer.endTurnAction = { (room: Room) -> Bool in
@@ -410,7 +301,7 @@ public enum CloakOfDarkness {
             description:
                 "The hallway leads to a Study to the west, and back to the Cloakroom to the east."
         )
-        hallToStudy.setFlag(.isLit)
+        hallToStudy.setFlag(.isOn)
 
         // Hall enter action
         hallToStudy.enterAction = { (room: Room) -> Bool in
@@ -436,7 +327,7 @@ public enum CloakOfDarkness {
             description:
                 "A small room with a worn stand in the middle. A hallway lies east of here, a closet off to the west."
         )
-        study.setFlag(.isLit)
+        study.setFlag(.isOn)
 
         // End-turn action for study
         study.endTurnAction = { (room: Room) -> Bool in
@@ -465,8 +356,7 @@ public enum CloakOfDarkness {
         let message = GameObject(
             name: "message",
             description: "The message reads: \"No loitering in the bar without a drink.\"",
-            location: bar,
-            flags: []
+            location: bar
         )
         message.firstDescription =
             "There seems to be some sort of message scrawled in the sawdust on the floor."
@@ -512,7 +402,7 @@ public enum CloakOfDarkness {
             name: "broom",
             description: "A plain wooden broom for sweeping.",
             location: closet,
-            flags: .takeBit
+            flags: .isTakable
         )
         world.register(broom)
 
@@ -528,7 +418,7 @@ public enum CloakOfDarkness {
             name: "shelf",
             description: "A narrow utility shelf.",
             location: closet,
-            flags: .containerBit, .surfaceBit
+            flags: .isContainer, .isSurface
         )
         world.register(shelf)
 
@@ -548,7 +438,7 @@ public enum CloakOfDarkness {
             name: "small brass hook",
             description: "A small brass hook mounted on the wall.",
             location: cloakroom,
-            flags: .containerBit, .surfaceBit
+            flags: .isContainer, .isSurface
         )
         hook.firstDescription = "A small brass hook is on the wall."
         world.register(hook)
@@ -573,7 +463,7 @@ public enum CloakOfDarkness {
             name: "apple",
             description: "A shiny red apple.",
             location: foyer,
-            flags: .takeBit, .edibleBit, .vowelBit
+            flags: .isTakable, .isEdible, .beginsWithVowel
         )
 
         apple.setExamineHandler { obj in
@@ -607,7 +497,7 @@ public enum CloakOfDarkness {
             name: "table",
             description: "Tatty but functional.",
             location: foyer,
-            flags: .containerBit, .surfaceBit
+            flags: .isContainer, .isSurface
         )
         world.register(table)
 
@@ -640,7 +530,7 @@ public enum CloakOfDarkness {
             name: "grapes",
             description: "A bunch of grapes.",
             location: table,
-            flags: .takeBit, .edibleBit, .pluralBit, .nArticleBit
+            flags: .isTakable, .isEdible, .isPlural, .omitArticle
         )
         world.register(grapes)
 
@@ -649,7 +539,7 @@ public enum CloakOfDarkness {
             name: "card",
             description: "A playing card.",
             location: table,
-            flags: .takeBit
+            flags: .isTakable
         )
         world.register(card)
 
@@ -665,12 +555,12 @@ public enum CloakOfDarkness {
             name: "cube",
             description: "A mysterious cube.",
             location: foyer,
-            flags: .takeBit
+            flags: .isTakable
         )
         world.register(cube)
 
         cube.setExamineHandler { obj in
-            print("As you inspect the cube you realize time around you speeds by.")
+            print("As you inspected the cube you realized time around you speeds by.")
             // In a full implementation, this would trigger waiting for 10 turns
             if let player = obj.findPlayer(), let engine = player.engine {
                 // This would be something like engine.waitTurns(10)
@@ -682,8 +572,7 @@ public enum CloakOfDarkness {
         let painting = GameObject(
             name: "painting",
             description: "An unusual painting that seems to change.",
-            location: foyer,
-            flags: []
+            location: foyer
         )
         world.register(painting)
 
@@ -715,7 +604,7 @@ public enum CloakOfDarkness {
             name: "grime",
             description: "Just some dirty spots on the marble floor.",
             location: foyer,
-            flags: .takeBit, .nArticleBit
+            flags: .isTakable, .omitArticle
         )
         world.register(grime)
 
@@ -744,9 +633,7 @@ public enum CloakOfDarkness {
         // Ceiling with cobwebs
         let ceiling = GameObject(
             name: "ceiling",
-            description: "Nothing really noticeable about the ceiling.",
-            location: nil,
-            flags: []
+            description: "Nothing really noticeable about the ceiling."
         )
         world.globalObjects.append(ceiling)
 
@@ -759,8 +646,7 @@ public enum CloakOfDarkness {
         let darkness = GameObject(
             name: "darkness",
             description: "It's too dark to see anything.",
-            location: nil,
-            flags: .nArticleBit
+            flags: .omitArticle
         )
         world.globalObjects.append(darkness)
 
@@ -775,9 +661,7 @@ public enum CloakOfDarkness {
         // Rug - as a local-global object
         let rug = GameObject(
             name: "rug",
-            description: "A tatty old rug.",
-            location: nil,
-            flags: []
+            description: "A tatty old rug."
         )
 
         rug.setCustomCommandHandler(verb: "put-on") { obj, objects in
@@ -801,7 +685,7 @@ public enum CloakOfDarkness {
             name: "sign",
             description: "It's a block of grey wood bearing hastily-painted words.",
             location: hallToStudy,
-            flags: .readBit
+            flags: .isReadable
         )
         sign.firstDescription = "A crude wooden sign hangs above the western exit."
         sign.text = "It reads, 'Welcome to the Study'"
@@ -824,7 +708,7 @@ public enum CloakOfDarkness {
             name: "cloak",
             description: "The cloak is unnaturally dark.",
             location: world.player,
-            flags: .takeBit, .wearBit, .wornBit
+            flags: .isTakable, .isWearable, .isBeingWorn
         )
         world.register(cloak)
 
@@ -844,7 +728,7 @@ public enum CloakOfDarkness {
             name: "light switch",
             description: "An ordinary light switch.",
             location: study,
-            flags: .deviceBit
+            flags: .isDevice
         )
         world.register(lightSwitch)
 
@@ -852,7 +736,7 @@ public enum CloakOfDarkness {
             print(
                 "An ordinary light switch set in the wall to the left of the entrance to the closet. It is currently ",
                 terminator: "")
-            if obj.hasFlag(.onBit) {
+            if obj.hasFlag(.isOn) {
                 print("on.")
             } else {
                 print("off.")
@@ -862,7 +746,7 @@ public enum CloakOfDarkness {
 
         lightSwitch.setCustomCommandHandler(verb: "turn-on") { obj, objects in
             if objects.contains(where: { $0 === obj }) {
-                obj.setFlag(.onBit)
+                obj.setFlag(.isOn)
 
                 // Find the player using the findPlayer helper
                 if let room = obj.location as? Room,
@@ -870,7 +754,7 @@ public enum CloakOfDarkness {
                     let currentRoom = player.currentRoom,
                     currentRoom.name == "Closet"
                 {
-                    currentRoom.setFlag(.isLit)
+                    currentRoom.setFlag(.isOn)
                     print("The closet lights up!")
                 }
 
@@ -882,7 +766,7 @@ public enum CloakOfDarkness {
 
         lightSwitch.setCustomCommandHandler(verb: "turn-off") { obj, objects in
             if objects.contains(where: { $0 === obj }) {
-                obj.clearFlag(.onBit)
+                obj.clearFlag(.isOn)
 
                 // Find the player using the findPlayer helper
                 if let room = obj.location as? Room,
@@ -890,7 +774,7 @@ public enum CloakOfDarkness {
                     let currentRoom = player.currentRoom,
                     currentRoom.name == "Closet"
                 {
-                    currentRoom.clearFlag(.isLit)
+                    currentRoom.clearFlag(.isOn)
                     print("The closet goes dark!")
                 }
 
@@ -902,9 +786,9 @@ public enum CloakOfDarkness {
 
         lightSwitch.setCustomCommandHandler(verb: "flip") { obj, objects in
             if objects.contains(where: { $0 === obj }) {
-                if obj.hasFlag(.onBit) {
+                if obj.hasFlag(.isOn) {
                     // Turn it off
-                    obj.clearFlag(.onBit)
+                    obj.clearFlag(.isOn)
 
                     // Find the player using the findPlayer helper
                     if let room = obj.location as? Room,
@@ -912,14 +796,14 @@ public enum CloakOfDarkness {
                         let currentRoom = player.currentRoom,
                         currentRoom.name == "Closet"
                     {
-                        currentRoom.clearFlag(.isLit)
+                        currentRoom.clearFlag(.isOn)
                         print("The closet goes dark!")
                     }
 
                     print("You switch off the light switch.")
                 } else {
                     // Turn it on
-                    obj.setFlag(.onBit)
+                    obj.setFlag(.isOn)
 
                     // Find the player using the findPlayer helper
                     if let room = obj.location as? Room,
@@ -927,7 +811,7 @@ public enum CloakOfDarkness {
                         let currentRoom = player.currentRoom,
                         currentRoom.name == "Closet"
                     {
-                        currentRoom.setFlag(.isLit)
+                        currentRoom.setFlag(.isOn)
                         print("The closet lights up!")
                     }
 
@@ -943,13 +827,13 @@ public enum CloakOfDarkness {
             name: "flashlight",
             description: "A cheap plastic flashlight.",
             location: study,
-            flags: .deviceBit, .takeBit
+            flags: .isDevice, .isTakable
         )
         world.register(flashlight)
 
         flashlight.setExamineHandler { obj in
             print("A cheap plastic flashlight. It is currently ", terminator: "")
-            if obj.hasFlag(.onBit) {
+            if obj.hasFlag(.isOn) {
                 print("on.")
             } else {
                 print("off.")
@@ -959,20 +843,20 @@ public enum CloakOfDarkness {
 
         flashlight.setCustomCommandHandler(verb: "turn-on") { obj, objects in
             if objects.contains(where: { $0 === obj }) {
-                if obj.hasFlag(.onBit) {
+                if obj.hasFlag(.isOn) {
                     print("It's already on.")
                 } else {
-                    obj.setFlag(.onBit)
+                    obj.setFlag(.isOn)
                     obj.setFlag(.isLightSource)
-                    obj.setFlag(.isLit)
+                    obj.setFlag(.isOn)
                     print("You switch on the flashlight.")
 
                     // Find the player using the findPlayer helper
                     if let player = obj.findPlayer(),
                         let currentRoom = player.currentRoom,
-                        !currentRoom.hasFlag(.isLit) && !currentRoom.hasFlag(.naturallyLit)
+                        !currentRoom.hasFlag(.isOn) && !currentRoom.hasFlag(.isNaturallyLit)
                     {
-                        currentRoom.setFlag(.isLit)
+                        currentRoom.setFlag(.isOn)
                         print("The flashlight illuminates the area!")
                     }
                 }
@@ -983,24 +867,24 @@ public enum CloakOfDarkness {
 
         flashlight.setCustomCommandHandler(verb: "turn-off") { obj, objects in
             if objects.contains(where: { $0 === obj }) {
-                if !obj.hasFlag(.onBit) {
+                if !obj.hasFlag(.isOn) {
                     print("It's already off.")
                 } else {
-                    obj.clearFlag(.onBit)
-                    obj.clearFlag(.isLit)
+                    obj.clearFlag(.isOn)
+                    obj.clearFlag(.isOn)
                     print("You switch off the flashlight.")
 
                     // Find the player using the findPlayer helper
                     if let player = obj.findPlayer(),
                         let currentRoom = player.currentRoom,
-                        !currentRoom.hasFlag(.naturallyLit)
+                        !currentRoom.hasFlag(.isNaturallyLit)
                     {
                         // Check if room should now be dark
                         let hasOtherLight = player.inventory.contains {
-                            $0.hasFlag(.isLightSource) && $0.hasFlag(.isLit) && $0 !== obj
+                            $0.hasFlag(.isLightSource) && $0.hasFlag(.isOn) && $0 !== obj
                         }
                         if !hasOtherLight {
-                            currentRoom.clearFlag(.isLit)
+                            currentRoom.clearFlag(.isOn)
                             print("The area goes dark!")
                         }
                     }
@@ -1012,39 +896,39 @@ public enum CloakOfDarkness {
 
         flashlight.setCustomCommandHandler(verb: "flip") { obj, objects in
             if objects.contains(where: { $0 === obj }) {
-                if obj.hasFlag(.onBit) {
+                if obj.hasFlag(.isOn) {
                     // Turn it off
-                    obj.clearFlag(.onBit)
-                    obj.clearFlag(.isLit)
+                    obj.clearFlag(.isOn)
+                    obj.clearFlag(.isOn)
                     print("You switch off the flashlight.")
 
                     // Find the player using the findPlayer helper
                     if let player = obj.findPlayer(),
                         let currentRoom = player.currentRoom,
-                        !currentRoom.hasFlag(.naturallyLit)
+                        !currentRoom.hasFlag(.isNaturallyLit)
                     {
                         // Check if room should now be dark
                         let hasOtherLight = player.inventory.contains {
-                            $0.hasFlag(.isLightSource) && $0.hasFlag(.isLit) && $0 !== obj
+                            $0.hasFlag(.isLightSource) && $0.hasFlag(.isOn) && $0 !== obj
                         }
                         if !hasOtherLight {
-                            currentRoom.clearFlag(.isLit)
+                            currentRoom.clearFlag(.isOn)
                             print("The area goes dark!")
                         }
                     }
                 } else {
                     // Turn it on
-                    obj.setFlag(.onBit)
+                    obj.setFlag(.isOn)
                     obj.setFlag(.isLightSource)
-                    obj.setFlag(.isLit)
+                    obj.setFlag(.isOn)
                     print("You switch on the flashlight.")
 
                     // Find the player using the findPlayer helper
                     if let player = obj.findPlayer(),
                         let currentRoom = player.currentRoom,
-                        !currentRoom.hasFlag(.isLit) && !currentRoom.hasFlag(.naturallyLit)
+                        !currentRoom.hasFlag(.isOn) && !currentRoom.hasFlag(.isNaturallyLit)
                     {
-                        currentRoom.setFlag(.isLit)
+                        currentRoom.setFlag(.isOn)
                         print("The flashlight illuminates the area!")
                     }
                 }
@@ -1058,7 +942,7 @@ public enum CloakOfDarkness {
             name: "stand",
             description: "A worn wooden stand.",
             location: study,
-            flags: .containerBit, .surfaceBit
+            flags: .isContainer, .isSurface
         )
         stand.setCapacity(to: 15)
         world.register(stand)
@@ -1068,7 +952,7 @@ public enum CloakOfDarkness {
             name: "book",
             description: "A tattered hard-cover book with a red binding.",
             location: stand,
-            flags: .takeBit, .readBit
+            flags: .isTakable, .isReadable
         )
         book.text =
             "It tells of an adventurer who was tasked with testing out a library that was old and new at the same time."
@@ -1079,7 +963,7 @@ public enum CloakOfDarkness {
             name: "safe",
             description: "A small wall safe.",
             location: study,
-            flags: .containerBit, .openableBit
+            flags: .isContainer, .isOpenable
         )
         world.register(safe)
 
@@ -1087,7 +971,7 @@ public enum CloakOfDarkness {
             name: "dollar",
             description: "A crisp one-dollar bill.",
             location: safe,
-            flags: .takeBit
+            flags: .isTakable
         )
         world.register(bill)
 
@@ -1095,7 +979,7 @@ public enum CloakOfDarkness {
             name: "case",
             description: "A large glass case.",
             location: study,
-            flags: .containerBit, .transBit
+            flags: .isContainer, .isTransparent
         )
         world.register(glassCase)
 
@@ -1103,7 +987,7 @@ public enum CloakOfDarkness {
             name: "muffin",
             description: "A tasty-looking muffin.",
             location: glassCase,
-            flags: .takeBit, .edibleBit
+            flags: .isTakable, .isEdible
         )
         world.register(muffin)
 
@@ -1111,7 +995,7 @@ public enum CloakOfDarkness {
             name: "sphere",
             description: "A glass sphere.",
             location: study,
-            flags: .takeBit, .transBit, .containerBit
+            flags: .isTakable, .isTransparent, .isContainer
         )
         world.register(sphere)
 
@@ -1119,7 +1003,7 @@ public enum CloakOfDarkness {
             name: "firefly",
             description: "A tiny but brightly glowing firefly.",
             location: sphere,
-            flags: .takeBit, .lit
+            flags: .isTakable, .isOn
         )
         world.register(firefly)
 
@@ -1127,7 +1011,7 @@ public enum CloakOfDarkness {
             name: "wallet",
             description: "A leather wallet.",
             location: study,
-            flags: .containerBit, .takeBit, .openableBit
+            flags: .isContainer, .isTakable, .isOpenable
         )
         wallet.setCapacity(to: 2)
         world.register(wallet)
@@ -1136,7 +1020,7 @@ public enum CloakOfDarkness {
             name: "jar",
             description: "A glass jar.",
             location: stand,
-            flags: .containerBit, .openBit, .takeBit
+            flags: .isContainer, .isOpen, .isTakable
         )
         jar.setCapacity(to: 6)
         world.register(jar)
@@ -1145,7 +1029,7 @@ public enum CloakOfDarkness {
             name: "plum",
             description: "A ripe purple plum.",
             location: jar,
-            flags: .takeBit, .edibleBit
+            flags: .isTakable, .isEdible
         )
         world.register(plum)
 
@@ -1153,7 +1037,7 @@ public enum CloakOfDarkness {
             name: "crate",
             description: "A wooden crate.",
             location: study,
-            flags: .containerBit
+            flags: .isContainer
         )
         crate.setCapacity(to: 15)
         world.register(crate)
@@ -1162,9 +1046,60 @@ public enum CloakOfDarkness {
             name: "tray",
             description: "A serving tray.",
             location: stand,
-            flags: .containerBit, .takeBit, .surfaceBit
+            flags: .isContainer, .isTakable, .isSurface
         )
         tray.setCapacity(to: 11)
         world.register(tray)
+    }
+
+    // MARK: - Command Handler Functions
+
+    static func handleAppleCommands(_ obj: GameObject, _ command: Command) -> Bool {
+        switch command {
+        case .examine(let target, _) where target === obj:
+            print("The apple is green and tasty-looking.")
+            if let world = obj.findWorld() {
+                world.eventManager.scheduleEvent(
+                    name: "I-APPLE-FUN",
+                    turns: 3,
+                    action: { true }
+                )
+            }
+            return true
+        case .eat(let target) where target === obj:
+            print("Oh no! It was actually a poison apple (mostly so we could test JIGS-UP).")
+            if let player = obj.findPlayer() {
+                player.engine.gameOver(message: "You've been poisoned by the apple.")
+            }
+            return true
+        default:
+            break
+        }
+        return false
+    }
+
+    static func handleMessageCommands(_ obj: GameObject, _ command: Command) -> Bool {
+        switch command {
+        case .examine(let target, _) where target === obj:
+            let room = obj.location as? Room
+            let disturbed = (room?.disturbed as Int?) ?? 0
+
+            print("The message simply reads: \"You ", terminator: "")
+            if disturbed > 1 {
+                print("lose.\"")
+                if let player = obj.findPlayer() {
+                    player.engine.gameOver(message: "You lose", isVictory: false)
+                }
+            } else {
+                print("win.\"")
+                if let player = obj.findPlayer() {
+                    player.engine.gameOver(message: "You win", isVictory: true)
+                }
+            }
+            return true
+        default:
+            break
+        }
+        return false
     }
 }
