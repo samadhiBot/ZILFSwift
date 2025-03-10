@@ -43,28 +43,26 @@ public enum Direction: Hashable, Sendable {
 }
 
 extension Direction {
-    /// Attempts to derive a direction from a string.
-    ///
-    /// - Parameter string: A string representing a direction.
-    /// - Returns: A direction if one can be derived.
-    public static func from(_ string: String) -> Direction? {
-        switch string.lowercased() {
-        case "n", "north": .north
-        case "ne", "northeast": .northEast
-        case "nw", "northwest": .northWest
-        case "s", "south": .south
-        case "se", "southeast": .southEast
-        case "sw", "southwest": .southWest
-        case "e", "east": .east
-        case "w", "west": .west
-        case "u", "up": .up
-        case "d", "down": .down
-        case "in", "inward": .inward
-        case "out", "outward": .outward
-        default: nil
+    public init?(_ rawValue: String) {
+        switch rawValue.lowercased() {
+        case "n", "north": self = .north
+        case "ne", "northeast": self = .northEast
+        case "nw", "northwest": self = .northWest
+        case "s", "south": self = .south
+        case "se", "southeast": self = .southEast
+        case "sw", "southwest": self = .southWest
+        case "e", "east": self = .east
+        case "w", "west": self = .west
+        case "u", "up": self = .up
+        case "d", "down": self = .down
+        case "in", "inward": self = .inward
+        case "out", "outward": self = .outward
+        default: return nil
         }
     }
+}
 
+extension Direction {
     /// The direction's opposite, useful for two-way connections.
     public var opposite: Direction? {
         switch self {

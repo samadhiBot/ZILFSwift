@@ -618,6 +618,8 @@ public extension Room {
     }
 }
 
+// MARK: - CustomDebugStringConvertible
+
 extension GameObject: CustomDebugStringConvertible {
     public var debugDescription: String {
         name

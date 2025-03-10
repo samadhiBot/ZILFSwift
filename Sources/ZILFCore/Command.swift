@@ -1,7 +1,7 @@
 import Foundation
 
-/// Represents a game command with a primary name and optional synonyms
-public enum Command: Equatable, Hashable, Sendable {
+/// Represents a game command with a primary name and optional synonyms.
+public enum Command {
     // MARK: Custom commands
 
     /// Defines a game-specific custom command.
@@ -12,44 +12,44 @@ public enum Command: Equatable, Hashable, Sendable {
 
     // MARK: Interaction commands
 
-    /// Attack an object.
-    case attack
+    /// Attack an object, optionally with a tool.
+    case attack(GameObject?, with: GameObject?)
 
-    /// Burn an object.
-    case burn
+    /// Burn an object, optionally with a tool.
+    case burn(GameObject?, with: GameObject?)
 
     /// Climb a specific object.
-    case climb
+    case climb(GameObject?)
 
     /// Close an object.
-    case close
+    case close(GameObject?)
 
     /// Dance.
     case dance
 
     /// Drink a potable object.
-    case drink
+    case drink(GameObject?)
 
     /// Drop an object.
-    case drop
+    case drop(GameObject?)
 
     /// Consume an edible object.
-    case eat
+    case eat(GameObject?)
 
     /// Empty a container.
-    case empty
+    case empty(GameObject?)
 
-    /// Examine an object to get more information about it.
-    case examine
+    /// Examine an object to get more information about it, optionally with a tool.
+    case examine(GameObject?, with: GameObject?)
 
     /// Fill a container with an implied liquid.
-    case fill
+    case fill(GameObject?)
 
     /// Flip or toggle a device.
-    case flip
+    case flip(GameObject?)
 
     /// Give an object to a recipient.
-    case give
+    case give(GameObject?, to: GameObject?)
 
     /// Check the player's inventory.
     case inventory
@@ -58,97 +58,97 @@ public enum Command: Equatable, Hashable, Sendable {
     case jump
 
     /// Lock an object using a tool.
-    case lock
+    case lock(GameObject?, with: GameObject?)
 
     /// Look at an object.
     case look
 
     /// Look under an object.
-    case lookUnder
+    case lookUnder(GameObject?)
 
     /// Move the player in some direction.
-    case move
+    case move(Direction?)
 
     /// Creates a command for a negative response.
     case no
 
-    /// Open an object.
-    case open
+    /// Open an object, optionally with a tool.
+    case open(GameObject?, with: GameObject?)
 
     /// Display current pronoun references.
     case pronouns
 
     /// Pull an object.
-    case pull
+    case pull(GameObject?)
 
     /// Push an object.
-    case push
+    case push(GameObject?)
 
     /// Place an object inside a container.
-    case putIn
+    case putIn(GameObject?, container: GameObject?)
 
     /// Place an object on a surface.
-    case putOn
+    case putOn(GameObject?, surface: GameObject?)
 
-    /// Read a readable object.
-    case read
+    /// Read a readable object, optionally with a tool.
+    case read(GameObject?, with: GameObject?)
 
     /// Remove an object.
-    case remove
+    case remove(GameObject?)
 
-    /// Rub an object.
-    case rub
+    /// Rub an object, optionally with a tool.
+    case rub(GameObject?, with: GameObject?)
 
     /// Search a container.
-    case search
+    case search(GameObject?)
 
     /// Sing.
     case sing
 
     /// Smell an object.
-    case smell
+    case smell(GameObject?)
 
     /// Swim.
     case swim
 
     /// Take an object.
-    case take
+    case take(GameObject?)
 
     /// Tell a person about a topic.
-    case tell
+    case tell(GameObject?, about: String?)
 
     /// Consider or contemplate an object or concept.
-    case thinkAbout
+    case thinkAbout(GameObject?)
 
     /// Throw an object at an object.
-    case throwAt
+    case throwAt(GameObject?, target: GameObject?)
 
     /// Deactivate a device.
-    case turnOff
+    case turnOff(GameObject?)
 
     /// Activate a device.
-    case turnOn
+    case turnOn(GameObject?)
 
     /// Unlock an object using a tool.
-    case unlock
+    case unlock(GameObject?, with: GameObject?)
 
     /// Unwear a worn object.
-    case unwear
+    case unwear(GameObject?)
 
     /// Wait (do nothing for a turn).
     case wait
 
     /// Wake a person.
-    case wake
+    case wake(GameObject?)
 
     /// Wave an object.
-    case wave
+    case wave(GameObject?)
 
     /// Wave hands (without holding any object).
     case waveHands
 
     /// Wear a wearable object.
-    case wear
+    case wear(GameObject?)
 
     /// Creates a command for an affirmative response.
     case yes
@@ -196,17 +196,85 @@ public enum Command: Equatable, Hashable, Sendable {
 }
 
 extension Command {
-    /// Returns a command that matches the user input.
-    ///
-    /// - Parameter strings: User input expressed as an array of strings.
-    init(from strings: [String]) {
-        if let command = Self.allCases.first(where: {
-            $0.synonyms.contains(strings[0])
-        }) {
-            self = command
-        }
-        self = .custom(strings)
-    }
+//    /// Returns a command that matches the user input.
+//    ///
+//    /// - Parameter input: User input expressed as an array of strings.
+//    init(from input: [String]) {
+//        guard let command = input.first else {
+//            self = .unknown("No command given")
+//            return
+//        }
+//        switch command {
+//        case "attack", "kill", "destroy": self = .attack
+//        case "burn", "light": self = .burn
+//        case "climb": self = .climb
+//        case "close", "shut": self = .close
+//        case "dance": self = .dance
+//        case "drink", "sip", "quaff": self = .drink
+//        case "drop", "put-down": self = .drop
+//        case "eat", "consume", "devour": self = .eat
+//        case "empty": self = .empty
+//        case "examine", "x", "look-at", "inspect": self = .examine
+//        case "fill": self = .fill
+//        case "flip", "switch", "toggle": self = .flip
+//        case "give": self = .give
+//        case "inventory", "i", "inv": self = .inventory
+//        case "jump": self = .jump
+//        case "lock": self = .lock
+//        case "look", "l", "look-around": self = .look
+//        case "look-under": self = .lookUnder
+//        case "move", "go", "walk", "run": self = .move
+//        case "no": self = .no
+//        case "open": self = .open
+//        case "pronouns": self = .pronouns
+//        case "pull": self = .pull
+//        case "push": self = .push
+//        case "put-in": self = .putIn
+//        case "put-on", "place-on", "set-on": self = .putOn
+//        case "read", "peruse": self = .read
+//        case "remove", "doff", "take-off": self = .remove
+//        case "rub": self = .rub
+//        case "search": self = .search
+//        case "sing": self = .sing
+//        case "smell": self = .smell
+//        case "swim": self = .swim
+//        case "take", "get", "pick-up": self = .take
+//        case "tell": self = .tell
+//        case "think-about", "ponder", "contemplate": self = .thinkAbout
+//        case "throw": self = .throwAt
+//        case "turn-off", "deactivate", "switch-off": self = .turnOff
+//        case "turn-on", "activate", "switch-on": self = .turnOn
+//        case "unlock": self = .unlock
+//        case "unwear": self = .unwear
+//        case "wait": self = .wait
+//        case "wake": self = .wake
+//        case "wave": self = .wave
+//        case "wave-hands": self = .waveHands
+//        case "wear", "don", "put-on": self = .wear
+//        case "yes": self = .yes
+//
+//        case "again", "g", "repeat": self = .again
+//        case "brief": self = .brief
+//        case "help", "?", "info": self = .help
+//        case "quit", "q", "exit": self = .quit
+//        case "restart": self = .restart
+//        case "restore", "load": self = .restore
+//        case "save": self = .save
+//        case "script": self = .script
+//        case "superbrief": self = .superbrief
+//        case "undo": self = .undo
+//        case "unscript": self = .unscript
+//        case "verbose": self = .verbose
+//        case "version": self = .version
+//
+//        }
+//        if let command = Self.allCases.first(where: {
+//            $0.synonyms.contains(input[0])
+//        }) {
+//            self = command
+//        }
+//        self = .custom(input)
+//    }
 
     /// Alternative string representations that resolve to this command.
     public var synonyms: [String] {
@@ -287,70 +355,69 @@ extension Command: CustomStringConvertible {
     }
 }
 
-extension Command: CaseIterable {
-    public static var allCases: [Command] {
-        [
-            .again,
-            .attack,
-            .brief,
-            .burn,
-            .climb,
-            .close,
-            .dance,
-            .drink,
-            .drop,
-            .eat,
-            .empty,
-            .examine,
-            .fill,
-            .flip,
-            .give,
-            .help,
-            .inventory,
-            .jump,
-            .lock,
-            .look,
-            .lookUnder,
-            .move,
-            .no,
-            .open,
-            .pronouns,
-            .pull,
-            .push,
-            .putIn,
-            .putOn,
-            .quit,
-            .read,
-            .remove,
-            .restart,
-            .restore,
-            .rub,
-            .save,
-            .script,
-            .search,
-            .sing,
-            .smell,
-            .superbrief,
-            .swim,
-            .take,
-            .tell,
-            .thinkAbout,
-            .throwAt,
-            .turnOff,
-            .turnOn,
-            .undo,
-            .unlock,
-            .unscript,
-            .unwear,
-            .verbose,
-            .version,
-            .wait,
-            .wake,
-            .wave,
-            .waveHands,
-            .wear,
-            .yes,
-        ]
-    }
-}
-
+//extension Command: CaseIterable {
+//    public static var allCases: [Command] {
+//        [
+//            .again,
+//            .attack(nil),
+//            .brief,
+//            .burn(nil),
+//            .climb(nil),
+//            .close(nil),
+//            .dance,
+//            .drink(nil),
+//            .drop(nil),
+//            .eat(nil),
+//            .empty(nil),
+//            .examine(nil),
+//            .fill(nil),
+//            .flip(nil),
+//            .give(item: nil, recipient: nil),
+//            .help,
+//            .inventory,
+//            .jump,
+//            .lock(nil, with: nil),
+//            .look,
+//            .lookUnder(nil),
+//            .move(nil),
+//            .no,
+//            .open(nil),
+//            .pronouns,
+//            .pull(nil),
+//            .push(nil),
+//            .putIn(item: nil, container: nil),
+//            .putOn(item: nil, surface: nil),
+//            .quit,
+//            .read(nil),
+//            .remove(nil),
+//            .restart,
+//            .restore,
+//            .rub(nil),
+//            .save,
+//            .script,
+//            .search(nil),
+//            .sing,
+//            .smell(nil),
+//            .superbrief,
+//            .swim,
+//            .take(nil),
+//            .tell(person: nil, topic: nil),
+//            .thinkAbout(nil),
+//            .throwAt(item: nil, target: nil),
+//            .turnOff(nil),
+//            .turnOn(nil),
+//            .undo,
+//            .unlock(nil, with: nil),
+//            .unscript,
+//            .unwear(nil),
+//            .verbose,
+//            .version,
+//            .wait,
+//            .wake(nil),
+//            .wave(nil),
+//            .waveHands,
+//            .wear(nil),
+//            .yes,
+//        ]
+//    }
+//}

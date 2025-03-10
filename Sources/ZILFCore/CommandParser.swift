@@ -8,6 +8,11 @@ public class CommandParser {
     /// Reference to the game world containing all game objects and state
     private let world: GameWorld
 
+    /// Temporary context storage for command processing
+    private var currentDirection: Direction?
+    private var targetContainer: GameObject?
+    private var targetSurface: GameObject?
+
     /// Initializes a new command parser with a reference to the game world
     ///
     /// - Parameter world: The game world that contains objects to be referenced in commands
@@ -22,434 +27,436 @@ public class CommandParser {
     /// - Returns: A Command representing the action to be taken
     public func parse(_ input: String) -> Command {
         let words = input.lowercased().split(separator: " ").map(String.init)
-        guard let firstWord = words.first else {
+        guard !words.isEmpty else {
             return .unknown("No command given")
         }
-        
-        // Try to create a command from the input
-        let command = Command(from: words)
-        
-        // Handle the command based on its type
-        switch command {
-        case .again:
-            return .again
-        case .brief:
-            return .brief
-        case .close:
-            return handleClose(words)
-        case .drop:
-            return handleDrop(words)
-        case .examine:
-            return handleExamine(words)
-        case .flip:
-            return handleFlip(words)
-        case .inventory:
-            return .inventory
-        case .look:
-            return handleLook(words)
-        case .moveNorth, .moveSouth, .moveEast, .moveWest, 
-             .moveUp, .moveDown, .moveNorthEast, .moveNorthWest,
-             .moveSouthEast, .moveSouthWest, .moveInside, .moveOutside:
-            return handleMove(command)
-        case .open:
-            return handleOpen(words)
-        case .putIn:
-            return handlePutIn(words)
-        case .putOn:
-            return handlePutOn(words)
-        case .quit:
-            return .quit
-        case .read:
-            return handleRead(words)
-        case .remove:
-            return handleRemove(words)
-        case .restart:
-            return .restart
-        case .restore:
-            return .restore
-        case .save:
-            return .save
-        case .superbrief:
-            return .superbrief
-        case .take:
-            return handleTake(words)
-        case .turnOff, .turnOn:
-            return handleTurn(command, words)
-        case .undo:
-            return .undo
-        case .verbose:
-            return .verbose
-        case .version:
-            return .version
-        case .wait:
-            return .wait
-        case .wear:
-            return handleWear(words)
-        case .custom(let customWords):
-            // Handle custom commands that weren't recognized
-            return .unknown("I don't understand that command.")
-        case .help:
-            return .help
-        default:
-            return .unknown("I don't understand that command.")
-        }
-    }
 
-    // MARK: - Command Handlers
-    
-    /// Handles the close command
-    private func handleClose(_ words: [String]) -> Command {
-        guard words.count > 1 else {
-            return .unknown("Close what?")
+        let firstWord = words[0]
+
+        // Check for direction commands first (these are very common)
+        if let direction = Direction(firstWord) {
+            return .move(direction)
         }
 
-        let objName = words.dropFirst().joined(separator: " ")
-        if objName.lowercased() == "it" && world.lastMentionedObject == nil {
-            return .unknown("I don't know what 'it' refers to.")
-        }
-
-        if let obj = findObject(named: objName) {
-            return .close(obj)
-        }
-
-        return .unknown("I don't see \(articleFor(objName)) \(objName) here.")
-    }
-
-    /// Handles the drop command
-    private func handleDrop(_ words: [String]) -> Command {
-        guard words.count > 1 else {
-            return .unknown("Drop what?")
-        }
-
-        let objName = words.dropFirst().joined(separator: " ")
-        if let obj = findObjectInInventory(named: objName) {
-            return .drop(obj)
-        }
-
-        return .unknown("You're not carrying \(articleFor(objName)) \(objName).")
-    }
-
-    /// Handles the examine command
-    private func handleExamine(_ words: [String]) -> Command {
-        guard words.count > 1 else {
-            return .unknown("Examine what?")
-        }
-
-        let objName = words.dropFirst().joined(separator: " ")
-        if objName.lowercased() == "it" && world.lastMentionedObject == nil {
-            return .unknown("I don't know what 'it' refers to.")
-        }
-
-        if let obj = findObject(named: objName) {
-            return .examine(obj)
-        }
-
-        return .unknown("I don't see \(articleFor(objName)) \(objName) here.")
-    }
-
-    /// Handles the flip, switch, and toggle commands
-    private func handleFlip(_ words: [String]) -> Command {
-        guard words.count > 1 else {
-            return .unknown("Flip what?")
-        }
-
-        let objName = words.dropFirst().joined(separator: " ")
-        if let obj = findObject(named: objName) {
-            if obj.hasFlag(.deviceBit) {
-                return .flip(obj)
+        // Check for "go" + direction
+        if words.count >= 2 && firstWord == "go" {
+            if let direction = Direction(words[1]) {
+                return .move(direction)
             }
-            return .unknown("You can't flip \(articleFor(objName)) \(objName).")
         }
 
-        return .unknown("I don't see \(articleFor(objName)) \(objName) here.")
-    }
-
-    /// Handles move commands
-    private func handleMove(_ command: Command) -> Command {
-        // Map the movement command to a direction
-        let direction: Direction
-        switch command {
-        case .moveNorth: direction = .north
-        case .moveSouth: direction = .south
-        case .moveEast: direction = .east
-        case .moveWest: direction = .west
-        case .moveUp: direction = .up
-        case .moveDown: direction = .down
-        case .moveNorthEast: direction = .northeast
-        case .moveNorthWest: direction = .northwest
-        case .moveSouthEast: direction = .southeast
-        case .moveSouthWest: direction = .southwest
-        case .moveInside: direction = .in
-        case .moveOutside: direction = .out
-        default: 
-            return .unknown("Go where?")
-        }
-        
+        // Match the first word against all command synonyms
+        switch firstWord {
+            // Movement
+        case "move", "go", "walk", "run":
+            if words.count >= 2, let direction = Direction(words[1]) {
         return .move(direction)
     }
+            return .move(nil)
 
-    /// Handles the look command
-    private func handleLook(_ words: [String]) -> Command {
-        // Just "look" with no arguments
-        if words.count == 1 {
+            // Look commands
+        case "look", "l", "look-around":
+            if words.count > 1 && words[1] == "at" && words.count > 2 {
+                let objName = words.dropFirst(2).joined(separator: " ")
+                let obj = findObject(named: objName)
+                return .examine(obj)
+            }
             return .look
-        }
 
-        // If "look" is not followed by "at", return basic look command
-        if words.count > 1 && words[1] != "at" {
-            return .look
-        }
-
-        // Handle "look at <object>"
-        guard words.count > 2 else {
-            return .unknown("Look at what?")
-        }
-
-        let objName = words.dropFirst(2).joined(separator: " ")
-        if objName.lowercased() == "it" && world.lastMentionedObject == nil {
-            return .unknown("I don't know what 'it' refers to.")
-        }
-
-        if let obj = findObject(named: objName) {
+        case "look-at", "examine", "x", "inspect":
+            if words.count > 1 {
+                let objName = words.dropFirst().joined(separator: " ")
+                let obj = findObject(named: objName)
             return .examine(obj)
         }
+            return .examine(nil)
 
-        return .unknown("I don't see \(articleFor(objName)) \(objName) here.")
-    }
-
-    /// Handles the open command
-    private func handleOpen(_ words: [String]) -> Command {
-        guard words.count > 1 else {
-            return .unknown("Open what?")
-        }
-
+        case "look-under":
+            if words.count > 1 {
         let objName = words.dropFirst().joined(separator: " ")
-        if objName.lowercased() == "it" && world.lastMentionedObject == nil {
-            return .unknown("I don't know what 'it' refers to.")
-        }
-
-        if let obj = findObject(named: objName) {
-            return .open(obj)
-        }
-
-        return .unknown("I don't see \(articleFor(objName)) \(objName) here.")
-    }
-
-    /// Handles the put-in command
-    private func handlePutIn(_ words: [String]) -> Command {
-        // Need at least "put X in Y"
-        guard words.count >= 4 else {
-            return .unknown("Put what where?")
-        }
-        
-        let objIndex = words.firstIndex(where: { $0 == "in" })
-        guard let prepositionIndex = objIndex, prepositionIndex > 1 else {
-            return .unknown("I don't understand what you want to put where.")
-        }
-        
-        let directObjName = words[1..<prepositionIndex].joined(separator: " ")
-        let containerName = words[(prepositionIndex+1)...].joined(separator: " ")
-        
-        guard let directObj = findObject(named: directObjName) else {
-            return .unknown("I don't see \(articleFor(directObjName)) \(directObjName) here.")
-        }
-        
-        guard let container = findObject(named: containerName) else {
-            return .unknown("I don't see \(articleFor(containerName)) \(containerName) here.")
-        }
-        
-        return .putIn(directObj, container)
-    }
-    
-    /// Handles the put-on command
-    private func handlePutOn(_ words: [String]) -> Command {
-        // Handle "put on X" (wear X)
-        if words.count >= 3 && words[1] == "on" {
-            let objName = words.dropFirst(2).joined(separator: " ")
-            if let obj = findObjectInInventory(named: objName) {
-                if obj.hasFlag(.wearBit) {
-                    return .wear(obj)
-                } else {
-                    return .unknown("You can't wear \(articleFor(objName)) \(objName).")
-                }
+                let obj = findObject(named: objName)
+                return .lookUnder(obj)
             }
-            return .unknown("You don't have \(articleFor(objName)) \(objName).")
-        }
-        
-        // Handle "put X on Y"
-        if words.count >= 4 {
-            let objIndex = words.firstIndex(where: { $0 == "on" })
-            guard let prepositionIndex = objIndex, prepositionIndex > 1 else {
-                return .unknown("I don't understand what you want to put where.")
-            }
-            
-            let directObjName = words[1..<prepositionIndex].joined(separator: " ")
-            let surfaceName = words[(prepositionIndex+1)...].joined(separator: " ")
-            
-            guard let directObj = findObject(named: directObjName) else {
-                return .unknown("I don't see \(articleFor(directObjName)) \(directObjName) here.")
-            }
-            
-            guard let surface = findObject(named: surfaceName) else {
-                return .unknown("I don't see \(articleFor(surfaceName)) \(surfaceName) here.")
-            }
-            
-            return .putOn(directObj, surface)
-        }
-        
-        return .unknown("Put what where?")
-    }
+            return .lookUnder(nil)
 
-    /// Handles the read command
-    private func handleRead(_ words: [String]) -> Command {
-        guard words.count > 1 else {
-            return .unknown("Read what?")
-        }
+            // Inventory
+        case "inventory", "i", "inv":
+            return .inventory
 
+            // Take/Get
+        case "take", "get", "pick-up":
+            if words.count > 1 {
+                let objName = words.dropFirst().joined(separator: " ")
+                let obj = findObject(named: objName)
+                return .take(obj)
+            }
+            return .take(nil)
+
+            // Drop
+        case "drop", "put-down":
+            if words.count > 1 {
+                let objName = words.dropFirst().joined(separator: " ")
+                let obj = findObject(named: objName)
+                return .drop(obj)
+            }
+            return .drop(nil)
+
+            // Open
+        case "open":
+            if words.count > 1 {
+                let objName = words.dropFirst().joined(separator: " ")
+                let obj = findObject(named: objName)
+                return .open(obj)
+            }
+            return .open(nil)
+
+            // Close
+        case "close", "shut":
+            if words.count > 1 {
+                let objName = words.dropFirst().joined(separator: " ")
+                let obj = findObject(named: objName)
+                return .close(obj)
+            }
+            return .close(nil)
+
+            // Put in/on
+        case "put-in":
+            if words.count >= 3 {
+                // Format: put-in OBJ CONTAINER
+                let objName = words[1]
+                let containerName = words.dropFirst(2).joined(separator: " ")
+                let obj = findObject(named: objName)
+                let container = findObject(named: containerName)
+                return .putIn(obj, container: container)
+            }
+            return .putIn(nil, container: nil)
+
+        case "put-on", "place-on", "set-on":
+            if words.count >= 3 {
+                // Format: put-on OBJ SURFACE
+                let objName = words[1]
+                let surfaceName = words.dropFirst(2).joined(separator: " ")
+                let obj = findObject(named: objName)
+                let surface = findObject(named: surfaceName)
+                return .putOn(obj, surface: surface)
+            }
+            return .putOn(nil, surface: nil)
+
+            // Read
+        case "read", "peruse":
+            if words.count > 1 {
         let objName = words.dropFirst().joined(separator: " ")
-        if let obj = findObject(named: objName) {
-            if obj.hasFlag(.readBit) {
+                let obj = findObject(named: objName)
                 return .read(obj)
             }
-            return .unknown("There's nothing to read on \(articleFor(objName)) \(objName).")
-        }
+            return .read(nil)
 
-        return .unknown("I don't see \(articleFor(objName)) \(objName) here.")
-    }
-
-    /// Handles the remove and doff commands
-    private func handleRemove(_ words: [String]) -> Command {
-        guard words.count > 1 else {
-            return .unknown("Remove what?")
-        }
-
-        let objName = words.dropFirst().joined(separator: " ")
-        if let obj = findObjectInInventory(named: objName) {
-            if obj.hasFlag(.wornBit) {
-                return .unwear(obj)
-            } else {
-                return .unknown("You're not wearing that.")
+            // Turn on/off
+        case "turn-on", "activate", "switch-on":
+            if words.count > 1 {
+                let objName = words.dropFirst().joined(separator: " ")
+                let obj = findObject(named: objName)
+                return .turnOn(obj)
             }
-        } else {
-            return .unknown("You don't have that.")
-        }
-    }
+            return .turnOn(nil)
 
-    /// Handles the take and get commands
-    private func handleTake(_ words: [String]) -> Command {
-        guard words.count > 1 else {
-            return .unknown("Take what?")
-        }
-
-        // Check for "take inventory" command
-        if words.count == 2 && words[1] == "inventory" {
-            return .inventory
-        }
-
-        // Special case: "take off <item>"
-        if words.count > 2 && words[1] == "off" {
-            let objName = words.dropFirst(2).joined(separator: " ")
-            if let obj = findObjectInInventory(named: objName) {
-                if obj.hasFlag(.wornBit) {
-                    return .unwear(obj)
-                } else {
-                    return .unknown("You're not wearing that.")
-                }
-            } else {
-                return .unknown("You don't have that.")
+        case "turn-off", "deactivate", "switch-off":
+            if words.count > 1 {
+                let objName = words.dropFirst().joined(separator: " ")
+                let obj = findObject(named: objName)
+                return .turnOff(obj)
             }
-        }
+            return .turnOff(nil)
 
-        // Special case: "take <item> off"
-        if words.count > 2 && words.last == "off" {
-            let objName = words.dropFirst(1).dropLast().joined(separator: " ")
-            if let obj = findObjectInInventory(named: objName) {
-                if obj.hasFlag(.wornBit) {
-                    return .unwear(obj)
-                } else {
-                    return .unknown("You're not wearing that.")
-                }
-            } else {
-                return .unknown("You don't have that.")
+            // Flip/Switch
+        case "flip", "switch", "toggle":
+            if words.count > 1 {
+                let objName = words.dropFirst().joined(separator: " ")
+                let obj = findObject(named: objName)
+                return .flip(obj)
             }
-        }
+            return .flip(nil)
 
-        // Regular take command
-        let objName = words.dropFirst().joined(separator: " ")
-        if objName.lowercased() == "it" && world.lastMentionedObject == nil {
-            return .unknown("I don't know what 'it' refers to.")
-        }
-
-        if let obj = findObject(named: objName) {
-            return .take(obj)
-        }
-
-        return .unknown("I don't see \(articleFor(objName)) \(objName) here.")
-    }
-
-    /// Handles turn on/off commands
-    private func handleTurn(_ command: Command, _ words: [String]) -> Command {
-        // Determine if it's turn on or turn off
-        let isOn = command == .turnOn
-        let actionWord = isOn ? "on" : "off"
-        
-        // Extract object name from different patterns:
-        // "turn on X", "turn X on"
-        var objName = ""
-        
-        if words.count >= 3 && words[1] == actionWord {
-            // "turn on X"
-            objName = words.dropFirst(2).joined(separator: " ")
-        } else if words.count >= 3 && words.last == actionWord {
-            // "turn X on"
-            objName = words.dropFirst(1).dropLast().joined(separator: " ")
-        } else {
-            return .unknown("Turn what \(actionWord)?")
-        }
-        
-        if let obj = findObject(named: objName) {
-            if obj.hasFlag(.deviceBit) {
-                return isOn ? .turnOn(obj) : .turnOff(obj)
-            }
-            return .unknown("You can't turn \(actionWord) \(articleFor(objName)) \(objName).")
-        }
-        
-        return .unknown("I don't see \(articleFor(objName)) \(objName) here.")
-    }
-
-    /// Handles the wear command
-    private func handleWear(_ words: [String]) -> Command {
-        guard words.count > 1 else {
-            return .unknown("Wear what?")
-        }
-
-        let objName = words.dropFirst().joined(separator: " ")
-        if let obj = findObjectInInventory(named: objName) {
-            if obj.hasFlag(.wearBit) {
+            // Wear
+        case "wear", "don", "put-on":
+            if words.count > 1 {
+                let objName = words.dropFirst().joined(separator: " ")
+                let obj = findObject(named: objName)
                 return .wear(obj)
-            } else {
-                return .unknown("You can't wear that.")
             }
-        } else {
-            return .unknown("You don't have that.")
+            return .wear(nil)
+
+            // Unwear
+        case "unwear", "remove", "doff", "take-off":
+            if words.count > 1 {
+        let objName = words.dropFirst().joined(separator: " ")
+                let obj = findObject(named: objName)
+                return .unwear(obj)
+            }
+            return .unwear(nil)
+
+            // Attack
+        case "attack", "kill", "destroy":
+            if words.count > 1 {
+                let objName = words.dropFirst().joined(separator: " ")
+                let obj = findObject(named: objName)
+                return .attack(obj)
+            }
+            return .attack(nil)
+
+            // Lock/Unlock
+        case "lock":
+            if words.count > 1 {
+                let objName = words.dropFirst().joined(separator: " ")
+                let obj = findObject(named: objName)
+                // Look for "with" in the command
+                if words.count > 3 && words[words.count-2] == "with" {
+                    let toolName = words.last!
+                    let tool = findObject(named: toolName)
+                    return .lock(obj, with: tool)
+                }
+                return .lock(obj, with: nil)
+            }
+            return .lock(nil, with: nil)
+
+        case "unlock":
+            if words.count > 1 {
+                let objName = words.dropFirst().joined(separator: " ")
+                let obj = findObject(named: objName)
+                // Look for "with" in the command
+                if words.count > 3 && words[words.count-2] == "with" {
+                    let toolName = words.last!
+                    let tool = findObject(named: toolName)
+                    return .unlock(obj, with: tool)
+                }
+                return .unlock(obj, with: nil)
+            }
+            return .unlock(nil, with: nil)
+
+            // Give
+        case "give":
+            if words.count >= 4 && words.contains("to") {
+                let toIndex = words.firstIndex(of: "to")!
+                let itemName = words[1..<toIndex].joined(separator: " ")
+                let recipientName = words[(toIndex+1)...].joined(separator: " ")
+                let item = findObject(named: itemName)
+                let recipient = findObject(named: recipientName)
+                return .give(item, to: recipient)
+            }
+            return .give(nil, to: nil)
+
+            // Throw
+        case "throw":
+            if words.count >= 4 && words.contains("at") {
+                let atIndex = words.firstIndex(of: "at")!
+                let itemName = words[1..<atIndex].joined(separator: " ")
+                let targetName = words[(atIndex+1)...].joined(separator: " ")
+                let item = findObject(named: itemName)
+                let target = findObject(named: targetName)
+                return .throwAt(item, target: target)
+            }
+            return .throwAt(nil, target: nil)
+
+            // Tell
+        case "tell":
+            if words.count >= 4 && words.contains("about") {
+                let aboutIndex = words.firstIndex(of: "about")!
+                let personName = words[1..<aboutIndex].joined(separator: " ")
+                let topic = words[(aboutIndex+1)...].joined(separator: " ")
+                let person = findObject(named: personName)
+                return .tell(person, about: topic)
+            }
+            return .tell(nil, about: nil)
+
+            // Meta commands without objects
+        case "again", "g", "repeat":
+            return .again
+        case "brief":
+            return .brief
+        case "help", "?", "info":
+            return .help
+        case "quit", "q", "exit":
+            return .quit
+        case "restart":
+            return .restart
+        case "restore", "load":
+            return .restore
+        case "save":
+            return .save
+        case "script":
+            return .script
+        case "superbrief":
+            return .superbrief
+        case "undo":
+            return .undo
+        case "unscript":
+            return .unscript
+        case "verbose":
+            return .verbose
+        case "version":
+            return .version
+        case "wait":
+            return .wait
+        case "yes":
+            return .yes
+        case "no":
+            return .no
+        case "pronouns":
+            return .pronouns
+
+            // Simple actions without objects
+        case "dance":
+            return .dance
+        case "jump":
+            return .jump
+        case "sing":
+            return .sing
+        case "swim":
+            return .swim
+        case "wave-hands":
+            return .waveHands
+
+            // More object commands
+        case "burn", "light":
+            if words.count > 1 {
+                let objName = words.dropFirst().joined(separator: " ")
+                let obj = findObject(named: objName)
+                return .burn(obj)
+            }
+            return .burn(nil)
+
+        case "climb":
+            if words.count > 1 {
+                let objName = words.dropFirst().joined(separator: " ")
+                let obj = findObject(named: objName)
+                return .climb(obj)
+            }
+            return .climb(nil)
+
+        case "drink", "sip", "quaff":
+            if words.count > 1 {
+                let objName = words.dropFirst().joined(separator: " ")
+                let obj = findObject(named: objName)
+                return .drink(obj)
+            }
+            return .drink(nil)
+
+        case "eat", "consume", "devour":
+            if words.count > 1 {
+        let objName = words.dropFirst().joined(separator: " ")
+                let obj = findObject(named: objName)
+                return .eat(obj)
+            }
+            return .eat(nil)
+
+        case "empty":
+            if words.count > 1 {
+                let objName = words.dropFirst().joined(separator: " ")
+                let obj = findObject(named: objName)
+                return .empty(obj)
+            }
+            return .empty(nil)
+
+        case "fill":
+            if words.count > 1 {
+                let objName = words.dropFirst().joined(separator: " ")
+                let obj = findObject(named: objName)
+                return .fill(obj)
+            }
+            return .fill(nil)
+
+        case "pull":
+            if words.count > 1 {
+                let objName = words.dropFirst().joined(separator: " ")
+                let obj = findObject(named: objName)
+                return .pull(obj)
+            }
+            return .pull(nil)
+
+        case "push":
+            if words.count > 1 {
+                let objName = words.dropFirst().joined(separator: " ")
+                let obj = findObject(named: objName)
+                return .push(obj)
+            }
+            return .push(nil)
+
+        case "rub":
+            if words.count > 1 {
+                let objName = words.dropFirst().joined(separator: " ")
+                let obj = findObject(named: objName)
+                return .rub(obj)
+            }
+            return .rub(nil)
+
+        case "search":
+            if words.count > 1 {
+                let objName = words.dropFirst().joined(separator: " ")
+                let obj = findObject(named: objName)
+                return .search(obj)
+            }
+            return .search(nil)
+
+        case "smell":
+            if words.count > 1 {
+                let objName = words.dropFirst().joined(separator: " ")
+                let obj = findObject(named: objName)
+                return .smell(obj)
+            }
+            return .smell(nil)
+
+        case "think-about", "ponder", "contemplate":
+            if words.count > 1 {
+                let objName = words.dropFirst().joined(separator: " ")
+                let obj = findObject(named: objName)
+                return .thinkAbout(obj)
+            }
+            return .thinkAbout(nil)
+
+        case "wake":
+            if words.count > 1 {
+                let objName = words.dropFirst().joined(separator: " ")
+                let obj = findObject(named: objName)
+                return .wake(obj)
+            }
+            return .wake(nil)
+
+        case "wave":
+            if words.count > 1 {
+        let objName = words.dropFirst().joined(separator: " ")
+                let obj = findObject(named: objName)
+                return .wave(obj)
+            }
+            return .wave(nil)
+
+            // Custom commands not recognized
+        default:
+            return .custom(words)
         }
+    }
+
+    /// Gets the current direction for a move command
+    ///
+    /// - Returns: The direction if available
+    public func getCurrentDirection() -> Direction? {
+        return currentDirection
+    }
+
+    /// Gets the target container for a putIn command
+    ///
+    /// - Returns: The target container if available
+    public func getTargetContainer() -> GameObject? {
+        return targetContainer
+    }
+
+    /// Gets the target surface for a putOn command
+    ///
+    /// - Returns: The target surface if available
+    public func getTargetSurface() -> GameObject? {
+        return targetSurface
     }
 
     // MARK: - Helper methods
-
-    /// Determines the appropriate indefinite article ("a" or "an") for a noun
-    ///
-    /// - Parameter noun: The noun to find an article for
-    ///
-    /// - Returns: Either "a" or "an" based on the noun's first letter
-    private func articleFor(_ noun: String) -> String {
-        let firstChar = noun.prefix(1).lowercased()
-        if "aeiou".contains(firstChar) {
-            return "an"
-        } else {
-            return "a"
-        }
-    }
 
     /// Finds a game object by name in the player's location or inventory
     ///
@@ -470,7 +477,6 @@ public class CommandParser {
         for obj in player.inventory {
             // Try exact match first
             if obj.name.lowercased() == nameToFind {
-                world.lastMentionedObject = obj
                 return obj
             }
 
@@ -478,17 +484,15 @@ public class CommandParser {
             if nameToFind.contains(obj.name.lowercased())
                 || obj.name.lowercased().contains(nameToFind)
             {
-                world.lastMentionedObject = obj
                 return obj
             }
         }
 
         // Check current room
         if let room = currentRoom {
-            for obj in room.contents {
+            for obj in room.contents where obj !== player {
                 // Try exact match first
                 if obj.name.lowercased() == nameToFind {
-                    world.lastMentionedObject = obj
                     return obj
                 }
 
@@ -496,16 +500,14 @@ public class CommandParser {
                 if nameToFind.contains(obj.name.lowercased())
                     || obj.name.lowercased().contains(nameToFind)
                 {
-                    world.lastMentionedObject = obj
                     return obj
                 }
 
                 // Check inside visible containers in the room
-                if obj.canSeeInside() {
+                if obj.hasFlags(.isContainer, .isOpen) || obj.hasFlag(.isTransparent) {
                     for innerObj in obj.contents {
                         // Try exact match first
                         if innerObj.name.lowercased() == nameToFind {
-                            world.lastMentionedObject = innerObj
                             return innerObj
                         }
 
@@ -513,7 +515,6 @@ public class CommandParser {
                         if nameToFind.contains(innerObj.name.lowercased())
                             || innerObj.name.lowercased().contains(nameToFind)
                         {
-                            world.lastMentionedObject = innerObj
                             return innerObj
                         }
                     }
@@ -526,7 +527,6 @@ public class CommandParser {
                 if globalObj.name.lowercased() == nameToFind
                     && world.isGlobalObjectAccessible(globalObj, in: room)
                 {
-                    world.lastMentionedObject = globalObj
                     return globalObj
                 }
 
@@ -535,7 +535,6 @@ public class CommandParser {
                     || globalObj.name.lowercased().contains(nameToFind))
                     && world.isGlobalObjectAccessible(globalObj, in: room)
                 {
-                    world.lastMentionedObject = globalObj
                     return globalObj
                 }
             }
@@ -565,7 +564,6 @@ public class CommandParser {
         for obj in world.player.inventory {
             // Try exact match first
             if obj.name.lowercased() == nameToFind {
-                world.lastMentionedObject = obj
                 return obj
             }
 
@@ -573,7 +571,6 @@ public class CommandParser {
             if nameToFind.contains(obj.name.lowercased())
                 || obj.name.lowercased().contains(nameToFind)
             {
-                world.lastMentionedObject = obj
                 return obj
             }
         }

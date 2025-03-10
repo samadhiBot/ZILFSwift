@@ -80,7 +80,7 @@ public class GameEngine {
         if isRoomDark {
             // Check if the current room has a handler for this command
             if let beginCommandAction = currentRoom.beginCommandAction,
-                beginCommandAction(currentRoom, command)
+               beginCommandAction(currentRoom, command)
             {
                 // The room's custom action handled the command
                 advanceTime()
@@ -89,7 +89,7 @@ public class GameEngine {
 
             // Commands allowed in darkness
             switch command {
-            case .look, .inventory, .quit, .move, .take, .drop:
+            case .look, .inventory, .quit, .take, .drop, .move:
                 // These commands are allowed in darkness
                 break
             case .custom(let words) where words.count > 1:
@@ -114,224 +114,317 @@ public class GameEngine {
 
         // Check if the current room has a handler for this command
         if let beginCommandAction = currentRoom.beginCommandAction,
-            beginCommandAction(currentRoom, command)
+           beginCommandAction(currentRoom, command)
         {
             // The room's custom action handled the command
             advanceTime()
             return
         }
 
-        // Check if the command involves an object that has a custom handler
-        if let obj = getGameObject(from: command) {
-            // Check if the object is accessible before attempting to process its command
-            if isObjectAccessibleForExamine(obj) && obj.processCommand(command) {
-                // The object handled the command
-                advanceTime()
-                return
-            }
-        }
-
         // Process the command with default handling
         switch command {
         case .look:
             handleLook()
+
         case .inventory:
             handleInventory()
-        case .move:
-            if let direction = extractDirectionFromCommand(command) {
+
+        case .move(let direction):
+            if let direction = direction {
                 handleMove(direction: direction)
             } else {
                 outputHandler("Which way do you want to go?")
             }
-        case .take:
-            if let obj = getObjectFromContext() {
+
+        case .take(let obj):
+            if let obj = obj {
                 handleTake(obj)
             } else {
                 outputHandler("Take what?")
             }
-        case .drop:
-            if let obj = getObjectFromContext() {
+
+        case .drop(let obj):
+            if let obj = obj {
                 handleDrop(obj)
             } else {
                 outputHandler("Drop what?")
             }
-        case .examine:
-            if let obj = getObjectFromContext() {
+
+        case .examine(let obj):
+            if let obj = obj {
                 handleExamine(obj)
             } else {
                 outputHandler("Examine what?")
             }
-        case .open:
-            if let obj = getObjectFromContext() {
+
+        case .open(let obj):
+            if let obj = obj {
                 handleOpen(obj)
             } else {
                 outputHandler("Open what?")
             }
-        case .close:
-            if let obj = getObjectFromContext() {
+
+        case .close(let obj):
+            if let obj = obj {
                 handleClose(obj)
             } else {
                 outputHandler("Close what?")
             }
+
         case .quit:
             handleQuit()
+
         case .unknown(let message):
             outputHandler(message)
-        case .wear:
-            if let obj = getObjectFromContext() {
+
+        case .wear(let obj):
+            if let obj = obj {
                 handleWear(obj)
             } else {
                 outputHandler("Wear what?")
             }
-        case .unwear:
-            if let obj = getObjectFromContext() {
+
+        case .unwear(let obj):
+            if let obj = obj {
                 handleUnwear(obj)
             } else {
                 outputHandler("Take off what?")
             }
-        case .putIn:
-            if let objects = getMultipleGameObjects(from: command), objects.count >= 2 {
-                handlePutIn(objects[0], container: objects[1])
+
+        case .putIn(let item, let container):
+            if let item = item, let container = container {
+                handlePutIn(item, container: container)
             } else {
                 outputHandler("You need to specify what to put where.")
             }
-        case .putOn:
-            if let objects = getMultipleGameObjects(from: command), objects.count >= 2 {
-                handlePutOn(objects[0], surface: objects[1])
+
+        case .putOn(let item, let surface):
+            if let item = item, let surface = surface {
+                handlePutOn(item, surface: surface)
             } else {
                 outputHandler("You need to specify what to put where.")
             }
-        case .turnOn:
-            if let obj = getObjectFromContext() {
+
+        case .turnOn(let obj):
+            if let obj = obj {
                 handleTurnOn(obj)
             } else {
                 outputHandler("Turn on what?")
             }
-        case .turnOff:
-            if let obj = getObjectFromContext() {
+
+        case .turnOff(let obj):
+            if let obj = obj {
                 handleTurnOff(obj)
             } else {
                 outputHandler("Turn off what?")
             }
-        case .flip:
-            if let obj = getObjectFromContext() {
+
+        case .flip(let obj):
+            if let obj = obj {
                 handleFlip(obj)
             } else {
                 outputHandler("Flip what?")
             }
+
         case .wait:
             handleWait()
+
         case .again:
             handleAgain()
-        case .read:
-            if let obj = getObjectFromContext() {
+
+        case .read(let obj):
+            if let obj = obj {
                 handleRead(obj)
             } else {
                 outputHandler("Read what?")
             }
-        case .custom(let words):
-            if words.isEmpty {
-                outputHandler("I don't understand.")
-                return
+
+        case .attack(let obj):
+            if let obj = obj {
+                handleAttack(obj)
+            } else {
+                outputHandler("Attack what?")
             }
 
-            switch words[0] {
-            case "wear":
-                if words.count > 1 {
-                    if let obj = findObject(named: words[1]) {
-                        handleWear(obj)
-                    } else {
-                        outputHandler("You don't see that here.")
-                    }
-                } else {
-                    outputHandler("Wear what?")
-                }
-            case "unwear", "remove", "take_off":
-                if words.count > 1 {
-                    if let obj = findObject(named: words[1]) {
-                        handleUnwear(obj)
-                    } else {
-                        outputHandler("You don't see that here.")
-                    }
-                } else {
-                    outputHandler("Take off what?")
-                }
-            case "put_on", "place_on", "set_on":
-                if words.count >= 3 {
-                    if let obj = findObject(named: words[1]),
-                       let surface = findObject(named: words[2]) {
-                        handlePutOn(obj, surface: surface)
-                    } else {
-                        outputHandler("You don't see that here.")
-                    }
-                } else {
-                    outputHandler("You need to specify what to put where.")
-                }
-            case "put_in":
-                if words.count >= 3 {
-                    if let obj = findObject(named: words[1]),
-                       let container = findObject(named: words[2]) {
-                        handlePutIn(obj, container: container)
-                    } else {
-                        outputHandler("You don't see that here.")
-                    }
-                } else {
-                    outputHandler("You need to specify what to put where.")
-                }
-            case "turn_on":
-                if words.count > 1 {
-                    if let obj = findObject(named: words[1]) {
-                        handleTurnOn(obj)
-                    } else {
-                        outputHandler("You don't see that here.")
-                    }
-                } else {
-                    outputHandler("Turn on what?")
-                }
-            case "turn_off":
-                if words.count > 1 {
-                    if let obj = findObject(named: words[1]) {
-                        handleTurnOff(obj)
-                    } else {
-                        outputHandler("You don't see that here.")
-                    }
-                } else {
-                    outputHandler("Turn off what?")
-                }
-            case "flip", "switch", "toggle":
-                if words.count > 1 {
-                    if let obj = findObject(named: words[1]) {
-                        handleFlip(obj)
-                    } else {
-                        outputHandler("You don't see that here.")
-                    }
-                } else {
-                    outputHandler("Flip what?")
-                }
-            case "wait":
-                handleWait()
-            case "again":
-                handleAgain()
-            case "read", "peruse":
-                if words.count > 1 {
-                    if let obj = findObject(named: words[1]) {
-                        handleRead(obj)
-                    } else {
-                        outputHandler("You don't see that here.")
-                    }
-                } else {
-                    outputHandler("Read what?")
-                }
-            default:
-                outputHandler("Sorry, that command isn't implemented yet.")
-            }
-        default:
-            // Check if this is a direction command (move)
-            if let direction = extractDirectionFromCommand(command) {
-                handleMove(direction: direction)
+        case .burn(let obj):
+            if let obj = obj {
+                handleBurn(obj)
             } else {
-                outputHandler("I don't know how to do that.")
+                outputHandler("Burn what?")
             }
+
+        case .climb(let obj):
+            if let obj = obj {
+                handleClimb(obj)
+            } else {
+                outputHandler("Climb what?")
+            }
+
+        case .drink(let obj):
+            if let obj = obj {
+                handleDrink(obj)
+            } else {
+                outputHandler("Drink what?")
+            }
+
+        case .eat(let obj):
+            if let obj = obj {
+                handleEat(obj)
+            } else {
+                outputHandler("Eat what?")
+            }
+
+        case .empty(let obj):
+            if let obj = obj {
+                handleEmpty(obj)
+            } else {
+                outputHandler("Empty what?")
+            }
+
+        case .fill(let obj):
+            if let obj = obj {
+                handleFill(obj)
+            } else {
+                outputHandler("Fill what?")
+            }
+
+        case .lock(let obj, let tool):
+            if let obj = obj {
+                handleLock(obj, with: tool)
+            } else {
+                outputHandler("Lock what?")
+            }
+
+        case .lookUnder(let obj):
+            if let obj = obj {
+                handleLookUnder(obj)
+            } else {
+                outputHandler("Look under what?")
+            }
+
+        case .pull(let obj):
+            if let obj = obj {
+                handlePull(obj)
+            } else {
+                outputHandler("Pull what?")
+            }
+
+        case .push(let obj):
+            if let obj = obj {
+                handlePush(obj)
+            } else {
+                outputHandler("Push what?")
+            }
+
+        case .remove(let obj):
+            if let obj = obj {
+                handleRemove(obj)
+            } else {
+                outputHandler("Remove what?")
+            }
+
+        case .rub(let obj):
+            if let obj = obj {
+                handleRub(obj)
+            } else {
+                outputHandler("Rub what?")
+            }
+
+        case .search(let obj):
+            if let obj = obj {
+                handleSearch(obj)
+            } else {
+                outputHandler("Search what?")
+            }
+
+        case .smell(let obj):
+            if let obj = obj {
+                handleSmell(obj)
+            } else {
+                outputHandler("Smell what?")
+            }
+
+        case .thinkAbout(let obj):
+            if let obj = obj {
+                handleThinkAbout(obj)
+            } else {
+                outputHandler("Think about what?")
+            }
+
+        case .throwAt(let item, let target):
+            if let item = item, let target = target {
+                handleThrowAt(item, target: target)
+            } else {
+                outputHandler("You need to specify what to throw and at what.")
+            }
+
+        case .unlock(let obj, let tool):
+            if let obj = obj {
+                handleUnlock(obj, with: tool)
+            } else {
+                outputHandler("Unlock what?")
+            }
+
+        case .wake(let obj):
+            if let obj = obj {
+                handleWake(obj)
+            } else {
+                outputHandler("Wake whom?")
+            }
+
+        case .wave(let obj):
+            if let obj = obj {
+                handleWave(obj)
+            } else {
+                outputHandler("Wave what?")
+            }
+
+        case .give(let item, let recipient):
+            if let item = item, let recipient = recipient {
+                handleGive(item, to: recipient)
+            } else {
+                outputHandler("You need to specify what to give and to whom.")
+            }
+
+        case .tell(let person, let topic):
+            if let person = person, let topic = topic {
+                handleTell(person, about: topic)
+            } else {
+                outputHandler("You need to specify whom to tell and about what.")
+            }
+
+        case .dance:
+            handleDance()
+
+        case .jump:
+            handleJump()
+
+        case .no:
+            handleNo()
+
+        case .pronouns:
+            handlePronouns()
+
+        case .sing:
+            handleSing()
+
+        case .swim:
+            handleSwim()
+
+        case .waveHands:
+            handleWaveHands()
+
+        case .yes:
+            handleYes()
+
+        case .brief, .verbose, .superbrief:
+            handleDescriptionMode(command)
+
+        case .save, .restore, .restart, .undo, .version, .help, .script, .unscript:
+            handleGameCommand(command)
+
+        case .custom(let words):
+            handleCustomCommand(words)
         }
 
         // Only advance time for non-game verbs
@@ -487,88 +580,6 @@ public class GameEngine {
         let _ = world.waitTurns(1)
     }
 
-    /// Executes the move direction component of a command
-    ///
-    /// - Parameter direction: The direction to move in
-    private func executeMove(_ direction: Direction) {
-        // Check if there's a special exit in this direction
-        if let room = world.player.currentRoom,
-            let specialExit = room.getSpecialExit(direction: direction)
-        {
-
-            // Check if the special exit condition is met
-            let conditionMet = specialExit.condition(world)
-            if conditionMet == false {
-                // Condition failed, show failure message if provided
-                if let failureMessage = specialExit.failureMessage {
-                    outputHandler(failureMessage)
-                } else {
-                    outputHandler("You can't go that way.")
-                }
-                return
-            }
-
-            // Execute the traversal, including any custom behavior
-            let destination = specialExit.destination
-            world.player.moveTo(destination)
-
-            // Show success message if provided, otherwise look at new location
-            if let successMessage = specialExit.successMessage {
-                outputHandler(successMessage)
-            }
-
-            // Execute the onTraverse action if provided
-            if let onTraverse = specialExit.onTraverse {
-                onTraverse(world)
-            }
-
-            // Auto-look in the new room
-            executeCommand(.look)
-
-        } else {
-            // No special exit, try normal movement
-            handleMove(direction: direction)
-        }
-    }
-
-    /// Get the first game object from a command
-    ///
-    /// - Parameter command: The command to extract an object from
-    ///
-    /// - Returns: The first game object in the command or nil if none
-    private func getGameObject(from command: Command) -> GameObject? {
-        switch command {
-        case .take, .drop, .examine, .open, .close:
-            // In the new structure, these commands don't directly contain objects
-            // We need to find the object using the CommandParser or context
-            // For now, return nil as this would need a broader refactoring
-            return nil
-        case .custom(let words) where words.count > 1:
-            // We'll need to find objects based on the words
-            // This will require integration with the CommandParser
-            // For now, return nil as this would need a broader refactoring
-            return nil
-        default:
-            return nil
-        }
-    }
-
-    /// Retrieve multiple game objects from a command
-    ///
-    /// - Parameter command: The command to extract objects from
-    ///
-    /// - Returns: Array of game objects or nil if none found
-    private func getMultipleGameObjects(from command: Command) -> [GameObject]? {
-        switch command {
-        case .custom(let words) where words.count > 1:
-            // This would require integration with the CommandParser to find objects
-            // For now, return nil as this would need a broader refactoring
-            return nil
-        default:
-            return nil
-        }
-    }
-
     /// Get the verb string for a command
     ///
     /// - Parameter command: The command to extract the verb from
@@ -616,83 +627,6 @@ public class GameEngine {
         }
     }
 
-    /// Extracts direction from a movement command
-    ///
-    /// - Parameter command: The command to extract direction from
-    ///
-    /// - Returns: Direction if available, nil otherwise
-    private func extractDirectionFromCommand(_ command: Command) -> Direction? {
-        switch command {
-        case .move:
-            // In the new Command structure, we need to get the direction from context
-            // This would typically come from the CommandParser
-            // For now, we'll return nil and need to enhance this
-            return nil
-        case .custom(let words):
-            // Check if the custom command has a direction word
-            guard !words.isEmpty else { return nil }
-
-            // Convert common direction words to Direction
-            switch words[0].lowercased() {
-            case "north", "n": return .north
-            case "south", "s": return .south
-            case "east", "e": return .east
-            case "west", "w": return .west
-            case "northeast", "ne": return .northEast
-            case "northwest", "nw": return .northWest
-            case "southeast", "se": return .southEast
-            case "southwest", "sw": return .southWest
-            case "up", "u": return .up
-            case "down", "d": return .down
-            case "in", "inside": return .inward
-            case "out", "outside": return .outward
-            default: return nil
-            }
-        default:
-            return nil
-        }
-    }
-
-    /// Gets the current object from context
-    ///
-    /// - Returns: The object in the current context or nil
-    private func getObjectFromContext() -> GameObject? {
-        // This is a placeholder method that would normally use the CommandParser and
-        // game state to figure out which object a command like "take" or "examine"
-        // is referring to.
-
-        // For now, we'll try to use the last mentioned object
-        return world.lastMentionedObject
-    }
-
-    /// Get a list of visible exit directions from a room
-    ///
-    /// - Parameter room: The room to check
-    ///
-    /// - Returns: A list of exit direction names
-    private func getVisibleExits(_ room: Room) -> [String] {
-        var exits: [String] = []
-
-        // Add normal exits
-        for direction in Direction.allCases {
-            if room.getExit(direction: direction) != nil {
-                exits.append(direction.rawValue)
-            }
-        }
-
-        // Add visible special exits
-        for direction in Direction.allCases {
-            if let specialExit = room.getSpecialExit(direction: direction),
-                specialExit.isVisible
-            {
-                exits.append(direction.rawValue)
-            }
-        }
-
-        // Remove duplicates in case a direction has both regular and special exits
-        return Array(Set(exits))
-    }
-
     /// Handle AGAIN command (repeat last command)
     private func handleAgain() {
         if let lastCommand {
@@ -701,6 +635,89 @@ public class GameEngine {
         } else {
             outputHandler("There's no command to repeat.")
         }
+    }
+
+    /// Handle the ATTACK command
+    private func handleAttack(_ obj: GameObject) {
+        // Check if the object is accessible
+        if !isObjectAccessibleForExamine(obj) {
+            outputHandler("You don't see that here.")
+            return
+        }
+
+        // Check if the object has a custom handler for this command
+        if obj.processCommand(.attack(obj)) {
+            // The object handled the attack command
+            return
+        }
+
+        // Default behavior
+        if obj.hasFlag(.isAttackable) {
+            outputHandler("You attack the \(obj.name), but nothing happens.")
+        } else {
+            outputHandler("That wouldn't be helpful.")
+        }
+
+        // Update last mentioned object
+        world.lastMentionedObject = obj
+    }
+
+    /// Handle the BURN command
+    private func handleBurn(_ obj: GameObject) {
+        // Check if the object is accessible
+        if !isObjectAccessibleForExamine(obj) {
+            outputHandler("You don't see that here.")
+            return
+        }
+
+        // Check if the object has a custom handler for this command
+        if obj.processCommand(.burn(obj)) {
+            // The object handled the burn command
+            return
+        }
+
+        // Default behavior
+        if obj.hasFlag(.isBurnable) {
+            // Check if player has a light source
+            let hasLightSource = world.player.inventory.contains { $0.hasFlags(.isLightSource, .isFlammable) }
+
+            if hasLightSource {
+                outputHandler("You burn the \(obj.name).")
+                // Implement burning behavior (e.g., destroy object, transform it)
+            } else {
+                outputHandler("You don't have anything to light it with.")
+            }
+        } else {
+            outputHandler("That's not something you can burn.")
+        }
+
+        // Update last mentioned object
+        world.lastMentionedObject = obj
+    }
+
+    /// Handle the CLIMB command
+    private func handleClimb(_ obj: GameObject) {
+        // Check if the object is accessible
+        if !isObjectAccessibleForExamine(obj) {
+            outputHandler("You don't see that here.")
+            return
+        }
+
+        // Check if the object has a custom handler for this command
+        if obj.processCommand(.climb(obj)) {
+            // The object handled the climb command
+            return
+        }
+
+        // Default behavior
+        if obj.hasFlag(.isClimbable) {
+            outputHandler("You climb the \(obj.name), but don't see anything interesting.")
+        } else {
+            outputHandler("You can't climb that.")
+        }
+
+        // Update last mentioned object
+        world.lastMentionedObject = obj
     }
 
     /// Handle the CLOSE command
@@ -714,7 +731,7 @@ public class GameEngine {
         }
 
         // Check if the object has a custom handler for this command
-        if obj.processCommand(.close) {
+        if obj.processCommand(.close(obj)) {
             // The object handled the close command
             return
         }
@@ -740,72 +757,64 @@ public class GameEngine {
         world.lastMentionedObject = obj
     }
 
-    /// Handle custom commands based on verb and objects
-    ///
-    /// - Parameters:
-    ///   - verb: The custom verb string
-    ///   - objects: Array of game objects involved in the command
-    ///   - additionalData: Optional string with extra command data
-    private func handleCustomCommand(verb: String, objects: [GameObject], additionalData: String?) {
-        switch verb.lowercased() {
-        case "wear", "put_on":
-            if let obj = objects.first {
-                handleWear(obj)
-            } else {
-                outputHandler("Wear what?")
-            }
-
-        case "unwear", "take_off", "remove":
-            if let obj = objects.first {
-                handleUnwear(obj)
-            } else {
-                outputHandler("Take off what?")
-            }
-
-        case "put_in":
-            if objects.count >= 2 {
-                handlePutIn(objects[0], container: objects[1])
-            } else {
-                outputHandler("You need to specify what to put where.")
-            }
-
-        case "turn_on":
-            if let obj = objects.first {
-                handleTurnOn(obj)
-            } else {
-                outputHandler("Turn on what?")
-            }
-
-        case "turn_off":
-            if let obj = objects.first {
-                handleTurnOff(obj)
-            } else {
-                outputHandler("Turn off what?")
-            }
-
-        case "flip":
-            if let obj = objects.first {
-                handleFlip(obj)
-            } else {
-                outputHandler("Flip what?")
-            }
-
-        case "wait":
-            handleWait()
-
-        case "again":
-            handleAgain()
-
-        case "read":
-            if let obj = objects.first {
-                handleRead(obj)
-            } else {
-                outputHandler("Read what?")
-            }
-
-        default:
-            outputHandler("I don't know how to do that.")
+    /// Handle custom commands that aren't covered by other methods
+    private func handleCustomCommand(_ words: [String]) {
+        if words.isEmpty {
+            outputHandler("I don't understand.")
+            return
         }
+
+        // Here you can add handling for specific custom commands
+        outputHandler("Sorry, I don't know how to '\(words.joined(separator: " "))'.")
+    }
+
+    /// Handle the DANCE command
+    private func handleDance() {
+        outputHandler("You dance a little jig. Nobody's watching, fortunately.")
+    }
+
+    /// Handle description mode commands (brief/verbose/superbrief)
+    private func handleDescriptionMode(_ command: Command) {
+        switch command {
+        case .brief:
+            world.setBriefMode()
+            outputHandler("Brief descriptions.")
+        case .verbose:
+            world.setVerboseMode()
+            outputHandler("Verbose descriptions.")
+        case .superbrief:
+            world.useBriefDescriptions = true
+            // Typically superbrief shows even less than brief
+            outputHandler("Superbrief descriptions.")
+        default:
+            outputHandler("Unknown description mode.")
+        }
+    }
+
+    /// Handle the DRINK command
+    private func handleDrink(_ obj: GameObject) {
+        // Check if the object is accessible
+        if !isObjectAccessibleForExamine(obj) {
+            outputHandler("You don't see that here.")
+            return
+        }
+
+        // Check if the object has a custom handler for this command
+        if obj.processCommand(.drink(obj)) {
+            // The object handled the drink command
+            return
+        }
+
+        // Default behavior
+        if obj.hasFlag(.isDrinkable) {
+            outputHandler("You drink the \(obj.name). It quenches your thirst.")
+            // Implement drinking effects if needed
+        } else {
+            outputHandler("That's not something you can drink.")
+        }
+
+        // Update last mentioned object
+        world.lastMentionedObject = obj
     }
 
     /// Handle the DROP command
@@ -813,7 +822,7 @@ public class GameEngine {
     /// - Parameter obj: The object to be dropped
     private func handleDrop(_ obj: GameObject) {
         // Check if the object has a custom handler for this command
-        if obj.processCommand(.drop) {
+        if obj.processCommand(.drop(obj)) {
             // The object handled the drop command
             return
         }
@@ -837,6 +846,70 @@ public class GameEngine {
         }
     }
 
+    /// Handle the EAT command
+    private func handleEat(_ obj: GameObject) {
+        // Check if the object is accessible
+        if !isObjectAccessibleForExamine(obj) {
+            outputHandler("You don't see that here.")
+            return
+        }
+
+        // Check if the object has a custom handler for this command
+        if obj.processCommand(.eat(obj)) {
+            // The object handled the eat command
+            return
+        }
+
+        // Default behavior
+        if obj.hasFlag(.isEdible) {
+            outputHandler("You eat the \(obj.name). It was delicious!")
+            // Remove the eaten object
+            obj.moveTo(nil)
+        } else {
+            outputHandler("That's not something you can eat.")
+        }
+
+        // Update last mentioned object
+        world.lastMentionedObject = obj
+    }
+
+    /// Handle the EMPTY command
+    private func handleEmpty(_ obj: GameObject) {
+        // Check if the object is accessible
+        if !isObjectAccessibleForExamine(obj) {
+            outputHandler("You don't see that here.")
+            return
+        }
+
+        // Check if the object has a custom handler for this command
+        if obj.processCommand(.empty(obj)) {
+            // The object handled the empty command
+            return
+        }
+
+        // Default behavior
+        if obj.hasFlag(.isContainer) {
+            if obj.contents.isEmpty {
+                outputHandler("The \(obj.name) is already empty.")
+            } else {
+                // Move all contents to the current room
+                if let room = world.player.currentRoom {
+                    for item in obj.contents {
+                        item.moveTo(room)
+                    }
+                    outputHandler("You empty the \(obj.name).")
+                } else {
+                    outputHandler("You have nowhere to empty that.")
+                }
+            }
+        } else {
+            outputHandler("That's not something you can empty.")
+        }
+
+        // Update last mentioned object
+        world.lastMentionedObject = obj
+    }
+
     /// Handle the EXAMINE command
     ///
     /// - Parameter obj: The object to be examined
@@ -848,13 +921,47 @@ public class GameEngine {
         }
 
         // Check if the object has a custom handler for this command
-        if obj.processCommand(.examine) {
+        if obj.processCommand(.examine(obj)) {
             // The object handled the examine command
             return
         }
 
         // Default behavior: Show the object's description
         outputHandler(obj.description)
+
+        // If this is a container, also describe contents if it's open or transparent
+        if obj.hasFlag(.isContainer) && (obj.hasFlag(.isOpen) || obj.hasFlag(.isTransparent)) {
+            let contents = obj.contents
+            if contents.isEmpty {
+                outputHandler("The \(obj.name) is empty.")
+            } else {
+                outputHandler("The \(obj.name) contains:")
+                for item in contents {
+                    outputHandler("  \(item.name)")
+                }
+            }
+        }
+
+        // Update last mentioned object
+        world.lastMentionedObject = obj
+    }
+
+    /// Handle the FILL command
+    private func handleFill(_ obj: GameObject) {
+        // Check if the object is accessible
+        if !isObjectAccessibleForExamine(obj) {
+            outputHandler("You don't see that here.")
+            return
+        }
+
+        // Check if the object has a custom handler for this command
+        if obj.processCommand(.fill(obj)) {
+            // The object handled the fill command
+            return
+        }
+
+        // Default behavior - this is highly dependent on game context
+        outputHandler("You can't fill that here.")
 
         // Update last mentioned object
         world.lastMentionedObject = obj
@@ -871,7 +978,7 @@ public class GameEngine {
         }
 
         // Check if the object has a custom handler for this command
-        if obj.processCommand(.custom(["flip"])) {
+        if obj.processCommand(.flip(obj)) {
             // The object handled the flip command
             return
         }
@@ -894,6 +1001,478 @@ public class GameEngine {
         world.lastMentionedObject = obj
     }
 
+    /// Handle game meta-commands (save, restore, etc.)
+    private func handleGameCommand(_ command: Command) {
+        switch command {
+        case .save:
+            outputHandler("Game saved.")
+            // Implement save functionality
+        case .restore:
+            outputHandler("Game restored.")
+            // Implement restore functionality
+        case .restart:
+            handleRestart()
+        case .undo:
+            outputHandler("You can't change the past.")
+            // Implement undo functionality
+        case .version:
+            outputHandler("ZILF Game Engine v1.0")
+        case .help:
+            printHelp()
+        case .script:
+            outputHandler("Transcript recording started.")
+            // Implement script functionality
+        case .unscript:
+            outputHandler("Transcript recording stopped.")
+            // Implement unscript functionality
+        default:
+            outputHandler("Unknown game command.")
+        }
+    }
+
+    /// Handle GIVE command
+    private func handleGive(_ item: GameObject, to recipient: GameObject) {
+        // Check if player has the item
+        if item.location !== world.player {
+            outputHandler("You're not carrying that.")
+            return
+        }
+
+        // Check if recipient is accessible
+        if !isObjectAccessibleForExamine(recipient) {
+            outputHandler("You don't see them here.")
+            return
+        }
+
+        // Check if the recipient has a custom handler for this command
+        if recipient.processCommand(.give(item: item, recipient: recipient)) {
+            // The recipient handled the give command
+            return
+        }
+
+        // Default behavior
+        if recipient.hasFlag(.isPerson) {
+            item.moveTo(recipient)
+            outputHandler("You give the \(item.name) to the \(recipient.name).")
+        } else {
+            outputHandler("You can't give things to that.")
+        }
+
+        // Update last mentioned object
+        world.lastMentionedObject = item
+    }
+
+    // MARK: - Public Methods
+
+    /// Executes a single game command
+    ///
+    /// - Parameter command: The command to execute
+    public func executeCommand(_ command: Command) {
+        // Don't process commands if game is over
+        if isGameOver {
+            return
+        }
+
+        // Store the command for potential "again" (g) command
+        if getVerbForCommand(command) != "again" {
+            lastCommand = command
+        }
+
+        // If we're in a dark room, only allow certain commands
+        guard let currentRoom = world.player.currentRoom else {
+            outputHandler("Error: Player has no current room!")
+            return
+        }
+
+        let isRoomDark = !world.isRoomLit(currentRoom)
+
+        if isRoomDark {
+            // Check if the current room has a handler for this command
+            if let beginCommandAction = currentRoom.beginCommandAction,
+               beginCommandAction(currentRoom, command)
+            {
+                // The room's custom action handled the command
+                advanceTime()
+                return
+            }
+
+            // Commands allowed in darkness
+            switch command {
+            case .look, .inventory, .quit, .take, .drop, .move:
+                // These commands are allowed in darkness
+                break
+            case .custom(let words) where words.count > 1:
+                // Allow certain custom commands in darkness
+                if words[0] == "wait" || words[0] == "again" || words[0] == "version" || words[0] == "save"
+                    || words[0] == "restore" || words[0] == "restart" || words[0] == "undo" || words[0] == "brief"
+                    || words[0] == "verbose" || words[0] == "superbrief"
+                {
+                    break
+                } else {
+                    outputHandler("It's too dark to see.")
+                    return
+                }
+            case .wait, .again, .version, .save, .restore, .restart, .undo, .brief, .verbose, .superbrief:
+                // These meta commands are allowed in darkness
+                break
+            default:
+                outputHandler("It's too dark to see.")
+                return
+            }
+        }
+
+        // Check if the current room has a handler for this command
+        if let beginCommandAction = currentRoom.beginCommandAction,
+           beginCommandAction(currentRoom, command)
+        {
+            // The room's custom action handled the command
+            advanceTime()
+            return
+        }
+
+        // Process the command with default handling
+        switch command {
+        case .look:
+            handleLook()
+
+        case .inventory:
+            handleInventory()
+
+        case .move(let direction):
+            if let direction = direction {
+                handleMove(direction: direction)
+            } else {
+                outputHandler("Which way do you want to go?")
+            }
+
+        case .take(let obj):
+            if let obj = obj {
+                handleTake(obj)
+            } else {
+                outputHandler("Take what?")
+            }
+
+        case .drop(let obj):
+            if let obj = obj {
+                handleDrop(obj)
+            } else {
+                outputHandler("Drop what?")
+            }
+
+        case .examine(let obj):
+            if let obj = obj {
+                handleExamine(obj)
+            } else {
+                outputHandler("Examine what?")
+            }
+
+        case .open(let obj):
+            if let obj = obj {
+                handleOpen(obj)
+            } else {
+                outputHandler("Open what?")
+            }
+
+        case .close(let obj):
+            if let obj = obj {
+                handleClose(obj)
+            } else {
+                outputHandler("Close what?")
+            }
+
+        case .quit:
+            handleQuit()
+
+        case .unknown(let message):
+            outputHandler(message)
+
+        case .wear(let obj):
+            if let obj = obj {
+                handleWear(obj)
+            } else {
+                outputHandler("Wear what?")
+            }
+
+        case .unwear(let obj):
+            if let obj = obj {
+                handleUnwear(obj)
+            } else {
+                outputHandler("Take off what?")
+            }
+
+        case .putIn(let item, let container):
+            if let item = item, let container = container {
+                handlePutIn(item, container: container)
+            } else {
+                outputHandler("You need to specify what to put where.")
+            }
+
+        case .putOn(let item, let surface):
+            if let item = item, let surface = surface {
+                handlePutOn(item, surface: surface)
+            } else {
+                outputHandler("You need to specify what to put where.")
+            }
+
+        case .turnOn(let obj):
+            if let obj = obj {
+                handleTurnOn(obj)
+            } else {
+                outputHandler("Turn on what?")
+            }
+
+        case .turnOff(let obj):
+            if let obj = obj {
+                handleTurnOff(obj)
+            } else {
+                outputHandler("Turn off what?")
+            }
+
+        case .flip(let obj):
+            if let obj = obj {
+                handleFlip(obj)
+            } else {
+                outputHandler("Flip what?")
+            }
+
+        case .wait:
+            handleWait()
+
+        case .again:
+            handleAgain()
+
+        case .read(let obj):
+            if let obj = obj {
+                handleRead(obj)
+            } else {
+                outputHandler("Read what?")
+            }
+
+        case .attack(let obj):
+            if let obj = obj {
+                handleAttack(obj)
+            } else {
+                outputHandler("Attack what?")
+            }
+
+        case .burn(let obj):
+            if let obj = obj {
+                handleBurn(obj)
+            } else {
+                outputHandler("Burn what?")
+            }
+
+        case .climb(let obj):
+            if let obj = obj {
+                handleClimb(obj)
+            } else {
+                outputHandler("Climb what?")
+            }
+
+        case .drink(let obj):
+            if let obj = obj {
+                handleDrink(obj)
+            } else {
+                outputHandler("Drink what?")
+            }
+
+        case .eat(let obj):
+            if let obj = obj {
+                handleEat(obj)
+            } else {
+                outputHandler("Eat what?")
+            }
+
+        case .empty(let obj):
+            if let obj = obj {
+                handleEmpty(obj)
+            } else {
+                outputHandler("Empty what?")
+            }
+
+        case .fill(let obj):
+            if let obj = obj {
+                handleFill(obj)
+            } else {
+                outputHandler("Fill what?")
+            }
+
+        case .lock(let obj, let tool):
+            if let obj = obj {
+                handleLock(obj, with: tool)
+            } else {
+                outputHandler("Lock what?")
+            }
+
+        case .lookUnder(let obj):
+            if let obj = obj {
+                handleLookUnder(obj)
+            } else {
+                outputHandler("Look under what?")
+            }
+
+        case .pull(let obj):
+            if let obj = obj {
+                handlePull(obj)
+            } else {
+                outputHandler("Pull what?")
+            }
+
+        case .push(let obj):
+            if let obj = obj {
+                handlePush(obj)
+            } else {
+                outputHandler("Push what?")
+            }
+
+        case .remove(let obj):
+            if let obj = obj {
+                handleRemove(obj)
+            } else {
+                outputHandler("Remove what?")
+            }
+
+        case .rub(let obj):
+            if let obj = obj {
+                handleRub(obj)
+            } else {
+                outputHandler("Rub what?")
+            }
+
+        case .search(let obj):
+            if let obj = obj {
+                handleSearch(obj)
+            } else {
+                outputHandler("Search what?")
+            }
+
+        case .smell(let obj):
+            if let obj = obj {
+                handleSmell(obj)
+            } else {
+                outputHandler("Smell what?")
+            }
+
+        case .thinkAbout(let obj):
+            if let obj = obj {
+                handleThinkAbout(obj)
+            } else {
+                outputHandler("Think about what?")
+            }
+
+        case .throwAt(let item, let target):
+            if let item = item, let target = target {
+                handleThrowAt(item, target: target)
+            } else {
+                outputHandler("You need to specify what to throw and at what.")
+            }
+
+        case .unlock(let obj, let tool):
+            if let obj = obj {
+                handleUnlock(obj, with: tool)
+            } else {
+                outputHandler("Unlock what?")
+            }
+
+        case .wake(let obj):
+            if let obj = obj {
+                handleWake(obj)
+            } else {
+                outputHandler("Wake whom?")
+            }
+
+        case .wave(let obj):
+            if let obj = obj {
+                handleWave(obj)
+            } else {
+                outputHandler("Wave what?")
+            }
+
+        case .give(let item, let recipient):
+            if let item = item, let recipient = recipient {
+                handleGive(item, to: recipient)
+            } else {
+                outputHandler("You need to specify what to give and to whom.")
+            }
+
+        case .tell(let person, let topic):
+            if let person = person, let topic = topic {
+                handleTell(person, about: topic)
+            } else {
+                outputHandler("You need to specify whom to tell and about what.")
+            }
+
+        case .dance:
+            handleDance()
+
+        case .jump:
+            handleJump()
+
+        case .no:
+            handleNo()
+
+        case .pronouns:
+            handlePronouns()
+
+        case .sing:
+            handleSing()
+
+        case .swim:
+            handleSwim()
+
+        case .waveHands:
+            handleWaveHands()
+
+        case .yes:
+            handleYes()
+
+        case .brief, .verbose, .superbrief:
+            handleDescriptionMode(command)
+
+        case .save, .restore, .restart, .undo, .version, .help, .script, .unscript:
+            handleGameCommand(command)
+
+        case .custom(let words):
+            handleCustomCommand(words)
+        }
+
+        // Only advance time for non-game verbs
+        let verb = getVerbForCommand(command)
+        if !isGameVerb(verb) {
+            advanceTime()
+        }
+    }
+
+    /// Execute the game loop - an alternative to start() that doesn't block
+    ///
+    /// - Parameter input: The command input string
+    ///
+    /// - Returns: True if the game is still running, false if it ended
+    public func executeGameLoop(input: String) -> Bool {
+        if !isRunning || isGameOver {
+            return false
+        }
+
+        if input.lowercased() == "help" {
+            printHelp()
+        } else {
+            let command = parser.parse(input)
+            executeCommand(command)
+
+            // Check for game over after command execution
+            if isGameOver {
+                return false
+            }
+
+            // Advance time after each command (except game verbs)
+            if !isGameVerb(getVerbForCommand(command)) {
+                advanceTime()
+            }
+        }
+
+        return isRunning && !isGameOver
+    }
+
     /// Handle the INVENTORY command
     /// Displays a list of items the player is carrying
     private func handleInventory() {
@@ -904,9 +1483,62 @@ public class GameEngine {
         } else {
             outputHandler("You are carrying:")
             for obj in items {
-                outputHandler("  \(obj.name)")
+                let wornSuffix = obj.hasFlag(.isBeingWorn) ? " (being worn)" : ""
+                outputHandler("  \(obj.name)\(wornSuffix)")
             }
         }
+    }
+
+    /// Handle the JUMP command
+    private func handleJump() {
+        outputHandler("You jump, but achieve nothing by doing so.")
+    }
+
+    /// Handle the LOCK command
+    private func handleLock(_ obj: GameObject, with tool: GameObject?) {
+        // Check if the object is accessible
+        if !isObjectAccessibleForExamine(obj) {
+            outputHandler("You don't see that here.")
+            return
+        }
+
+        // Check if the object has a custom handler for this command
+        if obj.processCommand(.lock(obj, with: tool)) {
+            // The object handled the lock command
+            return
+        }
+
+        // Default behavior
+        if !obj.hasFlag(.isDoor) && !obj.hasFlag(.isContainer) {
+            outputHandler("That's not something you can lock.")
+            return
+        }
+
+        if obj.hasFlag(.isLocked) {
+            outputHandler("That's already locked.")
+            return
+        }
+
+        // Check if we have a tool
+        if let tool = tool {
+            // Check if player has the tool
+            if tool.location !== world.player {
+                outputHandler("You don't have the \(tool.name).")
+                return
+            }
+
+            if tool.hasFlag(.isTool) {
+                obj.setFlag(.isLocked)
+                outputHandler("You lock the \(obj.name) with the \(tool.name).")
+            } else {
+                outputHandler("You can't lock anything with that.")
+            }
+        } else {
+            outputHandler("You need something to lock it with.")
+        }
+
+        // Update last mentioned object
+        world.lastMentionedObject = obj
     }
 
     /// Handle the LOOK command
@@ -922,6 +1554,27 @@ public class GameEngine {
         }
     }
 
+    /// Handle the LOOK UNDER command
+    private func handleLookUnder(_ obj: GameObject) {
+        // Check if the object is accessible
+        if !isObjectAccessibleForExamine(obj) {
+            outputHandler("You don't see that here.")
+            return
+        }
+
+        // Check if the object has a custom handler for this command
+        if obj.processCommand(.lookUnder(obj)) {
+            // The object handled the look under command
+            return
+        }
+
+        // Default behavior
+        outputHandler("You find nothing interesting under the \(obj.name).")
+
+        // Update last mentioned object
+        world.lastMentionedObject = obj
+    }
+
     /// Handle the MOVE command
     ///
     /// - Parameter direction: The direction to move in
@@ -930,7 +1583,7 @@ public class GameEngine {
 
         // Check if the current room has a custom handler for this direction
         if let currentRoom = player.location as? Room,
-            currentRoom.processCommand(.move)
+           currentRoom.processCommand(.move(direction))
         {
             // The room handled the move command
             return
@@ -944,6 +1597,11 @@ public class GameEngine {
         }
     }
 
+    /// Handle the NO command
+    private func handleNo() {
+        outputHandler("Okay, you don't want to.")
+    }
+
     /// Handle the OPEN command
     ///
     /// - Parameter obj: The object to be opened
@@ -955,7 +1613,7 @@ public class GameEngine {
         }
 
         // Check if the object has a custom handler for this command
-        if obj.processCommand(.open) {
+        if obj.processCommand(.open(obj)) {
             // The object handled the open command
             return
         }
@@ -973,12 +1631,18 @@ public class GameEngine {
             return
         }
 
+        // Check if locked
+        if obj.hasFlag(.isLocked) {
+            outputHandler("It's locked.")
+            return
+        }
+
         // Open the object
         obj.setFlag(.isOpen)
         outputHandler("Opened.")
 
         // If this is a container and it has contents, describe them
-        if obj.hasFlags(.isContainer, .isTransparent) {
+        if obj.hasFlag(.isContainer) {
             let contents = obj.contents
             if !contents.isEmpty {
                 outputHandler("You see:")
@@ -987,6 +1651,102 @@ public class GameEngine {
                 }
             }
         }
+
+        // Update last mentioned object
+        world.lastMentionedObject = obj
+    }
+
+    /// Handle the PRONOUNS command
+    private func handlePronouns() {
+        if let lastObj = world.lastMentionedObject {
+            outputHandler("It: \(lastObj.name)")
+        } else {
+            outputHandler("No pronouns are defined yet.")
+        }
+    }
+
+    /// Handle the PULL command
+    private func handlePull(_ obj: GameObject) {
+        // Check if the object is accessible
+        if !isObjectAccessibleForExamine(obj) {
+            outputHandler("You don't see that here.")
+            return
+        }
+
+        // Check if the object has a custom handler for this command
+        if obj.processCommand(.pull(obj)) {
+            // The object handled the pull command
+            return
+        }
+
+        // Default behavior
+        outputHandler("Nothing happens when you pull the \(obj.name).")
+
+        // Update last mentioned object
+        world.lastMentionedObject = obj
+    }
+
+    /// Handle the PUSH command
+    private func handlePush(_ obj: GameObject) {
+        // Check if the object is accessible
+        if !isObjectAccessibleForExamine(obj) {
+            outputHandler("You don't see that here.")
+            return
+        }
+
+        // Check if the object has a custom handler for this command
+        if obj.processCommand(.push(obj)) {
+            // The object handled the push command
+            return
+        }
+
+        // Default behavior
+        outputHandler("Nothing happens when you push the \(obj.name).")
+
+        // Update last mentioned object
+        world.lastMentionedObject = obj
+    }
+
+    /// Handle custom command: PUT IN (place something in a container)
+    ///
+    /// - Parameters:
+    ///   - obj: The object to put in the container
+    ///   - container: The container to put the object in
+    private func handlePutIn(_ obj: GameObject, container: GameObject) {
+        // Check if player has the object
+        if obj.location !== world.player {
+            outputHandler("You're not carrying that.")
+            return
+        }
+
+        // Check if container is accessible
+        if !isObjectAccessibleForExamine(container) {
+            outputHandler("You don't see that here.")
+            return
+        }
+
+        // Check if the container has a custom handler for this command
+        if container.processCommand(.putIn(item: obj, container: container)) {
+            // The container handled the put in command
+            return
+        }
+
+        // Default behavior
+        // Check if destination is a container
+        if !container.hasFlag(.isContainer) {
+            outputHandler("You can't put anything in that.")
+            return
+        }
+
+        // Check if container is open
+        if !container.hasFlag(.isOpen) {
+            outputHandler("The \(container.name) is closed.")
+            return
+        }
+
+        // Put the object in the container
+        obj.moveTo(container)
+        outputHandler("You put the \(obj.name) in the \(container.name).")
 
         // Update last mentioned object
         world.lastMentionedObject = obj
@@ -1010,6 +1770,13 @@ public class GameEngine {
             return
         }
 
+        // Check if the surface has a custom handler for this command
+        if surface.processCommand(.putOn(item: obj, surface: surface)) {
+            // The surface handled the put on command
+            return
+        }
+
+        // Default behavior
         // Check if destination is a surface
         if !surface.hasFlag(.isSurface) {
             outputHandler("You can't put anything on that.")
@@ -1019,44 +1786,6 @@ public class GameEngine {
         // Put the object on the surface
         obj.moveTo(surface)
         outputHandler("You put the \(obj.name) on the \(surface.name).")
-
-        // Update last mentioned object
-        world.lastMentionedObject = obj
-    }
-
-    /// Handle PUT_IN command
-    ///
-    /// - Parameters:
-    ///   - obj: The object to put in the container
-    ///   - container: The container to put the object in
-    private func handlePutIn(_ obj: GameObject, container: GameObject) {
-        // Check if player has the object
-        if obj.location !== world.player {
-            outputHandler("You're not carrying that.")
-            return
-        }
-
-        // Check if container is accessible
-        if !isObjectAccessibleForExamine(container) {
-            outputHandler("You don't see that here.")
-            return
-        }
-
-        // Check if destination is a container
-        if !container.hasFlag(.isContainer) {
-            outputHandler("You can't put anything in that.")
-            return
-        }
-
-        // Check if container is open
-        if !container.hasFlag(.isOpen) {
-            outputHandler("The \(container.name) is closed.")
-            return
-        }
-
-        // Put the object in the container
-        obj.moveTo(container)
-        outputHandler("You put the \(obj.name) in the \(container.name).")
 
         // Update last mentioned object
         world.lastMentionedObject = obj
@@ -1080,7 +1809,7 @@ public class GameEngine {
         }
 
         // Check if the object has a custom handler for this command
-        if obj.processCommand(.custom(["read"])) {
+        if obj.processCommand(.read(obj)) {
             // The object handled the read command
             return
         }
@@ -1102,6 +1831,12 @@ public class GameEngine {
         world.lastMentionedObject = obj
     }
 
+    /// Handle the REMOVE command
+    private func handleRemove(_ obj: GameObject) {
+        // For most games, REMOVE is an alias for UNWEAR
+        handleUnwear(obj)
+    }
+
     /// Handle restarting the game
     /// Resets the game world and starts a new game
     private func handleRestart() {
@@ -1119,6 +1854,103 @@ public class GameEngine {
         executeCommand(.look)
     }
 
+    /// Handle the RUB command
+    private func handleRub(_ obj: GameObject) {
+        // Check if the object is accessible
+        if !isObjectAccessibleForExamine(obj) {
+            outputHandler("You don't see that here.")
+            return
+        }
+
+        // Check if the object has a custom handler for this command
+        if obj.processCommand(.rub(obj)) {
+            // The object handled the rub command
+            return
+        }
+
+        // Default behavior
+        outputHandler("Rubbing the \(obj.name) doesn't seem to do anything.")
+
+        // Update last mentioned object
+        world.lastMentionedObject = obj
+    }
+
+    /// Handle the SEARCH command
+    private func handleSearch(_ obj: GameObject) {
+        // Check if the object is accessible
+        if !isObjectAccessibleForExamine(obj) {
+            outputHandler("You don't see that here.")
+            return
+        }
+
+        // Check if the object has a custom handler for this command
+        if obj.processCommand(.search(obj)) {
+            // The object handled the search command
+            return
+        }
+
+        // Default behavior
+        if obj.hasFlag(.isContainer) {
+            // If container is open or transparent, show contents
+            if obj.hasFlag(.isOpen) || obj.hasFlag(.isTransparent) {
+                let contents = obj.contents
+                if contents.isEmpty {
+                    outputHandler("The \(obj.name) is empty.")
+                } else {
+                    outputHandler("Searching the \(obj.name) reveals:")
+                    for item in contents {
+                        outputHandler("  \(item.name)")
+                    }
+                }
+            } else {
+                outputHandler("The \(obj.name) is closed.")
+            }
+        } else {
+            outputHandler("You find nothing of interest.")
+        }
+
+        // Update last mentioned object
+        world.lastMentionedObject = obj
+    }
+
+    /// Handle the SING command
+    private func handleSing() {
+        outputHandler("You sing a little tune. Your singing voice leaves something to be desired.")
+    }
+
+    /// Handle the SMELL command
+    private func handleSmell(_ obj: GameObject) {
+        // Check if the object is accessible
+        if !isObjectAccessibleForExamine(obj) {
+            outputHandler("You don't see that here.")
+            return
+        }
+
+        // Check if the object has a custom handler for this command
+        if obj.processCommand(.smell(obj)) {
+            // The object handled the smell command
+            return
+        }
+
+        // Default behavior
+        outputHandler("The \(obj.name) smells normal.")
+
+        // Update last mentioned object
+        world.lastMentionedObject = obj
+    }
+
+    /// Handle the SWIM command
+    private func handleSwim() {
+        // Check if current location is water
+        if let room = world.player.currentRoom {
+            if room.hasFlag(.isWaterLocation) {
+                outputHandler("You swim around for a while.")
+            } else {
+                outputHandler("There's no water here to swim in.")
+            }
+        }
+    }
+
     /// Handle the TAKE command
     ///
     /// - Parameter obj: The object to be taken
@@ -1130,7 +1962,7 @@ public class GameEngine {
         }
 
         // Check if the object has a custom handler for this command
-        if obj.processCommand(.take) {
+        if obj.processCommand(.take(obj)) {
             // The object handled the take command
             return
         }
@@ -1156,6 +1988,84 @@ public class GameEngine {
         world.lastMentionedObject = obj
     }
 
+    /// Handle the TELL command
+    private func handleTell(_ person: GameObject, about topic: String) {
+        // Check if the person is accessible
+        if !isObjectAccessibleForExamine(person) {
+            outputHandler("You don't see them here.")
+            return
+        }
+
+        // Check if the person has a custom handler for this command
+        if person.processCommand(.tell(person: person, topic: topic)) {
+            // The person handled the tell command
+            return
+        }
+
+        // Default behavior
+        if person.hasFlag(.isPerson) {
+            outputHandler("The \(person.name) doesn't seem interested in your comments about \(topic).")
+        } else {
+            outputHandler("You can't talk to that.")
+        }
+
+        // Update last mentioned object
+        world.lastMentionedObject = person
+    }
+
+    /// Handle the THINK ABOUT command
+    private func handleThinkAbout(_ obj: GameObject) {
+        // Check if the object is accessible
+        if !isObjectAccessibleForExamine(obj) {
+            outputHandler("You don't know enough about that to think about it.")
+            return
+        }
+
+        // Check if the object has a custom handler for this command
+        if obj.processCommand(.thinkAbout(obj)) {
+            // The object handled the think about command
+            return
+        }
+
+        // Default behavior
+        outputHandler("You think about the \(obj.name), but don't come to any conclusions.")
+
+        // Update last mentioned object
+        world.lastMentionedObject = obj
+    }
+
+    /// Handle the THROW AT command
+    private func handleThrowAt(_ item: GameObject, target: GameObject) {
+        // Check if player has the item
+        if item.location !== world.player {
+            outputHandler("You're not carrying that.")
+            return
+        }
+
+        // Check if target is accessible
+        if !isObjectAccessibleForExamine(target) {
+            outputHandler("You don't see that here.")
+            return
+        }
+
+        // Check if the target has a custom handler for this command
+        if target.processCommand(.throwAt(item: item, target: target)) {
+            // The target handled the throw at command
+            return
+        }
+
+        // Default behavior
+        outputHandler("You throw the \(item.name) at the \(target.name), but nothing interesting happens.")
+
+        // Drop the item in the current room
+        if let room = world.player.currentRoom {
+            item.moveTo(room)
+        }
+
+        // Update last mentioned object
+        world.lastMentionedObject = item
+    }
+
     /// Handle TURN OFF command
     ///
     /// - Parameter obj: The device to be turned off
@@ -1167,7 +2077,7 @@ public class GameEngine {
         }
 
         // Check if the object has a custom handler for this command
-        if obj.processCommand(.custom(["turn_off"])) {
+        if obj.processCommand(.turnOff(obj)) {
             // The object handled the turn off command
             return
         }
@@ -1201,7 +2111,7 @@ public class GameEngine {
         }
 
         // Check if the object has a custom handler for this command
-        if obj.processCommand(.custom(["turn_on"])) {
+        if obj.processCommand(.turnOn(obj)) {
             // The object handled the turn on command
             return
         }
@@ -1224,6 +2134,53 @@ public class GameEngine {
         world.lastMentionedObject = obj
     }
 
+    /// Handle the UNLOCK command
+    private func handleUnlock(_ obj: GameObject, with tool: GameObject?) {
+        // Check if the object is accessible
+        if !isObjectAccessibleForExamine(obj) {
+            outputHandler("You don't see that here.")
+            return
+        }
+
+        // Check if the object has a custom handler for this command
+        if obj.processCommand(.unlock(obj, with: tool)) {
+            // The object handled the unlock command
+            return
+        }
+
+        // Default behavior
+        if !obj.hasFlag(.isDoor) && !obj.hasFlag(.isContainer) {
+            outputHandler("That's not something you can unlock.")
+            return
+        }
+
+        if !obj.hasFlag(.isLocked) {
+            outputHandler("That's already unlocked.")
+            return
+        }
+
+        // Check if we have a tool
+        if let tool = tool {
+            // Check if player has the tool
+            if tool.location !== world.player {
+                outputHandler("You don't have the \(tool.name).")
+                return
+            }
+
+            if tool.hasFlag(.isTool) {
+                obj.clearFlag(.isLocked)
+                outputHandler("You unlock the \(obj.name) with the \(tool.name).")
+            } else {
+                outputHandler("You can't unlock anything with that.")
+            }
+        } else {
+            outputHandler("You need something to unlock it with.")
+        }
+
+        // Update last mentioned object
+        world.lastMentionedObject = obj
+    }
+
     /// Handle UNWEAR command
     ///
     /// - Parameter obj: The object to be removed (unworn)
@@ -1231,6 +2188,12 @@ public class GameEngine {
         // Check if the object is in the player's inventory
         if !obj.isIn(world.player) {
             outputHandler("You're not wearing \(obj.name).")
+            return
+        }
+
+        // Check if the object has a custom handler for this command
+        if obj.processCommand(.unwear(obj)) {
+            // The object handled the unwear command
             return
         }
 
@@ -1243,11 +2206,65 @@ public class GameEngine {
         // Unwear the object
         obj.clearFlag(.isBeingWorn)
         outputHandler("You take off \(obj.name).")
+
+        // Update last mentioned object
+        world.lastMentionedObject = obj
     }
 
     /// Handle WAIT command
     private func handleWait() {
         outputHandler("Time passes...")
+    }
+
+    /// Handle the WAKE command
+    private func handleWake(_ obj: GameObject) {
+        // Check if the object is accessible
+        if !isObjectAccessibleForExamine(obj) {
+            outputHandler("You don't see them here.")
+            return
+        }
+
+        // Check if the object has a custom handler for this command
+        if obj.processCommand(.wake(obj)) {
+            // The object handled the wake command
+            return
+        }
+
+        // Default behavior
+        if obj.hasFlag(.isPerson) {
+            outputHandler("The \(obj.name) is already awake.")
+        } else {
+            outputHandler("That doesn't make any sense.")
+        }
+
+        // Update last mentioned object
+        world.lastMentionedObject = obj
+    }
+
+    /// Handle the WAVE command
+    private func handleWave(_ obj: GameObject) {
+        // Check if the object is accessible (needs to be in inventory to wave)
+        if obj.location !== world.player {
+            outputHandler("You need to be holding that to wave it.")
+            return
+        }
+
+        // Check if the object has a custom handler for this command
+        if obj.processCommand(.wave(obj)) {
+            // The object handled the wave command
+            return
+        }
+
+        // Default behavior
+        outputHandler("You wave the \(obj.name) around, but nothing happens.")
+
+        // Update last mentioned object
+        world.lastMentionedObject = obj
+    }
+
+    /// Handle the WAVE HANDS command
+    private func handleWaveHands() {
+        outputHandler("You wave your hands in the air, but nothing happens.")
     }
 
     /// Handle WEAR command
@@ -1257,6 +2274,12 @@ public class GameEngine {
         // Check if the object is in the player's inventory
         if !obj.isIn(world.player) {
             outputHandler("You need to be holding \(obj.name) first.")
+            return
+        }
+
+        // Check if the object has a custom handler for this command
+        if obj.processCommand(.wear(obj)) {
+            // The object handled the wear command
             return
         }
 
@@ -1275,6 +2298,14 @@ public class GameEngine {
         // Wear the object
         obj.setFlag(.isBeingWorn)
         outputHandler("You put on \(obj.name).")
+
+        // Update last mentioned object
+        world.lastMentionedObject = obj
+    }
+
+    /// Handle the YES command
+    private func handleYes() {
+        outputHandler("Nothing happens.")
     }
 
     /// Check if an object is accessible for examination
@@ -1311,10 +2342,10 @@ public class GameEngine {
 
             // Check if object is in an open container in the room or inventory
             let containersInRoom = room.contents.filter {
-                $0.hasFlags(.isContainer, .isOpen)
+                $0.hasFlags(.isContainer, .isOpen) || $0.hasFlag(.isTransparent)
             }
             let containersInInventory = world.player.inventory.filter {
-                $0.hasFlags(.isContainer, .isOpen)
+                $0.hasFlags(.isContainer, .isOpen) || $0.hasFlag(.isTransparent)
             }
 
             let allContainers = containersInRoom + containersInInventory
@@ -1341,8 +2372,8 @@ public class GameEngine {
     /// - Returns: True if the verb is a game system command
     private func isGameVerb(_ verb: String) -> Bool {
         return verb == "save" || verb == "restore" || verb == "version" || verb == "quit"
-            || verb == "undo" || verb == "restart" || verb == "brief" || verb == "verbose"
-            || verb == "superbrief"
+        || verb == "undo" || verb == "restart" || verb == "brief" || verb == "verbose"
+        || verb == "superbrief" || verb == "help" || verb == "script" || verb == "unscript"
     }
 
     /// Displays a help message with available commands
@@ -1391,45 +2422,5 @@ public class GameEngine {
 
             return freshWorld
         }
-    }
-
-    /// Helper method to find objects by name
-    ///
-    /// - Parameter name: The name of the object to find
-    ///
-    /// - Returns: The found GameObject if it exists and is accessible
-    private func findObject(named name: String) -> GameObject? {
-        // Look in inventory
-        if let obj = world.player.inventory.first(where: { $0.name.lowercased() == name.lowercased() }) {
-            return obj
-        }
-
-        // Look in current room
-        if let room = world.player.currentRoom,
-           let obj = room.contents.first(where: { $0.name.lowercased() == name.lowercased() }) {
-            return obj
-        }
-
-        // Look in open containers in the room
-        if let room = world.player.currentRoom {
-            let containers = room.contents.filter { $0.hasFlags(.isContainer, .isOpen) }
-            for container in containers {
-                if let obj = container.contents.first(where: { $0.name.lowercased() == name.lowercased() }) {
-                    return obj
-                }
-            }
-        }
-
-        // Check if this is a global object accessible from the current room
-        if let room = world.player.currentRoom {
-            // Find global objects by name
-            let globalObjects = world.globalObjects.filter { $0.isGlobalObject() }
-            if let obj = globalObjects.first(where: { $0.name.lowercased() == name.lowercased() }),
-               world.isGlobalObjectAccessible(obj, in: room) {
-                return obj
-            }
-        }
-
-        return nil
     }
 }
