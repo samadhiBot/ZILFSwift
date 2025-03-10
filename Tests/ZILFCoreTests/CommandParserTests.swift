@@ -31,17 +31,13 @@ struct CommandParserTests {
         }
 
         // Test no object specified
-        if case let .unknown(message) = parser.parse("close") {
-            #expect(message == "Close what?")
-        } else {
-            throw TestFailure("Expected unknown command")
+        guard case .close(nil) = parser.parse("close") else {
+            throw TestFailure("Expected close with nil")
         }
 
         // Test non-existent object
-        if case let .unknown(message) = parser.parse("close unicorn") {
-            #expect(message.contains("I don't see"))
-        } else {
-            throw TestFailure("Expected unknown command")
+        guard case .close(nil) = parser.parse("close unicorn") else {
+            throw TestFailure("Expected close with nil")
         }
     }
 
@@ -94,17 +90,13 @@ struct CommandParserTests {
         }
 
         // Test invalid direction
-        if case let .unknown(message) = parser.parse("go nowhere") {
-            #expect(message.contains("Go where?"))
-        } else {
-            throw TestFailure("Expected unknown command")
+        guard case .move(nil) = parser.parse("go nowhere") else {
+            throw TestFailure("Expected go command without direction")
         }
 
         // Test go with no direction
-        if case let .unknown(message) = parser.parse("go") {
-            #expect(message.contains("Go where?"))
-        } else {
-            throw TestFailure("Expected unknown command for 'go' with no direction")
+        guard case .move(nil) = parser.parse("go") else {
+            throw TestFailure("Expected go command without direction")
         }
     }
 
@@ -140,17 +132,15 @@ struct CommandParserTests {
         coin.moveTo(world.player.currentRoom)
 
         // Test drop non-carried object
-        if case let .unknown(message) = parser.parse("drop coin") {
-            #expect(message.contains("You're not carrying"))
+        if case let .drop(obj) = parser.parse("drop coin") {
+            #expect(obj === coin)
         } else {
-            throw TestFailure("Expected unknown command")
+            throw TestFailure("Expected drop command")
         }
 
         // Test dropping with no object specified
-        if case let .unknown(message) = parser.parse("drop") {
-            #expect(message == "Drop what?")
-        } else {
-            throw TestFailure("Expected unknown command")
+        guard case .drop(nil) = parser.parse("drop") else {
+            throw TestFailure("Expected drop command")
         }
     }
 
@@ -186,23 +176,17 @@ struct CommandParserTests {
         }
 
         // Test with non-existent object
-        if case let .unknown(message) = parser.parse("examine unicorn") {
-            #expect(message.contains("I don't see"))
-        } else {
+        guard case .examine(nil, with: nil) = parser.parse("examine unicorn") else {
             throw TestFailure("Expected unknown command")
         }
 
         // Test examine with no object
-        if case let .unknown(message) = parser.parse("examine") {
-            #expect(message == "Examine what?")
-        } else {
+        guard case .examine(nil, with: nil) = parser.parse("examine") else {
             throw TestFailure("Expected unknown command")
         }
 
         // Test x with no object
-        if case let .unknown(message) = parser.parse("x") {
-            #expect(message == "Examine what?")
-        } else {
+        guard case .examine(nil, with: nil) = parser.parse("x") else {
             throw TestFailure("Expected unknown command")
         }
     }
