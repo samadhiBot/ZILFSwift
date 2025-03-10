@@ -68,20 +68,20 @@ struct HelloWorldGameTests {
         #expect(ancientKey?.location === secretRoom)
 
         // Verify object properties
-        #expect(lantern!.hasFlag("takeable"))
-        #expect(coin!.hasFlag("takeable"))
-        #expect(!chest!.hasFlag("takeable"))
-        #expect(amulet!.hasFlag("takeable"))
-        #expect(ancientKey!.hasFlag("takeable"))
+        #expect(lantern!.hasFlag(Flag.isTakable))
+        #expect(coin!.hasFlag(Flag.isTakable))
+        #expect(!chest!.hasFlag(Flag.isTakable))
+        #expect(amulet!.hasFlag(Flag.isTakable))
+        #expect(ancientKey!.hasFlag(Flag.isTakable))
 
         // Verify chest is not open
-        #expect(!chest!.hasFlag("open"))
+        #expect(!chest!.hasFlag(Flag.isOpen))
 
         // Verify light sources
-        #expect(lantern!.hasFlag("light-source"))
-        #expect(!lantern!.hasFlag("lit"))  // Initially not lit
-        #expect(amulet!.hasFlag("light-source"))
-        #expect(amulet!.hasFlag("lit"))  // Initially lit
+        #expect(lantern!.hasFlag(Flag.isLightSource))
+        #expect(!lantern!.hasFlag(Flag.isOn))  // Initially not lit
+        #expect(amulet!.hasFlag(Flag.isLightSource))
+        #expect(amulet!.hasFlag(Flag.isOn))  // Initially lit
     }
 
     @Test func testGameCommands() {
@@ -105,7 +105,7 @@ struct HelloWorldGameTests {
         outputHandler.clear()
 
         // Test examining the lantern after taking it
-        engine.executeCommand(Command.examine(lantern))
+        engine.executeCommand(Command.examine(lantern, with: nil))
         print("Output after examine lantern: \(outputHandler.output)")
         #expect(outputHandler.output.contains("brass lantern"))
         outputHandler.clear()
@@ -138,7 +138,7 @@ struct HelloWorldGameTests {
         outputHandler.clear()
 
         // Test examining the chest
-        engine.executeCommand(Command.examine(world.objects.first { $0.name == "treasure chest" }!))
+        engine.executeCommand(Command.examine(world.objects.first { $0.name == "treasure chest" }!, with: nil))
         #expect(outputHandler.output.contains("ornate wooden chest"))
         outputHandler.clear()
 
@@ -187,7 +187,7 @@ struct HelloWorldGameTests {
 
         // Test examine command
         let lantern = world.objects.first { $0.name == "lantern" }!
-        if case let .examine(obj) = parser.parse("examine lantern") {
+        if case let .examine(obj, _) = parser.parse("examine lantern") {
             #expect(obj === lantern)
         } else {
             throw TestFailure("Expected examine command")

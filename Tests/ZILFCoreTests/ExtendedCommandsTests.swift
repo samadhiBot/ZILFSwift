@@ -15,7 +15,7 @@ struct ExtendedCommandsTests {
     @Test func testVerbParsing() {
         // Create test objects and world
         let room = Room(name: "Test Room", description: "A test room")
-        room.makeNaturallyLit() // Make the room naturally lit
+        room.setFlag(.isNaturallyLit) // Make the room naturally lit
 
         let hat = GameObject(name: "hat", description: "A fancy hat", location: room)
         hat.setFlag(.isTakable)
@@ -39,7 +39,7 @@ struct ExtendedCommandsTests {
     @Test func testVerbExecution() {
         // Create test objects and world
         let room = Room(name: "Test Room", description: "A test room")
-        room.makeNaturallyLit() // Make the room naturally lit
+        room.setFlag(.isNaturallyLit) // Make the room naturally lit
 
         let hat = GameObject(name: "hat", description: "A fancy hat", location: room)
         hat.setFlag(.isTakable)

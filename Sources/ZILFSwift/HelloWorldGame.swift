@@ -9,21 +9,21 @@ struct HelloWorldGame {
             description:
                 "You are standing at the entrance to a small cave. Sunlight streams in from outside."
         )
-        entrance.makeNaturallyLit()
+        entrance.setFlag(.isNaturallyLit)
 
         let mainCavern = Room(
             name: "Main Cavern",
             description:
                 "This spacious cavern has smooth walls that glisten with moisture. A strange glow emanates from deeper in the cave."
         )
-        mainCavern.makeNaturallyLit()
+        mainCavern.setFlag(.isNaturallyLit)
 
         let treasureRoom = Room(
             name: "Treasure Room",
             description:
                 "This small chamber is filled with a soft, magical light. The walls are adorned with ancient markings."
         )
-        treasureRoom.makeNaturallyLit()
+        treasureRoom.setFlag(.isNaturallyLit)
 
         // New secret room
         let secretRoom = Room(
@@ -31,7 +31,7 @@ struct HelloWorldGame {
             description:
                 "This hidden chamber appears to have been untouched for centuries. Mysterious symbols cover the walls."
         )
-        secretRoom.makeNaturallyLit()
+        secretRoom.setFlag(.isNaturallyLit)
 
         // New locked room
         let vaultRoom = Room(
@@ -39,7 +39,7 @@ struct HelloWorldGame {
             description:
                 "An impressive stone vault with ornate carvings. It looks like it once held great treasures."
         )
-        vaultRoom.makeNaturallyLit()
+        vaultRoom.setFlag(.isNaturallyLit)
 
         // Connect rooms with exits
         entrance.setExit(direction: .north, room: mainCavern)
@@ -63,22 +63,22 @@ struct HelloWorldGame {
             name: "lantern",
             description: "A brass lantern that provides warm light.",
             location: entrance,
-            flags: [.isTakable]
+            flags: .isTakable
         )
-        lantern.makeLightSource(initiallyLit: false)
+        lantern.setFlag(.isLightSource)
 
         let coin = GameObject(
             name: "gold coin",
             description: "A shiny gold coin with strange markings.",
             location: mainCavern,
-            flags: [.isTakable]
+            flags: .isTakable
         )
 
         let chest = GameObject(
             name: "treasure chest",
             description: "An ornate wooden chest with intricate carvings.",
             location: treasureRoom,
-            flags: [.isContainer, .isOpenable]
+            flags: .isContainer, .isOpenable
         )
         // Chest is not takeable
 
@@ -87,9 +87,9 @@ struct HelloWorldGame {
             name: "golden amulet",
             description: "An exquisite golden amulet that gleams with an inner light.",
             location: chest,
-            flags: [.isTakable]
+            flags: .isTakable
         )
-        treasure.makeLightSource(initiallyLit: true)
+        treasure.setFlags(.isLightSource, .isOn)
 
         // Make sure to close the chest
         chest.clearFlag(.isOpen)
@@ -99,7 +99,7 @@ struct HelloWorldGame {
             name: "ancient key",
             description: "A weathered bronze key with strange symbols.",
             location: secretRoom,
-            flags: [.isTakable, .isTool]
+            flags: .isTakable, .isTool
         )
 
         world.register(lantern)
@@ -155,21 +155,14 @@ struct HelloWorldGame {
         )
 
         // Make the hidden exit appear when examining the treasure room walls
-        let treasureBeginCommandAction = RoomActionPatterns.commandInterceptor(
-            handlers: [
-                "examine": { command in
-                    if case .examine(let obj, _) = command, obj === treasureRoom {
-                        treasureExamined = true
-                        print(
-                            "You carefully examine the walls of the treasure room and notice subtle markings that suggest a hidden passage somewhere in the floor."
-                        )
-                        return true
-                    }
-                    return false
-                }
-            ]
-        )
-        treasureRoom.beginCommandAction = treasureBeginCommandAction
+        treasureRoom.addCommandAction(Room.PrioritizedCommandAction { room, command in
+            if case .examine(let obj, _) = command, obj === treasureRoom {
+                treasureExamined = true
+                print("You carefully examine the walls of the treasure room and notice subtle markings that suggest a hidden passage somewhere in the floor.")
+                return true
+            }
+            return false
+        })
 
         // Add a locked exit from the secret room to the vault
         secretRoom.setLockedExit(
@@ -197,7 +190,7 @@ struct HelloWorldGame {
             description:
                 "You stand at the edge of a crumbling ledge above a bottomless pit. The ground feels very unstable."
         )
-        pitRoom.makeNaturallyLit()
+        pitRoom.setFlag(.isNaturallyLit)
 
         // Connect the pit room
         treasureRoom.setExit(direction: .south, room: pitRoom)
@@ -231,7 +224,7 @@ struct HelloWorldGame {
             name: "magnifying glass",
             description: "A magnifying glass with an ornate bronze handle.",
             location: entrance,
-            flags: [.isTakable, .isTool]
+            flags: .isTakable, .isTool
         )
 
         // When examining the coin with the magnifying glass, reveal extra details
@@ -250,7 +243,7 @@ struct HelloWorldGame {
             name: "dagger",
             description: "A small but sharp dagger with a jeweled hilt.",
             location: mainCavern,
-            flags: [.isTakable, .isWeapon, .isTool]
+            flags: .isTakable, .isWeapon, .isTool
         )
 
         // Create a locked box that needs to be broken open
@@ -258,7 +251,7 @@ struct HelloWorldGame {
             name: "locked box",
             description: "A small iron box with no visible keyhole. It seems to be sealed shut.",
             location: treasureRoom,
-            flags: [.isContainer, .isLocked]
+            flags: .isContainer, .isLocked
         )
 
         // The box can be attacked with the dagger to open it
@@ -284,7 +277,7 @@ struct HelloWorldGame {
             name: "sparkling gem",
             description: "A brilliant blue gem that seems to capture the light.",
             location: lockedBox,
-            flags: [.isTakable]
+            flags: .isTakable
         )
 
         // Add the new objects to the world

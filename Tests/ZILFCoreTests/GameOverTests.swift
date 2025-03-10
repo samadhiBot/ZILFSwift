@@ -14,7 +14,7 @@ import ZILFTestSupport
     @Test func testPlayerDeath() {
         // Setup a basic test world
         let room = Room(name: "Test Room", description: "A test room")
-        room.makeNaturallyLit()
+        room.setFlag(.isNaturallyLit)
 
         let player = Player(startingRoom: room)
         let world = GameWorld(player: player)
@@ -22,7 +22,7 @@ import ZILFTestSupport
 
         // Create a room with a deadly exit
         let deadlyRoom = Room(name: "Deadly Room", description: "A dangerous room")
-        deadlyRoom.makeNaturallyLit()
+        deadlyRoom.setFlag(.isNaturallyLit)
 
         // Connect rooms
         room.setExit(direction: .north, room: deadlyRoom)
@@ -54,7 +54,7 @@ import ZILFTestSupport
     @Test func testPlayerVictory() {
         // Setup a basic test world
         let room = Room(name: "Test Room", description: "A test room")
-        room.makeNaturallyLit()
+        room.setFlag(.isNaturallyLit)
 
         let player = Player(startingRoom: room)
         let world = GameWorld(player: player)
@@ -84,7 +84,7 @@ import ZILFTestSupport
     @Test func testDeadlyExit() {
         // Setup a basic test world
         let room = Room(name: "Test Room", description: "A test room")
-        room.makeNaturallyLit()
+        room.setFlag(.isNaturallyLit)
 
         let player = Player(startingRoom: room)
         let world = GameWorld(player: player)
@@ -92,7 +92,7 @@ import ZILFTestSupport
 
         // Create a room with a deadly exit
         let deadlyRoom = Room(name: "Deadly Room", description: "A dangerous room")
-        deadlyRoom.makeNaturallyLit()
+        deadlyRoom.setFlag(.isNaturallyLit)
 
         // Connect rooms
         room.setExit(direction: .north, room: deadlyRoom)
@@ -125,7 +125,7 @@ import ZILFTestSupport
     @Test func testVictoryExit() {
         // Setup a basic test world
         let room = Room(name: "Start Room", description: "Starting room")
-        room.makeNaturallyLit()
+        room.setFlag(.isNaturallyLit)
 
         let player = Player(startingRoom: room)
         let world = GameWorld(player: player)

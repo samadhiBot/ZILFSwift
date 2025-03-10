@@ -9,6 +9,7 @@ alwaysApply: false
 
 - Always use `init(name:description:location:flags:)` when creating `GameObject` instances. Use the variadic `flags` param when flags are present, and omit the param when no flags are provided.
 - Always use dynamic member lookup when accessing dynamic state values.
+- Always use `setFlags` when setting multiple object flags at the same time.
 
 ## Command parsing
 
@@ -16,9 +17,10 @@ alwaysApply: false
 
 ## Flags
 
-- Always use the correct `Flag`
+- Always translate ZIL flags to the correct `Flag` case.
 
 # Game Implementations
 
-- Game code should use the ZILFCore APIs directly, and avoid convenience methods that wrap API methods like `setFlag`.
-- Games should be fully contained in a namespace, and should not define global helper functions.
+- Games are built on top of the ZILFCore library.
+- Games always use the ZILFCore APIs directly, avoiding convenience methods that wrap API methods.
+- Games must always fully contained in a single namespace.

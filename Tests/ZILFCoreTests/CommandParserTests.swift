@@ -158,28 +158,28 @@ struct CommandParserTests {
         let (_, parser, _, _, coin) = try setupTestWorld()
 
         // Test examine with object
-        if case let .examine(obj) = parser.parse("examine gold coin") {
+        if case let .examine(obj, _) = parser.parse("examine gold coin") {
             #expect(obj === coin)
         } else {
             throw TestFailure("Expected examine command")
         }
 
         // Test examine with abbreviated syntax
-        if case let .examine(obj) = parser.parse("x coin") {
+        if case let .examine(obj, _) = parser.parse("x coin") {
             #expect(obj === coin)
         } else {
             throw TestFailure("Expected examine command")
         }
 
         // Test look at syntax
-        if case let .examine(obj) = parser.parse("look at gold coin") {
+        if case let .examine(obj, _) = parser.parse("look at gold coin") {
             #expect(obj === coin)
         } else {
             throw TestFailure("Expected examine command")
         }
 
         // Test with article
-        if case let .examine(obj) = parser.parse("examine the gold coin") {
+        if case let .examine(obj, _) = parser.parse("examine the gold coin") {
             #expect(obj === coin)
         } else {
             throw TestFailure("Expected examine command")
@@ -296,7 +296,7 @@ struct CommandParserTests {
         world.lastMentionedObject = coin
 
         // Test examine it
-        if case let .examine(obj) = parser.parse("examine it") {
+        if case let .examine(obj, _) = parser.parse("examine it") {
             #expect(obj === coin)
         } else {
             throw TestFailure("Expected examine command with 'it' reference")

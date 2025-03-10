@@ -55,11 +55,11 @@ struct SpecialTextPropertiesTests {
 
     @Test func testContainerDescriptions() {
         let box = GameObject(name: "box", description: "A simple box.")
-        box.setFlag("container")
-        box.setFlag("openable")
+        box.setFlag(.isContainer)
+        box.setFlag(.isOpenable)
 
         // Test closed container description
-        box.clearFlag("open")
+        box.clearFlag(.isOpen)
         #expect(box.getContentsDescription() == "It's closed.")
 
         // Test custom closed text
@@ -67,7 +67,7 @@ struct SpecialTextPropertiesTests {
         #expect(box.getContentsDescription() == "The box is firmly shut.")
 
         // Test empty container
-        box.setFlag("open")
+        box.setFlag(.isOpen)
         #expect(box.getContentsDescription() == "It's empty.")
 
         // Add some contents
@@ -95,7 +95,7 @@ struct SpecialTextPropertiesTests {
         world.register(room: room)
 
         // Make the room naturally lit
-        room.makeNaturallyLit()
+        room.setFlag(.isNaturallyLit)
 
         // Test basic description
         #expect(room.getRoomDescription(in: world).contains("You see a room with fancy decorations"))
@@ -120,7 +120,8 @@ struct SpecialTextPropertiesTests {
 
     @Test func testDarkRoomDescription() {
         let darkRoom = Room(name: "Dark Room", description: "A well-furnished room.")
-        darkRoom.makeDark() // Explicitly not naturally lit
+        darkRoom.clearFlag(.isOn)
+        darkRoom.clearFlag(.isNaturallyLit) // Ensure the room is dark
         darkRoom.setSpecialText("You can't see anything in the pitch darkness.", forKey: .darkDescription)
 
         let player = Player(startingRoom: darkRoom)
@@ -136,7 +137,8 @@ struct SpecialTextPropertiesTests {
             description: "A brass lantern",
             location: darkRoom
         )
-        lantern.makeLightSource(initiallyLit: true)
+        lantern.setFlag(.isLightSource)
+        lantern.setFlag(.isOn)
 
         #expect(darkRoom.getRoomDescription(in: world).contains("A well-furnished room"))
     }

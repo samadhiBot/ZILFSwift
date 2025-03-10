@@ -15,8 +15,8 @@ import Testing
         // Create test rooms
         let room1 = Room(name: "Room 1", description: "Test room 1")
         let room2 = Room(name: "Room 2", description: "Test room 2")
-        room1.makeNaturallyLit()
-        room2.makeNaturallyLit()
+        room1.setFlag(.isNaturallyLit)
+        room2.setFlag(.isNaturallyLit)
 
         // Create a player and world
         let player = Player(startingRoom: room1)
@@ -51,8 +51,8 @@ import Testing
         // Create test rooms
         let room1 = Room(name: "Room 1", description: "Test room 1")
         let room2 = Room(name: "Room 2", description: "Test room 2")
-        room1.makeNaturallyLit()
-        room2.makeNaturallyLit()
+        room1.setFlag(.isNaturallyLit)
+        room2.setFlag(.isNaturallyLit)
 
         // Create a player and world
         let player = Player(startingRoom: room1)
@@ -95,8 +95,8 @@ import Testing
         // Create test rooms
         let room1 = Room(name: "Room 1", description: "Test room 1")
         let room2 = Room(name: "Room 2", description: "Test room 2")
-        room1.makeNaturallyLit()
-        room2.makeNaturallyLit()
+        room1.setFlag(.isNaturallyLit)
+        room2.setFlag(.isNaturallyLit)
 
         // Create a player and world
         let player = Player(startingRoom: room1)
@@ -142,8 +142,8 @@ import Testing
         // Create test rooms
         let room1 = Room(name: "Room 1", description: "Test room 1")
         let room2 = Room(name: "Room 2", description: "Test room 2")
-        room1.makeNaturallyLit()
-        room2.makeNaturallyLit()
+        room1.setFlag(.isNaturallyLit)
+        room2.setFlag(.isNaturallyLit)
 
         // Create a player and world
         let player = Player(startingRoom: room1)
@@ -178,8 +178,8 @@ import Testing
         // Create test rooms
         let room1 = Room(name: "Room 1", description: "Test room 1")
         let room2 = Room(name: "Room 2", description: "Test room 2")
-        room1.makeNaturallyLit()
-        room2.makeNaturallyLit()
+        room1.setFlag(.isNaturallyLit)
+        room2.setFlag(.isNaturallyLit)
 
         // Create a player and world
         let player = Player(startingRoom: room1)
@@ -215,8 +215,8 @@ import Testing
         // Create test rooms
         let room1 = Room(name: "Room 1", description: "Test room 1")
         let room2 = Room(name: "Room 2", description: "Test room 2")
-        room1.makeNaturallyLit()
-        room2.makeNaturallyLit()
+        room1.setFlag(.isNaturallyLit)
+        room2.setFlag(.isNaturallyLit)
 
         // Create a player and world
         let player = Player(startingRoom: room1)

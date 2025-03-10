@@ -364,13 +364,13 @@ import Testing
     @Test func testCompleteRoomActionPhaseSystem() {
         // Create a test world with rooms using our new room action phase system
         let foyer = Room(name: "Foyer", description: "A grand foyer with marble floors.")
-        foyer.makeNaturallyLit() // Make foyer naturally lit
+        foyer.setFlag(.isNaturallyLit) // Make foyer naturally lit
 
         let bar = Room(name: "Bar", description: "A dimly lit bar.")
         // Bar lighting will be controlled by barHasLight
 
         let kitchen = Room(name: "Kitchen", description: "A well-equipped kitchen.")
-        kitchen.makeNaturallyLit() // Make kitchen naturally lit
+        kitchen.setFlag(.isNaturallyLit) // Make kitchen naturally lit
 
         let kettle = GameObject(name: "kettle", description: "A copper kettle")
         kitchen.addToContainer(kettle)

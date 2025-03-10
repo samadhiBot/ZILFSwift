@@ -77,8 +77,8 @@ import Testing
         let kitchen = Room(name: "Kitchen", description: "A cozy kitchen.")
 
         // Make both rooms naturally lit so we can see objects
-        hall.makeNaturallyLit()
-        kitchen.makeNaturallyLit()
+        hall.setFlag(.isNaturallyLit)
+        kitchen.setFlag(.isNaturallyLit)
 
         hall.setExit(direction: .east, room: kitchen)
         kitchen.setExit(direction: .west, room: hall)

@@ -56,7 +56,7 @@ room.setHiddenExit(
 
 // Then elsewhere in your code:
 room.beginCommandAction = { room, command in
-    if case .examine(let obj) = command, obj.name == "bookshelf" {
+    if case .examine(let obj, _) = command, obj.name == "bookshelf" {
         exitRevealed = true
         print("As you examine the bookshelf, you notice a loose book. Pulling it reveals a secret passage!")
         return true
@@ -70,7 +70,7 @@ room.beginCommandAction = { room, command in
 ```swift
 // Create a key item
 let goldKey = GameObject(name: "gold key", description: "An ornate gold key")
-goldKey.setFlag("takeable")
+goldKey.setFlag(.isTakable)
 
 // Create a locked door that requires the key
 room.setLockedExit(

@@ -44,7 +44,7 @@ kitchen.addEnterAction(Room.PrioritizedAction(priority: .high) { room in
 
 // Intercept examining the kettle
 kitchen.addCommandAction(Room.PrioritizedCommandAction { _, command in
-    if case .examine(let obj) = command, obj === kettle {
+    if case .examine(let obj, _) = command, obj === kettle {
         kettleBoiling = true
         print("You examine the kettle closely. It starts to boil.")
         return true // Stop other command processing
@@ -93,7 +93,7 @@ hallway.setExit(direction: .south, room: startRoom)
 
 // Add some objects
 let lamp = GameObject(name: "lamp", description: "A brass lamp.")
-lamp.setFlag("takeable")
+lamp.setFlag(.isTakable)
 startRoom.addToContainer(lamp)
 
 // Create a player and world

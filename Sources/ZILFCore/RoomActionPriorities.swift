@@ -25,7 +25,7 @@ import Foundation
 ///
 /// // Add a critical action that would stop execution
 /// room.addCommandAction(Room.PrioritizedCommandAction(priority: .critical) { room, command in
-///     if case .examine(let obj) = command, obj.name == "kettle" {
+///     if case .examine(let obj, _) = command, obj.name == "kettle" {
 ///         print("This intercepts examining the kettle and prevents other actions")
 ///         return true // Stop further processing
 ///     }
@@ -77,7 +77,10 @@ extension Room {
         /// - Parameters:
         ///   - priority: The priority level for this action
         ///   - action: The closure to execute
-        public init(priority: ActionPriority = .normal, action: @escaping (Room, Command) -> Bool) {
+        public init(
+            priority: ActionPriority = .normal,
+            action: @escaping (Room, Command) -> Bool
+        ) {
             self.priority = priority
             self.action = action
         }

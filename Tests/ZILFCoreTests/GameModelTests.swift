@@ -25,8 +25,8 @@ struct GameModelTests {
         room1.setExit(direction: .north, room: room2)
         room2.setExit(direction: .south, room: room1)
 
-        #expect(room1.getExit(direction: .north) == room2)
-        #expect(room2.getExit(direction: .south) == room1)
+        #expect(room1.getExit(direction: .north) === room2)
+        #expect(room2.getExit(direction: .south) === room1)
         #expect(room1.getExit(direction: .east) == nil)
     }
 
@@ -80,7 +80,7 @@ struct GameModelTests {
         let parser = CommandParser(world: world)
 
         // Test examining "it"
-        if case let .examine(obj) = parser.parse("examine it") {
+        if case let .examine(obj, _) = parser.parse("examine it") {
             #expect(obj === obj1)
         } else {
             throw TestFailure("Expected examine command for 'it'")
@@ -97,7 +97,7 @@ struct GameModelTests {
         world.lastMentionedObject = obj2
 
         // Test examining "it" again
-        if case let .examine(obj) = parser.parse("examine it") {
+        if case let .examine(obj, _) = parser.parse("examine it") {
             #expect(obj === obj2)
         } else {
             throw TestFailure("Expected examine command for 'it'")
@@ -126,18 +126,16 @@ struct GameModelTests {
         #expect(!box.hasFlag(.isOpen))
 
         // Test opening
-        let openResult = box.open()
-        #expect(openResult)
+        box.setFlag(.isOpen)
         #expect(box.hasFlag(.isOpen))
 
         // Test closing
-        let closeResult = box.close()
-        #expect(closeResult)
+        box.clearFlag(.isOpen)
         #expect(!box.hasFlag(.isOpen))
 
         // Test visibility of contents
         #expect(!box.hasFlag(.isTransparent))
-        box.open()
+        box.setFlag(.isOpen)
         #expect(box.hasFlag(.isTransparent))
 
         // Test with transparent container
@@ -174,7 +172,7 @@ struct GameModelTests {
         }
 
         // Test with a closed box
-        box.clearFlag("open")
+        box.clearFlag(.isOpen)
 
         if case let .unknown(message) = parser.parse("take coin") {
             #expect(message.contains("I don't see"))

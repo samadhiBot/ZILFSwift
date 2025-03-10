@@ -30,7 +30,7 @@ The ZILFSwift engine includes a comprehensive lighting system that models how li
 ```swift
 // Create a lit room (e.g., outdoors)
 let garden = Room(name: "Garden", description: "A beautiful garden")
-garden.makeNaturallyLit()  // Always lit, no light source needed
+garden.setFlag(.isNaturallyLit)  // Always lit, no light source needed
 
 // Create a dark room (e.g., cellar)
 let cellar = Room(name: "Cellar", description: "A dark cellar")
