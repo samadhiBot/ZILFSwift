@@ -143,7 +143,7 @@ extension Room {
         }
 
         // Get the main description based on lighting and visit count
-        return getCurrentDescription(visitCount: visitCount + 1, isLit: isLit)
+        return getCurrentDescription(visitCount: visitCount + 1, isLit: isLit())
     }
 
     /// Get a full description of the room including contents and exits
@@ -153,7 +153,7 @@ extension Room {
         var result = getRoomDescription(in: world)
 
         // If the room is dark, don't show contents or exits
-        if isLit {
+        if isLit() {
             return result
         }
 

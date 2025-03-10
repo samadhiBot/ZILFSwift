@@ -219,28 +219,22 @@ struct CommandParserTests {
         )
 
         // Test flip command
-        if case let .customCommand(verb, objects, _) = parser.parse("flip lamp") {
-            #expect(verb == "flip")
-            #expect(objects.count == 1)
-            #expect(objects[0] === lamp)
+        if case let .flip(parsedLamp) = parser.parse("flip lamp") {
+            #expect(parsedLamp === lamp)
         } else {
             throw TestFailure("Expected flip command")
         }
 
         // Test switch command
-        if case let .customCommand(verb, objects, _) = parser.parse("switch lamp") {
-            #expect(verb == "flip")
-            #expect(objects.count == 1)
-            #expect(objects[0] === lamp)
+        if case let .flip(parsedLamp) = parser.parse("switch lamp") {
+            #expect(parsedLamp === lamp)
         } else {
             throw TestFailure("Expected flip command")
         }
 
         // Test toggle command
-        if case let .customCommand(verb, objects, _) = parser.parse("toggle lamp") {
-            #expect(verb == "flip")
-            #expect(objects.count == 1)
-            #expect(objects[0] === lamp)
+        if case let .flip(parsedLamp) = parser.parse("toggle lamp") {
+            #expect(parsedLamp === lamp)
         } else {
             throw TestFailure("Expected flip command")
         }
@@ -337,28 +331,89 @@ struct CommandParserTests {
         }
     }
 
-    @Test func metaCommandsSyntax() throws {
+    @Test func metaAgainCommandsSyntax() throws {
         let (_, parser, _, _, _) = try setupTestWorld()
 
-        // Test various meta commands
-        let metaCommands = [
-            "again", "g", "wait", "z", "version", "save", "restore",
-            "restart", "undo", "brief", "verbose", "superbrief",
-        ]
+        guard case .again = parser.parse("again") else {
+            throw TestFailure("Failed to parse `again`")
+        }
+        guard case .again = parser.parse("g") else {
+            throw TestFailure("Failed to parse `again` from `g`")
+        }
+    }
 
-        for command in metaCommands {
-            if case let .customCommand(verb, objects, _) = parser.parse(command) {
-                if command == "g" {
-                    #expect(verb == "again")
-                } else if command == "z" {
-                    #expect(verb == "wait")
-                } else {
-                    #expect(verb == command)
-                }
-                #expect(objects.isEmpty)
-            } else {
-                throw TestFailure("Expected custom command for '\(command)'")
-            }
+    @Test func metaBriefCommandsSyntax() throws {
+        let (_, parser, _, _, _) = try setupTestWorld()
+
+        guard case .brief = parser.parse("brief") else {
+            throw TestFailure("Failed to parse `brief`")
+        }
+    }
+
+    @Test func metaRestartCommandsSyntax() throws {
+        let (_, parser, _, _, _) = try setupTestWorld()
+
+        guard case .restart = parser.parse("restart") else {
+            throw TestFailure("Failed to parse `restart`")
+        }
+    }
+
+    @Test func metaRestoreCommandsSyntax() throws {
+        let (_, parser, _, _, _) = try setupTestWorld()
+
+        guard case .restore = parser.parse("restore") else {
+            throw TestFailure("Failed to parse `restore`")
+        }
+    }
+
+    @Test func metaSaveCommandsSyntax() throws {
+        let (_, parser, _, _, _) = try setupTestWorld()
+
+        guard case .save = parser.parse("save") else {
+            throw TestFailure("Failed to parse `save`")
+        }
+    }
+
+    @Test func metaSuperbriefCommandsSyntax() throws {
+        let (_, parser, _, _, _) = try setupTestWorld()
+
+        guard case .superbrief = parser.parse("superbrief") else {
+            throw TestFailure("Failed to parse `superbrief`")
+        }
+    }
+
+    @Test func metaUndoCommandsSyntax() throws {
+        let (_, parser, _, _, _) = try setupTestWorld()
+
+        guard case .undo = parser.parse("undo") else {
+            throw TestFailure("Failed to parse `undo`")
+        }
+    }
+
+    @Test func metaVerboseCommandsSyntax() throws {
+        let (_, parser, _, _, _) = try setupTestWorld()
+
+        guard case .verbose = parser.parse("verbose") else {
+            throw TestFailure("Failed to parse `verbose`")
+        }
+    }
+
+    @Test func metaVersionCommandsSyntax() throws {
+        let (_, parser, _, _, _) = try setupTestWorld()
+
+        guard case .version = parser.parse("version") else {
+            throw TestFailure("Failed to parse `version`")
+        }
+    }
+
+    @Test func metaWaitCommandsSyntax() throws {
+        let (_, parser, _, _, _) = try setupTestWorld()
+
+        guard case .wait = parser.parse("wait") else {
+            throw TestFailure("Failed to parse `wait`")
+        }
+        guard case .wait = parser.parse("z") else {
+            throw TestFailure("Failed to parse `wait` from `z`")
         }
     }
 
@@ -374,14 +429,14 @@ struct CommandParserTests {
         )
 
         // Test basic open command
-        if case let .open(obj) = parser.parse("open box") {
+        if case let .open(obj, _) = parser.parse("open box") {
             #expect(obj === box)
         } else {
             throw TestFailure("Expected open command")
         }
 
         // Test with article
-        if case let .open(obj) = parser.parse("open the box") {
+        if case let .open(obj, _) = parser.parse("open the box") {
             #expect(obj === box)
         } else {
             throw TestFailure("Expected open command")
@@ -427,21 +482,17 @@ struct CommandParserTests {
         )
 
         // Test "put X in Y"
-        if case let .customCommand(verb, objects, _) = parser.parse("put apple in box") {
-            #expect(verb == "put-in")
-            #expect(objects.count == 2)
-            #expect(objects[0] === apple)
-            #expect(objects[1] === box)
+        if case let .putIn(parsedApple, container: parsedBox) = parser.parse("put apple in box") {
+            #expect(parsedApple === apple)
+            #expect(parsedBox === box)
         } else {
             throw TestFailure("Expected put-in command")
         }
 
         // Test "put X on Y"
-        if case let .customCommand(verb, objects, _) = parser.parse("put apple on table") {
-            #expect(verb == "put-on")
-            #expect(objects.count == 2)
-            #expect(objects[0] === apple)
-            #expect(objects[1] === table)
+        if case let .putOn(parsedApple, surface: parsedTable) = parser.parse("put apple on table") {
+            #expect(parsedApple === apple)
+            #expect(parsedTable === table)
         } else {
             throw TestFailure("Expected put-on command")
         }
@@ -502,19 +553,15 @@ struct CommandParserTests {
         )
 
         // Test read command
-        if case let .customCommand(verb, objects, _) = parser.parse("read book") {
-            #expect(verb == "read")
-            #expect(objects.count == 1)
-            #expect(objects[0] === book)
+        if case let .read(parsedBook, with: _) = parser.parse("read book") {
+            #expect(parsedBook === book)
         } else {
             throw TestFailure("Expected read command")
         }
 
         // Test peruse command
-        if case let .customCommand(verb, objects, _) = parser.parse("peruse book") {
-            #expect(verb == "read")
-            #expect(objects.count == 1)
-            #expect(objects[0] === book)
+        if case let .read(parsedBook, with: _) = parser.parse("peruse book") {
+            #expect(parsedBook === book)
         } else {
             throw TestFailure("Expected read command")
         }
@@ -552,28 +599,22 @@ struct CommandParserTests {
         )
 
         // Test "remove hat" command
-        if case let .customCommand(verb, objects, _) = parser.parse("remove hat") {
-            #expect(verb == "unwear")
-            #expect(objects.count == 1)
-            #expect(objects[0] === hat)
+        if case let .unwear(parsedHat) = parser.parse("remove hat") {
+            #expect(parsedHat === hat)
         } else {
             throw TestFailure("Expected unwear command")
         }
 
         // Test "doff hat" command
-        if case let .customCommand(verb, objects, _) = parser.parse("doff hat") {
-            #expect(verb == "unwear")
-            #expect(objects.count == 1)
-            #expect(objects[0] === hat)
+        if case let .unwear(parsedHat) = parser.parse("doff hat") {
+            #expect(parsedHat === hat)
         } else {
             throw TestFailure("Expected unwear command")
         }
 
         // Test with article
-        if case let .customCommand(verb, objects, _) = parser.parse("remove the hat") {
-            #expect(verb == "unwear")
-            #expect(objects.count == 1)
-            #expect(objects[0] === hat)
+        if case let .unwear(parsedHat) = parser.parse("remove the hat") {
+            #expect(parsedHat === hat)
         } else {
             throw TestFailure("Expected unwear command")
         }
@@ -653,28 +694,22 @@ struct CommandParserTests {
         )
 
         // Test basic "take off hat" command
-        if case let .customCommand(verb, objects, _) = parser.parse("take off hat") {
-            #expect(verb == "unwear")
-            #expect(objects.count == 1)
-            #expect(objects[0] === hat)
+        if case let .unwear(parsedHat) = parser.parse("take off hat") {
+            #expect(parsedHat === hat)
         } else {
             throw TestFailure("Expected unwear command")
         }
 
         // Test with article "take off the hat"
-        if case let .customCommand(verb, objects, _) = parser.parse("take off the hat") {
-            #expect(verb == "unwear")
-            #expect(objects.count == 1)
-            #expect(objects[0] === hat)
+        if case let .unwear(parsedHat) = parser.parse("take off the hat") {
+            #expect(parsedHat === hat)
         } else {
             throw TestFailure("Expected unwear command")
         }
 
         // Test with alternative phrasing "take the hat off"
-        if case let .customCommand(verb, objects, _) = parser.parse("take the hat off") {
-            #expect(verb == "unwear")
-            #expect(objects.count == 1)
-            #expect(objects[0] === hat)
+        if case let .unwear(parsedHat) = parser.parse("take the hat off") {
+            #expect(parsedHat === hat)
         } else {
             throw TestFailure("Expected unwear command for 'take the hat off'")
         }
@@ -709,19 +744,15 @@ struct CommandParserTests {
 
         // This test specifically verifies that "take off hat" doesn't get
         // interpreted as a regular take command
-        if case let .customCommand(verb, objects, _) = parser.parse("take off hat") {
-            #expect(verb == "unwear")
-            #expect(objects.count == 1)
-            #expect(objects[0] === hat)
+        if case let .unwear(parsedHat) = parser.parse("take off hat") {
+            #expect(parsedHat === hat)
         } else {
             throw TestFailure("'take off hat' was incorrectly interpreted: expected unwear command")
         }
 
         // Test with more natural phrasing
-        if case let .customCommand(verb, objects, _) = parser.parse("take the hat off") {
-            #expect(verb == "unwear")
-            #expect(objects.count == 1)
-            #expect(objects[0] === hat)
+        if case let .unwear(parsedHat) = parser.parse("take the hat off") {
+            #expect(parsedHat === hat)
         } else {
             throw TestFailure(
                 "'take the hat off' was incorrectly interpreted: expected unwear command")
@@ -755,34 +786,28 @@ struct CommandParserTests {
         )
 
         // Test turn on command
-        if case let .customCommand(verb, objects, _) = parser.parse("turn on lamp") {
-            #expect(verb == "turn_on")
-            #expect(objects.count == 1)
-            #expect(objects[0] === lamp)
+        if case let .turnOn(parsedLamp) = parser.parse("turn on lamp") {
+            #expect(parsedLamp === lamp)
         } else {
             throw TestFailure("Expected turn_on command")
         }
 
         // Test turn off command
-        if case let .customCommand(verb, objects, _) = parser.parse("turn off lamp") {
-            #expect(verb == "turn_off")
-            #expect(objects.count == 1)
-            #expect(objects[0] === lamp)
+        if case let .turnOff(parsedLamp) = parser.parse("turn off lamp") {
+            #expect(parsedLamp === lamp)
         } else {
             throw TestFailure("Expected turn_off command")
         }
 
         // Test with article
-        if case let .customCommand(verb, objects, _) = parser.parse("turn on the lamp") {
-            #expect(verb == "turn_on")
-            #expect(objects.count == 1)
-            #expect(objects[0] === lamp)
+        if case let .turnOn(parsedLamp) = parser.parse("turn on the lamp") {
+            #expect(parsedLamp === lamp)
         } else {
             throw TestFailure("Expected turn_on command")
         }
 
         // Test with non-device item
-        let book = GameObject(
+        _ = GameObject(
             name: "book",
             description: "A heavy book",
             location: world.player.currentRoom
@@ -838,37 +863,29 @@ struct CommandParserTests {
         )
 
         // Test "wear coat" command
-        if case let .customCommand(verb, objects, _) = parser.parse("wear coat") {
-            #expect(verb == "wear")
-            #expect(objects.count == 1)
-            #expect(objects[0] === coat)
+        if case let .wear(parsedCoat) = parser.parse("wear coat") {
+            #expect(parsedCoat === coat)
         } else {
             throw TestFailure("Expected wear command")
         }
 
         // Test "don coat" synonym
-        if case let .customCommand(verb, objects, _) = parser.parse("don coat") {
-            #expect(verb == "wear")
-            #expect(objects.count == 1)
-            #expect(objects[0] === coat)
+        if case let .wear(parsedCoat) = parser.parse("don coat") {
+            #expect(parsedCoat === coat)
         } else {
             throw TestFailure("Expected wear command")
         }
 
         // Test "put on coat" command
-        if case let .customCommand(verb, objects, _) = parser.parse("put on coat") {
-            #expect(verb == "wear")
-            #expect(objects.count == 1)
-            #expect(objects[0] === coat)
+        if case let .wear(parsedCoat) = parser.parse("put on coat") {
+            #expect(parsedCoat === coat)
         } else {
             throw TestFailure("Expected wear command")
         }
 
         // Test "put coat on" command
-        if case let .customCommand(verb, objects, _) = parser.parse("put coat on") {
-            #expect(verb == "wear")
-            #expect(objects.count == 1)
-            #expect(objects[0] === coat)
+        if case let .wear(parsedCoat) = parser.parse("put coat on") {
+            #expect(parsedCoat === coat)
         } else {
             throw TestFailure("Expected wear command")
         }

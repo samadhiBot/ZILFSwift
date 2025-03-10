@@ -102,6 +102,13 @@ public class GameObject {
         return false
     }
 
+    /// Checks whether the room is currently lit.
+    ///
+    /// - Returns: Whether the room is currently lit.
+    public func isLit() -> Bool {
+        hasFlags(.isLightSource, .isOn) || hasFlag(.isNaturallyLit)
+    }
+
     /// Adds this object to a container.
     ///
     /// - Parameter destination: The new location for this object.

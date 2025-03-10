@@ -54,11 +54,6 @@ public class Room: GameObject {
     /// - Returns: `true` if the action produced a description (prevents default description).
     public var lookAction: ((Room) -> Bool)?
     
-    /// Whether the room is currently lit.
-    public var isLit: Bool {
-        hasFlag(.isOn) || hasFlag(.isNaturallyLit)
-    }
-
     /// Executes the begin-command action for this room.
     /// - Parameter command: The command to process.
     /// - Returns: `true` if the action handled the command.
