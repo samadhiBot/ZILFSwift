@@ -60,39 +60,47 @@ struct HelloWorldGame {
 
         // Create objects
         let lantern = GameObject(
-            name: "lantern", description: "A brass lantern that provides warm light.",
-            location: entrance)
-        lantern.setFlag("takeable")
+            name: "lantern",
+            description: "A brass lantern that provides warm light.",
+            location: entrance,
+            flags: [.isTakable]
+        )
         lantern.makeLightSource(initiallyLit: false)
 
         let coin = GameObject(
-            name: "gold coin", description: "A shiny gold coin with strange markings.",
-            location: mainCavern)
-        coin.setFlag("takeable")
+            name: "gold coin",
+            description: "A shiny gold coin with strange markings.",
+            location: mainCavern,
+            flags: [.isTakable]
+        )
 
         let chest = GameObject(
-            name: "treasure chest", description: "An ornate wooden chest with intricate carvings.",
-            location: treasureRoom)
-        chest.setFlag("container")
-        chest.setFlag("openable")
+            name: "treasure chest",
+            description: "An ornate wooden chest with intricate carvings.",
+            location: treasureRoom,
+            flags: [.isContainer, .isOpenable]
+        )
         // Chest is not takeable
 
         // Maybe add a treasure inside the chest
         let treasure = GameObject(
             name: "golden amulet",
             description: "An exquisite golden amulet that gleams with an inner light.",
-            location: chest)
-        treasure.setFlag("takeable")
+            location: chest,
+            flags: [.isTakable]
+        )
         treasure.makeLightSource(initiallyLit: true)
 
         // Make sure to close the chest
-        chest.clearFlag("open")
+        chest.clearFlag(.isOpen)
 
         // Create a key for the vault
         let ancientKey = GameObject(
-            name: "ancient key", description: "A weathered bronze key with strange symbols.",
-            location: secretRoom)
-        ancientKey.setFlag("takeable")
+            name: "ancient key",
+            description: "A weathered bronze key with strange symbols.",
+            location: secretRoom,
+            flags: [.isTakable, .isTool]
+        )
 
         world.register(lantern)
         world.register(coin)
@@ -150,7 +158,7 @@ struct HelloWorldGame {
         let treasureBeginCommandAction = RoomActionPatterns.commandInterceptor(
             handlers: [
                 "examine": { command in
-                    if case .examine(let obj) = command, obj === treasureRoom {
+                    if case .examine(let obj, _) = command, obj === treasureRoom {
                         treasureExamined = true
                         print(
                             "You carefully examine the walls of the treasure room and notice subtle markings that suggest a hidden passage somewhere in the floor."
@@ -217,6 +225,73 @@ struct HelloWorldGame {
 
         // Register the new room
         world.register(room: pitRoom)
+
+        // Create a magnifying glass for examining small details
+        let magnifyingGlass = GameObject(
+            name: "magnifying glass",
+            description: "A magnifying glass with an ornate bronze handle.",
+            location: entrance,
+            flags: [.isTakable, .isTool]
+        )
+
+        // When examining the coin with the magnifying glass, reveal extra details
+        coin.setCommandHandler { obj, command in
+            if case .examine(let target, let tool) = command,
+               target === coin,
+               tool?.name == "magnifying glass" {
+                print("Using the magnifying glass, you can see tiny inscriptions on the coin that tell the story of an ancient civilization that once inhabited this cave.")
+                return true
+            }
+            return false
+        }
+
+        // Create a small dagger to demonstrate attack with tool
+        let dagger = GameObject(
+            name: "dagger",
+            description: "A small but sharp dagger with a jeweled hilt.",
+            location: mainCavern,
+            flags: [.isTakable, .isWeapon, .isTool]
+        )
+
+        // Create a locked box that needs to be broken open
+        let lockedBox = GameObject(
+            name: "locked box",
+            description: "A small iron box with no visible keyhole. It seems to be sealed shut.",
+            location: treasureRoom,
+            flags: [.isContainer, .isLocked]
+        )
+
+        // The box can be attacked with the dagger to open it
+        lockedBox.setCommandHandler { obj, command in
+            if case .attack(let target, let weapon) = command,
+               target === lockedBox {
+                if weapon?.name == "dagger" {
+                    print("You use the dagger to pry open the locked box. The lid pops open with a satisfying crack!")
+                    lockedBox.clearFlag(.isLocked)
+                    lockedBox.setFlag(.isOpen)
+                    lockedBox.setFlag(.isOpenable) // Now it can be opened and closed normally
+                    return true
+                } else {
+                    print("You need something sharp to break open this box.")
+                    return true
+                }
+            }
+            return false
+        }
+
+        // Add a small gem inside the locked box
+        let gem = GameObject(
+            name: "sparkling gem",
+            description: "A brilliant blue gem that seems to capture the light.",
+            location: lockedBox,
+            flags: [.isTakable]
+        )
+
+        // Add the new objects to the world
+        world.register(magnifyingGlass)
+        world.register(dagger)
+        world.register(lockedBox)
+        world.register(gem)
 
         return world
     }

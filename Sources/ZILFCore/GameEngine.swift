@@ -150,16 +150,16 @@ public class GameEngine {
                 outputHandler("Drop what?")
             }
 
-        case .examine(let obj):
+        case .examine(let obj, let tool):
             if let obj = obj {
-                handleExamine(obj)
+                handleExamine(obj, with: tool)
             } else {
                 outputHandler("Examine what?")
             }
 
-        case .open(let obj):
+        case .open(let obj, let tool):
             if let obj = obj {
-                handleOpen(obj)
+                handleOpen(obj, with: tool)
             } else {
                 outputHandler("Open what?")
             }
@@ -232,23 +232,23 @@ public class GameEngine {
         case .again:
             handleAgain()
 
-        case .read(let obj):
+        case .read(let obj, let tool):
             if let obj = obj {
-                handleRead(obj)
+                handleRead(obj, with: tool)
             } else {
                 outputHandler("Read what?")
             }
 
-        case .attack(let obj):
+        case .attack(let obj, let tool):
             if let obj = obj {
-                handleAttack(obj)
+                handleAttack(obj, with: tool)
             } else {
                 outputHandler("Attack what?")
             }
 
-        case .burn(let obj):
+        case .burn(let obj, let tool):
             if let obj = obj {
-                handleBurn(obj)
+                handleBurn(obj, with: tool)
             } else {
                 outputHandler("Burn what?")
             }
@@ -323,9 +323,9 @@ public class GameEngine {
                 outputHandler("Remove what?")
             }
 
-        case .rub(let obj):
+        case .rub(let obj, let tool):
             if let obj = obj {
-                handleRub(obj)
+                handleRub(obj, with: tool)
             } else {
                 outputHandler("Rub what?")
             }
@@ -454,11 +454,6 @@ public class GameEngine {
             if isGameOver {
                 return false
             }
-
-            // Advance time after each command (except game verbs)
-            if !isGameVerb(getVerbForCommand(command)) {
-                advanceTime()
-            }
         }
 
         return isRunning && !isGameOver
@@ -484,20 +479,7 @@ public class GameEngine {
         // Prompt for restart or quit
         outputHandler("\nWould you like to RESTART or QUIT?")
 
-        // Handle the player's choice
-        while isGameOver && isRunning {
-            print("> ", terminator: "")  // Use print directly with terminator to fix cursor position
-            guard let input = readLine()?.lowercased() else { continue }
-
-            switch input {
-            case "restart":
-                handleRestart()
-            case "quit":
-                handleQuit()
-            default:
-                outputHandler("Please type RESTART or QUIT.")
-            }
-        }
+        // Handle the player's choice will be managed separately in the game loop
     }
 
     /// Check if a character is in a dangerous situation that could lead to death
@@ -563,11 +545,6 @@ public class GameEngine {
 
             let command = parser.parse(input)
             executeCommand(command)
-
-            // Advance time after each command (except game verbs)
-            if !isGameVerb(getVerbForCommand(command)) {
-                advanceTime()
-            }
         }
     }
 
@@ -638,22 +615,40 @@ public class GameEngine {
     }
 
     /// Handle the ATTACK command
-    private func handleAttack(_ obj: GameObject) {
+    ///
+    /// - Parameters:
+    ///   - obj: The object to be attacked
+    ///   - tool: The tool to attack with (optional)
+    private func handleAttack(_ obj: GameObject, with tool: GameObject?) {
         // Check if the object is accessible
         if !isObjectAccessibleForExamine(obj) {
             outputHandler("You don't see that here.")
             return
         }
 
+        // Check if the tool is accessible
+        if let tool = tool, !isObjectAccessibleForExamine(tool) {
+            outputHandler("You don't have the \(tool.name).")
+            return
+        }
+
         // Check if the object has a custom handler for this command
-        if obj.processCommand(.attack(obj)) {
+        if obj.processCommand(.attack(obj, with: tool)) {
             // The object handled the attack command
             return
         }
 
         // Default behavior
         if obj.hasFlag(.isAttackable) {
-            outputHandler("You attack the \(obj.name), but nothing happens.")
+            if let tool = tool {
+                if tool.hasFlag(.isWeapon) {
+                    outputHandler("You attack the \(obj.name) with the \(tool.name), but nothing happens.")
+                } else {
+                    outputHandler("The \(tool.name) isn't an effective weapon.")
+                }
+            } else {
+                outputHandler("You attack the \(obj.name), but nothing happens.")
+            }
         } else {
             outputHandler("That wouldn't be helpful.")
         }
@@ -663,26 +658,43 @@ public class GameEngine {
     }
 
     /// Handle the BURN command
-    private func handleBurn(_ obj: GameObject) {
+    ///
+    /// - Parameters:
+    ///   - obj: The object to be burned
+    ///   - tool: The tool to burn with (optional)
+    private func handleBurn(_ obj: GameObject, with tool: GameObject?) {
         // Check if the object is accessible
         if !isObjectAccessibleForExamine(obj) {
             outputHandler("You don't see that here.")
             return
         }
 
+        // Check if the tool is accessible
+        if let tool = tool, !isObjectAccessibleForExamine(tool) {
+            outputHandler("You don't have the \(tool.name).")
+            return
+        }
+
         // Check if the object has a custom handler for this command
-        if obj.processCommand(.burn(obj)) {
+        if obj.processCommand(.burn(obj, with: tool)) {
             // The object handled the burn command
             return
         }
 
         // Default behavior
         if obj.hasFlag(.isBurnable) {
-            // Check if player has a light source
-            let hasLightSource = world.player.inventory.contains { $0.hasFlags(.isLightSource, .isFlammable) }
+            let hasValidTool = tool?.hasFlag(.isFlammable) ?? false
 
-            if hasLightSource {
-                outputHandler("You burn the \(obj.name).")
+            // Check if player has a light source if no tool is provided
+            let hasLightSource = tool?.hasFlag(.isFlammable) ??
+                world.player.inventory.contains { $0.hasFlags(.isLightSource, .isFlammable) }
+
+            if hasValidTool || hasLightSource {
+                if let tool = tool {
+                    outputHandler("You burn the \(obj.name) with the \(tool.name).")
+                } else {
+                    outputHandler("You burn the \(obj.name).")
+                }
                 // Implement burning behavior (e.g., destroy object, transform it)
             } else {
                 outputHandler("You don't have anything to light it with.")
@@ -912,22 +924,47 @@ public class GameEngine {
 
     /// Handle the EXAMINE command
     ///
-    /// - Parameter obj: The object to be examined
-    private func handleExamine(_ obj: GameObject) {
+    /// - Parameters:
+    ///   - obj: The object to be examined
+    ///   - tool: Optional tool to examine with (like a magnifying glass)
+    private func handleExamine(_ obj: GameObject, with tool: GameObject?) {
         // Check if the object is accessible
         if !isObjectAccessibleForExamine(obj) {
             outputHandler("You don't see that here.")
             return
         }
 
+        // Check if the tool is accessible
+        if let tool = tool, !isObjectAccessibleForExamine(tool) {
+            outputHandler("You don't have the \(tool.name).")
+            return
+        }
+
         // Check if the object has a custom handler for this command
-        if obj.processCommand(.examine(obj)) {
+        if obj.processCommand(.examine(obj, with: tool)) {
             // The object handled the examine command
             return
         }
 
         // Default behavior: Show the object's description
         outputHandler(obj.description)
+
+        // If examining with a tool, potentially provide additional details
+        if let tool = tool {
+            // Check if this is a special examination tool (e.g., magnifying glass)
+            let isExaminationTool: Bool = tool.getState(forKey: "is_examination_tool") ?? false
+
+            if isExaminationTool {
+                // Get special examination text if available
+                if let detailedText: String = obj.getState(forKey: "detailed_description") {
+                    outputHandler("Using the \(tool.name), you can see: \(detailedText)")
+                } else {
+                    outputHandler("You examine the \(obj.name) carefully with the \(tool.name), but notice nothing special.")
+                }
+            } else {
+                outputHandler("The \(tool.name) doesn't help you examine the \(obj.name) any better.")
+            }
+        }
 
         // If this is a container, also describe contents if it's open or transparent
         if obj.hasFlag(.isContainer) && (obj.hasFlag(.isOpen) || obj.hasFlag(.isTransparent)) {
@@ -1045,7 +1082,7 @@ public class GameEngine {
         }
 
         // Check if the recipient has a custom handler for this command
-        if recipient.processCommand(.give(item: item, recipient: recipient)) {
+        if recipient.processCommand(.give(item, to: recipient)) {
             // The recipient handled the give command
             return
         }
@@ -1060,417 +1097,6 @@ public class GameEngine {
 
         // Update last mentioned object
         world.lastMentionedObject = item
-    }
-
-    // MARK: - Public Methods
-
-    /// Executes a single game command
-    ///
-    /// - Parameter command: The command to execute
-    public func executeCommand(_ command: Command) {
-        // Don't process commands if game is over
-        if isGameOver {
-            return
-        }
-
-        // Store the command for potential "again" (g) command
-        if getVerbForCommand(command) != "again" {
-            lastCommand = command
-        }
-
-        // If we're in a dark room, only allow certain commands
-        guard let currentRoom = world.player.currentRoom else {
-            outputHandler("Error: Player has no current room!")
-            return
-        }
-
-        let isRoomDark = !world.isRoomLit(currentRoom)
-
-        if isRoomDark {
-            // Check if the current room has a handler for this command
-            if let beginCommandAction = currentRoom.beginCommandAction,
-               beginCommandAction(currentRoom, command)
-            {
-                // The room's custom action handled the command
-                advanceTime()
-                return
-            }
-
-            // Commands allowed in darkness
-            switch command {
-            case .look, .inventory, .quit, .take, .drop, .move:
-                // These commands are allowed in darkness
-                break
-            case .custom(let words) where words.count > 1:
-                // Allow certain custom commands in darkness
-                if words[0] == "wait" || words[0] == "again" || words[0] == "version" || words[0] == "save"
-                    || words[0] == "restore" || words[0] == "restart" || words[0] == "undo" || words[0] == "brief"
-                    || words[0] == "verbose" || words[0] == "superbrief"
-                {
-                    break
-                } else {
-                    outputHandler("It's too dark to see.")
-                    return
-                }
-            case .wait, .again, .version, .save, .restore, .restart, .undo, .brief, .verbose, .superbrief:
-                // These meta commands are allowed in darkness
-                break
-            default:
-                outputHandler("It's too dark to see.")
-                return
-            }
-        }
-
-        // Check if the current room has a handler for this command
-        if let beginCommandAction = currentRoom.beginCommandAction,
-           beginCommandAction(currentRoom, command)
-        {
-            // The room's custom action handled the command
-            advanceTime()
-            return
-        }
-
-        // Process the command with default handling
-        switch command {
-        case .look:
-            handleLook()
-
-        case .inventory:
-            handleInventory()
-
-        case .move(let direction):
-            if let direction = direction {
-                handleMove(direction: direction)
-            } else {
-                outputHandler("Which way do you want to go?")
-            }
-
-        case .take(let obj):
-            if let obj = obj {
-                handleTake(obj)
-            } else {
-                outputHandler("Take what?")
-            }
-
-        case .drop(let obj):
-            if let obj = obj {
-                handleDrop(obj)
-            } else {
-                outputHandler("Drop what?")
-            }
-
-        case .examine(let obj):
-            if let obj = obj {
-                handleExamine(obj)
-            } else {
-                outputHandler("Examine what?")
-            }
-
-        case .open(let obj):
-            if let obj = obj {
-                handleOpen(obj)
-            } else {
-                outputHandler("Open what?")
-            }
-
-        case .close(let obj):
-            if let obj = obj {
-                handleClose(obj)
-            } else {
-                outputHandler("Close what?")
-            }
-
-        case .quit:
-            handleQuit()
-
-        case .unknown(let message):
-            outputHandler(message)
-
-        case .wear(let obj):
-            if let obj = obj {
-                handleWear(obj)
-            } else {
-                outputHandler("Wear what?")
-            }
-
-        case .unwear(let obj):
-            if let obj = obj {
-                handleUnwear(obj)
-            } else {
-                outputHandler("Take off what?")
-            }
-
-        case .putIn(let item, let container):
-            if let item = item, let container = container {
-                handlePutIn(item, container: container)
-            } else {
-                outputHandler("You need to specify what to put where.")
-            }
-
-        case .putOn(let item, let surface):
-            if let item = item, let surface = surface {
-                handlePutOn(item, surface: surface)
-            } else {
-                outputHandler("You need to specify what to put where.")
-            }
-
-        case .turnOn(let obj):
-            if let obj = obj {
-                handleTurnOn(obj)
-            } else {
-                outputHandler("Turn on what?")
-            }
-
-        case .turnOff(let obj):
-            if let obj = obj {
-                handleTurnOff(obj)
-            } else {
-                outputHandler("Turn off what?")
-            }
-
-        case .flip(let obj):
-            if let obj = obj {
-                handleFlip(obj)
-            } else {
-                outputHandler("Flip what?")
-            }
-
-        case .wait:
-            handleWait()
-
-        case .again:
-            handleAgain()
-
-        case .read(let obj):
-            if let obj = obj {
-                handleRead(obj)
-            } else {
-                outputHandler("Read what?")
-            }
-
-        case .attack(let obj):
-            if let obj = obj {
-                handleAttack(obj)
-            } else {
-                outputHandler("Attack what?")
-            }
-
-        case .burn(let obj):
-            if let obj = obj {
-                handleBurn(obj)
-            } else {
-                outputHandler("Burn what?")
-            }
-
-        case .climb(let obj):
-            if let obj = obj {
-                handleClimb(obj)
-            } else {
-                outputHandler("Climb what?")
-            }
-
-        case .drink(let obj):
-            if let obj = obj {
-                handleDrink(obj)
-            } else {
-                outputHandler("Drink what?")
-            }
-
-        case .eat(let obj):
-            if let obj = obj {
-                handleEat(obj)
-            } else {
-                outputHandler("Eat what?")
-            }
-
-        case .empty(let obj):
-            if let obj = obj {
-                handleEmpty(obj)
-            } else {
-                outputHandler("Empty what?")
-            }
-
-        case .fill(let obj):
-            if let obj = obj {
-                handleFill(obj)
-            } else {
-                outputHandler("Fill what?")
-            }
-
-        case .lock(let obj, let tool):
-            if let obj = obj {
-                handleLock(obj, with: tool)
-            } else {
-                outputHandler("Lock what?")
-            }
-
-        case .lookUnder(let obj):
-            if let obj = obj {
-                handleLookUnder(obj)
-            } else {
-                outputHandler("Look under what?")
-            }
-
-        case .pull(let obj):
-            if let obj = obj {
-                handlePull(obj)
-            } else {
-                outputHandler("Pull what?")
-            }
-
-        case .push(let obj):
-            if let obj = obj {
-                handlePush(obj)
-            } else {
-                outputHandler("Push what?")
-            }
-
-        case .remove(let obj):
-            if let obj = obj {
-                handleRemove(obj)
-            } else {
-                outputHandler("Remove what?")
-            }
-
-        case .rub(let obj):
-            if let obj = obj {
-                handleRub(obj)
-            } else {
-                outputHandler("Rub what?")
-            }
-
-        case .search(let obj):
-            if let obj = obj {
-                handleSearch(obj)
-            } else {
-                outputHandler("Search what?")
-            }
-
-        case .smell(let obj):
-            if let obj = obj {
-                handleSmell(obj)
-            } else {
-                outputHandler("Smell what?")
-            }
-
-        case .thinkAbout(let obj):
-            if let obj = obj {
-                handleThinkAbout(obj)
-            } else {
-                outputHandler("Think about what?")
-            }
-
-        case .throwAt(let item, let target):
-            if let item = item, let target = target {
-                handleThrowAt(item, target: target)
-            } else {
-                outputHandler("You need to specify what to throw and at what.")
-            }
-
-        case .unlock(let obj, let tool):
-            if let obj = obj {
-                handleUnlock(obj, with: tool)
-            } else {
-                outputHandler("Unlock what?")
-            }
-
-        case .wake(let obj):
-            if let obj = obj {
-                handleWake(obj)
-            } else {
-                outputHandler("Wake whom?")
-            }
-
-        case .wave(let obj):
-            if let obj = obj {
-                handleWave(obj)
-            } else {
-                outputHandler("Wave what?")
-            }
-
-        case .give(let item, let recipient):
-            if let item = item, let recipient = recipient {
-                handleGive(item, to: recipient)
-            } else {
-                outputHandler("You need to specify what to give and to whom.")
-            }
-
-        case .tell(let person, let topic):
-            if let person = person, let topic = topic {
-                handleTell(person, about: topic)
-            } else {
-                outputHandler("You need to specify whom to tell and about what.")
-            }
-
-        case .dance:
-            handleDance()
-
-        case .jump:
-            handleJump()
-
-        case .no:
-            handleNo()
-
-        case .pronouns:
-            handlePronouns()
-
-        case .sing:
-            handleSing()
-
-        case .swim:
-            handleSwim()
-
-        case .waveHands:
-            handleWaveHands()
-
-        case .yes:
-            handleYes()
-
-        case .brief, .verbose, .superbrief:
-            handleDescriptionMode(command)
-
-        case .save, .restore, .restart, .undo, .version, .help, .script, .unscript:
-            handleGameCommand(command)
-
-        case .custom(let words):
-            handleCustomCommand(words)
-        }
-
-        // Only advance time for non-game verbs
-        let verb = getVerbForCommand(command)
-        if !isGameVerb(verb) {
-            advanceTime()
-        }
-    }
-
-    /// Execute the game loop - an alternative to start() that doesn't block
-    ///
-    /// - Parameter input: The command input string
-    ///
-    /// - Returns: True if the game is still running, false if it ended
-    public func executeGameLoop(input: String) -> Bool {
-        if !isRunning || isGameOver {
-            return false
-        }
-
-        if input.lowercased() == "help" {
-            printHelp()
-        } else {
-            let command = parser.parse(input)
-            executeCommand(command)
-
-            // Check for game over after command execution
-            if isGameOver {
-                return false
-            }
-
-            // Advance time after each command (except game verbs)
-            if !isGameVerb(getVerbForCommand(command)) {
-                advanceTime()
-            }
-        }
-
-        return isRunning && !isGameOver
     }
 
     /// Handle the INVENTORY command
@@ -1604,16 +1230,24 @@ public class GameEngine {
 
     /// Handle the OPEN command
     ///
-    /// - Parameter obj: The object to be opened
-    private func handleOpen(_ obj: GameObject) {
+    /// - Parameters:
+    ///   - obj: The object to be opened
+    ///   - tool: The tool to open with (optional)
+    private func handleOpen(_ obj: GameObject, with tool: GameObject?) {
         // Check if the object is accessible
         if !isObjectAccessibleForExamine(obj) {
             outputHandler("You don't see that here.")
             return
         }
 
+        // Check if the tool is accessible
+        if let tool = tool, !isObjectAccessibleForExamine(tool) {
+            outputHandler("You don't have the \(tool.name).")
+            return
+        }
+
         // Check if the object has a custom handler for this command
-        if obj.processCommand(.open(obj)) {
+        if obj.processCommand(.open(obj, with: tool)) {
             // The object handled the open command
             return
         }
@@ -1633,13 +1267,36 @@ public class GameEngine {
 
         // Check if locked
         if obj.hasFlag(.isLocked) {
-            outputHandler("It's locked.")
-            return
-        }
+            // See if tool can unlock it
+            if let tool = tool {
+                // Check if this tool functions as a key
+                let isKey: Bool = tool.getState(forKey: "is_key") ?? false
+                if isKey {
+                    // Check if this is the right key
+                    let keyId: String = tool.getState(forKey: "key_id") ?? ""
+                    let lockId: String = obj.getState(forKey: "lock_id") ?? ""
 
-        // Open the object
-        obj.setFlag(.isOpen)
-        outputHandler("Opened.")
+                    if !keyId.isEmpty && keyId == lockId {
+                        obj.clearFlag(.isLocked)
+                        outputHandler("You unlock the \(obj.name) with the \(tool.name) and open it.")
+                        obj.setFlag(.isOpen)
+                    } else {
+                        outputHandler("That key doesn't fit the lock.")
+                        return
+                    }
+                } else {
+                    outputHandler("It's locked.")
+                    return
+                }
+            } else {
+                outputHandler("It's locked.")
+                return
+            }
+        } else {
+            // Open the object
+            obj.setFlag(.isOpen)
+            outputHandler("Opened.")
+        }
 
         // If this is a container and it has contents, describe them
         if obj.hasFlag(.isContainer) {
@@ -1726,7 +1383,7 @@ public class GameEngine {
         }
 
         // Check if the container has a custom handler for this command
-        if container.processCommand(.putIn(item: obj, container: container)) {
+        if container.processCommand(.putIn(obj, container: container)) {
             // The container handled the put in command
             return
         }
@@ -1771,7 +1428,7 @@ public class GameEngine {
         }
 
         // Check if the surface has a custom handler for this command
-        if surface.processCommand(.putOn(item: obj, surface: surface)) {
+        if surface.processCommand(.putOn(obj, surface: surface)) {
             // The surface handled the put on command
             return
         }
@@ -1800,16 +1457,24 @@ public class GameEngine {
 
     /// Handle READ command
     ///
-    /// - Parameter obj: The object to be read
-    private func handleRead(_ obj: GameObject) {
+    /// - Parameters:
+    ///   - obj: The object to be read
+    ///   - tool: Optional tool used for reading (like glasses)
+    private func handleRead(_ obj: GameObject, with tool: GameObject?) {
         // Check if the object is accessible
         if !isObjectAccessibleForExamine(obj) {
             outputHandler("You don't see that here.")
             return
         }
 
+        // Check if the tool is accessible
+        if let tool = tool, !isObjectAccessibleForExamine(tool) {
+            outputHandler("You don't have the \(tool.name).")
+            return
+        }
+
         // Check if the object has a custom handler for this command
-        if obj.processCommand(.read(obj)) {
+        if obj.processCommand(.read(obj, with: tool)) {
             // The object handled the read command
             return
         }
@@ -1818,6 +1483,17 @@ public class GameEngine {
         if !obj.hasFlag(.isReadable) {
             outputHandler("There's nothing to read on \(obj.name).")
             return
+        }
+
+        // Check if a special reading tool is required
+        let needsReadingTool: Bool = obj.getState(forKey: "requires_reading_tool") ?? false
+        if needsReadingTool && tool == nil {
+            outputHandler("You need something to help you read this.")
+            return
+        }
+
+        if let tool = tool {
+            outputHandler("Using the \(tool.name), you read the \(obj.name).")
         }
 
         // Get the text from the object's state or use a default
@@ -1855,21 +1531,35 @@ public class GameEngine {
     }
 
     /// Handle the RUB command
-    private func handleRub(_ obj: GameObject) {
+    ///
+    /// - Parameters:
+    ///   - obj: The object to be rubbed
+    ///   - tool: Optional tool to rub with
+    private func handleRub(_ obj: GameObject, with tool: GameObject?) {
         // Check if the object is accessible
         if !isObjectAccessibleForExamine(obj) {
             outputHandler("You don't see that here.")
             return
         }
 
+        // Check if the tool is accessible
+        if let tool = tool, !isObjectAccessibleForExamine(tool) {
+            outputHandler("You don't have the \(tool.name).")
+            return
+        }
+
         // Check if the object has a custom handler for this command
-        if obj.processCommand(.rub(obj)) {
+        if obj.processCommand(.rub(obj, with: tool)) {
             // The object handled the rub command
             return
         }
 
         // Default behavior
-        outputHandler("Rubbing the \(obj.name) doesn't seem to do anything.")
+        if let tool = tool {
+            outputHandler("Rubbing the \(obj.name) with the \(tool.name) doesn't seem to do anything.")
+        } else {
+            outputHandler("Rubbing the \(obj.name) doesn't seem to do anything.")
+        }
 
         // Update last mentioned object
         world.lastMentionedObject = obj
@@ -1997,7 +1687,7 @@ public class GameEngine {
         }
 
         // Check if the person has a custom handler for this command
-        if person.processCommand(.tell(person: person, topic: topic)) {
+        if person.processCommand(.tell(person, about: topic)) {
             // The person handled the tell command
             return
         }
@@ -2049,7 +1739,7 @@ public class GameEngine {
         }
 
         // Check if the target has a custom handler for this command
-        if target.processCommand(.throwAt(item: item, target: target)) {
+        if target.processCommand(.throwAt(item, target: target)) {
             // The target handled the throw at command
             return
         }

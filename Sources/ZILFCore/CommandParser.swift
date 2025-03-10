@@ -47,43 +47,40 @@ public class CommandParser {
 
         // Match the first word against all command synonyms
         switch firstWord {
-            // Movement
+        // Movement
         case "move", "go", "walk", "run":
             if words.count >= 2, let direction = Direction(words[1]) {
-        return .move(direction)
-    }
+                return .move(direction)
+            }
             return .move(nil)
 
-            // Look commands
+        // Look commands
         case "look", "l", "look-around":
             if words.count > 1 && words[1] == "at" && words.count > 2 {
-                let objName = words.dropFirst(2).joined(separator: " ")
-                let obj = findObject(named: objName)
-                return .examine(obj)
+                // Extract "look at X" pattern
+                return parseExamineCommand(words: Array(words.dropFirst(2)))
             }
             return .look
 
         case "look-at", "examine", "x", "inspect":
             if words.count > 1 {
-                let objName = words.dropFirst().joined(separator: " ")
-                let obj = findObject(named: objName)
-            return .examine(obj)
-        }
-            return .examine(nil)
+                return parseExamineCommand(words: Array(words.dropFirst()))
+            }
+            return .examine(nil, with: nil)
 
         case "look-under":
             if words.count > 1 {
-        let objName = words.dropFirst().joined(separator: " ")
+                let objName = words.dropFirst().joined(separator: " ")
                 let obj = findObject(named: objName)
                 return .lookUnder(obj)
             }
             return .lookUnder(nil)
 
-            // Inventory
+        // Inventory
         case "inventory", "i", "inv":
             return .inventory
 
-            // Take/Get
+        // Take/Get
         case "take", "get", "pick-up":
             if words.count > 1 {
                 let objName = words.dropFirst().joined(separator: " ")
@@ -92,7 +89,7 @@ public class CommandParser {
             }
             return .take(nil)
 
-            // Drop
+        // Drop
         case "drop", "put-down":
             if words.count > 1 {
                 let objName = words.dropFirst().joined(separator: " ")
@@ -101,16 +98,14 @@ public class CommandParser {
             }
             return .drop(nil)
 
-            // Open
+        // Open
         case "open":
             if words.count > 1 {
-                let objName = words.dropFirst().joined(separator: " ")
-                let obj = findObject(named: objName)
-                return .open(obj)
+                return parseOpenCommand(words: Array(words.dropFirst()))
             }
-            return .open(nil)
+            return .open(nil, with: nil)
 
-            // Close
+        // Close
         case "close", "shut":
             if words.count > 1 {
                 let objName = words.dropFirst().joined(separator: " ")
@@ -119,7 +114,7 @@ public class CommandParser {
             }
             return .close(nil)
 
-            // Put in/on
+        // Put in/on
         case "put-in":
             if words.count >= 3 {
                 // Format: put-in OBJ CONTAINER
@@ -142,16 +137,14 @@ public class CommandParser {
             }
             return .putOn(nil, surface: nil)
 
-            // Read
+        // Read
         case "read", "peruse":
             if words.count > 1 {
-        let objName = words.dropFirst().joined(separator: " ")
-                let obj = findObject(named: objName)
-                return .read(obj)
+                return parseReadCommand(words: Array(words.dropFirst()))
             }
-            return .read(nil)
+            return .read(nil, with: nil)
 
-            // Turn on/off
+        // Turn on/off
         case "turn-on", "activate", "switch-on":
             if words.count > 1 {
                 let objName = words.dropFirst().joined(separator: " ")
@@ -168,7 +161,7 @@ public class CommandParser {
             }
             return .turnOff(nil)
 
-            // Flip/Switch
+        // Flip/Switch
         case "flip", "switch", "toggle":
             if words.count > 1 {
                 let objName = words.dropFirst().joined(separator: " ")
@@ -177,7 +170,7 @@ public class CommandParser {
             }
             return .flip(nil)
 
-            // Wear
+        // Wear
         case "wear", "don", "put-on":
             if words.count > 1 {
                 let objName = words.dropFirst().joined(separator: " ")
@@ -186,89 +179,71 @@ public class CommandParser {
             }
             return .wear(nil)
 
-            // Unwear
+        // Unwear
         case "unwear", "remove", "doff", "take-off":
             if words.count > 1 {
-        let objName = words.dropFirst().joined(separator: " ")
+                let objName = words.dropFirst().joined(separator: " ")
                 let obj = findObject(named: objName)
                 return .unwear(obj)
             }
             return .unwear(nil)
 
-            // Attack
+        // Attack
         case "attack", "kill", "destroy":
             if words.count > 1 {
-                let objName = words.dropFirst().joined(separator: " ")
-                let obj = findObject(named: objName)
-                return .attack(obj)
+                return parseAttackCommand(words: Array(words.dropFirst()))
             }
-            return .attack(nil)
+            return .attack(nil, with: nil)
 
-            // Lock/Unlock
+        // Lock/Unlock
         case "lock":
             if words.count > 1 {
-                let objName = words.dropFirst().joined(separator: " ")
-                let obj = findObject(named: objName)
-                // Look for "with" in the command
-                if words.count > 3 && words[words.count-2] == "with" {
-                    let toolName = words.last!
-                    let tool = findObject(named: toolName)
-                    return .lock(obj, with: tool)
-                }
-                return .lock(obj, with: nil)
+                return parseLockCommand(words: Array(words.dropFirst()))
             }
             return .lock(nil, with: nil)
 
         case "unlock":
             if words.count > 1 {
-                let objName = words.dropFirst().joined(separator: " ")
-                let obj = findObject(named: objName)
-                // Look for "with" in the command
-                if words.count > 3 && words[words.count-2] == "with" {
-                    let toolName = words.last!
-                    let tool = findObject(named: toolName)
-                    return .unlock(obj, with: tool)
-                }
-                return .unlock(obj, with: nil)
+                return parseUnlockCommand(words: Array(words.dropFirst()))
             }
             return .unlock(nil, with: nil)
 
-            // Give
+        // Give
         case "give":
             if words.count >= 4 && words.contains("to") {
                 let toIndex = words.firstIndex(of: "to")!
                 let itemName = words[1..<toIndex].joined(separator: " ")
-                let recipientName = words[(toIndex+1)...].joined(separator: " ")
+                let recipientName = words[(toIndex + 1)...].joined(separator: " ")
                 let item = findObject(named: itemName)
                 let recipient = findObject(named: recipientName)
                 return .give(item, to: recipient)
             }
             return .give(nil, to: nil)
 
-            // Throw
+        // Throw
         case "throw":
             if words.count >= 4 && words.contains("at") {
                 let atIndex = words.firstIndex(of: "at")!
                 let itemName = words[1..<atIndex].joined(separator: " ")
-                let targetName = words[(atIndex+1)...].joined(separator: " ")
+                let targetName = words[(atIndex + 1)...].joined(separator: " ")
                 let item = findObject(named: itemName)
                 let target = findObject(named: targetName)
                 return .throwAt(item, target: target)
             }
             return .throwAt(nil, target: nil)
 
-            // Tell
+        // Tell
         case "tell":
             if words.count >= 4 && words.contains("about") {
                 let aboutIndex = words.firstIndex(of: "about")!
                 let personName = words[1..<aboutIndex].joined(separator: " ")
-                let topic = words[(aboutIndex+1)...].joined(separator: " ")
+                let topic = words[(aboutIndex + 1)...].joined(separator: " ")
                 let person = findObject(named: personName)
                 return .tell(person, about: topic)
             }
             return .tell(nil, about: nil)
 
-            // Meta commands without objects
+        // Meta commands without objects
         case "again", "g", "repeat":
             return .again
         case "brief":
@@ -304,7 +279,7 @@ public class CommandParser {
         case "pronouns":
             return .pronouns
 
-            // Simple actions without objects
+        // Simple actions without objects
         case "dance":
             return .dance
         case "jump":
@@ -316,14 +291,12 @@ public class CommandParser {
         case "wave-hands":
             return .waveHands
 
-            // More object commands
+        // More object commands
         case "burn", "light":
             if words.count > 1 {
-                let objName = words.dropFirst().joined(separator: " ")
-                let obj = findObject(named: objName)
-                return .burn(obj)
+                return parseBurnCommand(words: Array(words.dropFirst()))
             }
-            return .burn(nil)
+            return .burn(nil, with: nil)
 
         case "climb":
             if words.count > 1 {
@@ -343,7 +316,7 @@ public class CommandParser {
 
         case "eat", "consume", "devour":
             if words.count > 1 {
-        let objName = words.dropFirst().joined(separator: " ")
+                let objName = words.dropFirst().joined(separator: " ")
                 let obj = findObject(named: objName)
                 return .eat(obj)
             }
@@ -383,11 +356,9 @@ public class CommandParser {
 
         case "rub":
             if words.count > 1 {
-                let objName = words.dropFirst().joined(separator: " ")
-                let obj = findObject(named: objName)
-                return .rub(obj)
+                return parseRubCommand(words: Array(words.dropFirst()))
             }
-            return .rub(nil)
+            return .rub(nil, with: nil)
 
         case "search":
             if words.count > 1 {
@@ -423,16 +394,162 @@ public class CommandParser {
 
         case "wave":
             if words.count > 1 {
-        let objName = words.dropFirst().joined(separator: " ")
+                let objName = words.dropFirst().joined(separator: " ")
                 let obj = findObject(named: objName)
                 return .wave(obj)
             }
             return .wave(nil)
 
-            // Custom commands not recognized
+        // Custom commands not recognized
         default:
             return .custom(words)
         }
+    }
+
+    // MARK: - Command parsing helpers
+
+    /// Parses an attack command, checking for "with" clause
+    private func parseAttackCommand(words: [String]) -> Command {
+        if let withIndex = words.firstIndex(of: "with") {
+            if withIndex < words.count - 1 {
+                let objName = words[0..<withIndex].joined(separator: " ")
+                let toolName = words[(withIndex + 1)...].joined(separator: " ")
+                let obj = findObject(named: objName)
+                let tool = findObject(named: toolName)
+                return .attack(obj, with: tool)
+            }
+        }
+
+        // No "with" clause found
+        let objName = words.joined(separator: " ")
+        let obj = findObject(named: objName)
+        return .attack(obj, with: nil)
+    }
+
+    /// Parses a burn command, checking for "with" clause
+    private func parseBurnCommand(words: [String]) -> Command {
+        if let withIndex = words.firstIndex(of: "with") {
+            if withIndex < words.count - 1 {
+                let objName = words[0..<withIndex].joined(separator: " ")
+                let toolName = words[(withIndex + 1)...].joined(separator: " ")
+                let obj = findObject(named: objName)
+                let tool = findObject(named: toolName)
+                return .burn(obj, with: tool)
+            }
+        }
+
+        // No "with" clause found
+        let objName = words.joined(separator: " ")
+        let obj = findObject(named: objName)
+        return .burn(obj, with: nil)
+    }
+
+    /// Parses an examine command, checking for "with" clause
+    private func parseExamineCommand(words: [String]) -> Command {
+        if let withIndex = words.firstIndex(of: "with") {
+            if withIndex < words.count - 1 {
+                let objName = words[0..<withIndex].joined(separator: " ")
+                let toolName = words[(withIndex + 1)...].joined(separator: " ")
+                let obj = findObject(named: objName)
+                let tool = findObject(named: toolName)
+                return .examine(obj, with: tool)
+            }
+        }
+
+        // No "with" clause found
+        let objName = words.joined(separator: " ")
+        let obj = findObject(named: objName)
+        return .examine(obj, with: nil)
+    }
+
+    /// Parses a lock command, checking for "with" clause
+    private func parseLockCommand(words: [String]) -> Command {
+        if let withIndex = words.firstIndex(of: "with") {
+            if withIndex < words.count - 1 {
+                let objName = words[0..<withIndex].joined(separator: " ")
+                let toolName = words[(withIndex + 1)...].joined(separator: " ")
+                let obj = findObject(named: objName)
+                let tool = findObject(named: toolName)
+                return .lock(obj, with: tool)
+            }
+        }
+
+        // No "with" clause found
+        let objName = words.joined(separator: " ")
+        let obj = findObject(named: objName)
+        return .lock(obj, with: nil)
+    }
+
+    /// Parses an open command, checking for "with" clause
+    private func parseOpenCommand(words: [String]) -> Command {
+        if let withIndex = words.firstIndex(of: "with") {
+            if withIndex < words.count - 1 {
+                let objName = words[0..<withIndex].joined(separator: " ")
+                let toolName = words[(withIndex + 1)...].joined(separator: " ")
+                let obj = findObject(named: objName)
+                let tool = findObject(named: toolName)
+                return .open(obj, with: tool)
+            }
+        }
+
+        // No "with" clause found
+        let objName = words.joined(separator: " ")
+        let obj = findObject(named: objName)
+        return .open(obj, with: nil)
+    }
+
+    /// Parses a read command, checking for "with" clause
+    private func parseReadCommand(words: [String]) -> Command {
+        if let withIndex = words.firstIndex(of: "with") {
+            if withIndex < words.count - 1 {
+                let objName = words[0..<withIndex].joined(separator: " ")
+                let toolName = words[(withIndex + 1)...].joined(separator: " ")
+                let obj = findObject(named: objName)
+                let tool = findObject(named: toolName)
+                return .read(obj, with: tool)
+            }
+        }
+
+        // No "with" clause found
+        let objName = words.joined(separator: " ")
+        let obj = findObject(named: objName)
+        return .read(obj, with: nil)
+    }
+
+    /// Parses a rub command, checking for "with" clause
+    private func parseRubCommand(words: [String]) -> Command {
+        if let withIndex = words.firstIndex(of: "with") {
+            if withIndex < words.count - 1 {
+                let objName = words[0..<withIndex].joined(separator: " ")
+                let toolName = words[(withIndex + 1)...].joined(separator: " ")
+                let obj = findObject(named: objName)
+                let tool = findObject(named: toolName)
+                return .rub(obj, with: tool)
+            }
+        }
+
+        // No "with" clause found
+        let objName = words.joined(separator: " ")
+        let obj = findObject(named: objName)
+        return .rub(obj, with: nil)
+    }
+
+    /// Parses an unlock command, checking for "with" clause
+    private func parseUnlockCommand(words: [String]) -> Command {
+        if let withIndex = words.firstIndex(of: "with") {
+            if withIndex < words.count - 1 {
+                let objName = words[0..<withIndex].joined(separator: " ")
+                let toolName = words[(withIndex + 1)...].joined(separator: " ")
+                let obj = findObject(named: objName)
+                let tool = findObject(named: toolName)
+                return .unlock(obj, with: tool)
+            }
+        }
+
+        // No "with" clause found
+        let objName = words.joined(separator: " ")
+        let obj = findObject(named: objName)
+        return .unlock(obj, with: nil)
     }
 
     /// Gets the current direction for a move command
