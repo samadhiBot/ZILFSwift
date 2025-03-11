@@ -71,7 +71,7 @@ import Testing
         #expect(!world.isGlobalObjectAccessible(rug, in: kitchen))
     }
 
-    @Test func testGlobalObjectsInParser() {
+    @Test func testGlobalObjectsInParser() throws {
         // Setup a simple world with a few rooms
         let hall = Room(name: "Hall", description: "A large hall.")
         let kitchen = Room(name: "Kitchen", description: "A cozy kitchen.")
@@ -110,12 +110,12 @@ import Testing
         let engine = GameEngine(world: world, outputHandler: outputHandler.handler)
 
         // Test examining global objects
-        engine.executeCommand(Command.examine(sky, with: nil))
+        try engine.executeCommand(Command.examine(sky, with: nil))
         #expect(outputHandler.output.contains("A clear blue sky"))
         outputHandler.clear()
 
         // Test examining local-global objects
-        engine.executeCommand(Command.examine(rug, with: nil))
+        try engine.executeCommand(Command.examine(rug, with: nil))
         #expect(outputHandler.output.contains("A tatty rug"))
         outputHandler.clear()
 
@@ -123,12 +123,12 @@ import Testing
         _ = player.move(direction: .east)
 
         // Should still be able to examine sky from kitchen
-        engine.executeCommand(Command.examine(sky, with: nil))
+        try engine.executeCommand(Command.examine(sky, with: nil))
         #expect(outputHandler.output.contains("A clear blue sky"))
         outputHandler.clear()
 
         // Shouldn't be able to examine rug from kitchen
-        engine.executeCommand(Command.examine(rug, with: nil))
+        try engine.executeCommand(Command.examine(rug, with: nil))
         #expect(outputHandler.output.contains("You don't see that here"))
     }
 

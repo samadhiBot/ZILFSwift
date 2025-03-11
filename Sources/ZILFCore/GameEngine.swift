@@ -31,7 +31,7 @@ public class GameEngine {
     private var gameOverMessage: String?
 
     /// Function that creates a new game world instance, used for game restarts
-    private var worldCreator: (() -> GameWorld)?
+    private var worldCreator: (() throws -> GameWorld)?
 
     /// Initializes a new game engine with a game world
     ///
@@ -42,7 +42,7 @@ public class GameEngine {
     public init(
         world: GameWorld,
         outputHandler: @escaping (String) -> Void = { print($0) },
-        worldCreator: (() -> GameWorld)? = nil
+        worldCreator: (() throws -> GameWorld)? = nil
     ) {
         self.world = world
         self.parser = CommandParser(world: world)
@@ -58,7 +58,7 @@ public class GameEngine {
     /// Executes a single game command
     ///
     /// - Parameter command: The command to execute
-    public func executeCommand(_ command: Command) {
+    public func executeCommand(_ command: Command) throws {
         // Don't process commands if game is over
         if isGameOver {
             return
@@ -230,7 +230,7 @@ public class GameEngine {
             handleWait()
 
         case .again:
-            handleAgain()
+            try handleAgain()
 
         case .read(let obj, let tool):
             if let obj = obj {
@@ -421,7 +421,7 @@ public class GameEngine {
             handleDescriptionMode(command)
 
         case .save, .restore, .restart, .undo, .version, .help, .script, .unscript:
-            handleGameCommand(command)
+            try handleGameCommand(command)
 
         case .custom(let words):
             handleCustomCommand(words)
@@ -439,7 +439,7 @@ public class GameEngine {
     /// - Parameter input: The command input string
     ///
     /// - Returns: True if the game is still running, false if it ended
-    public func executeGameLoop(input: String) -> Bool {
+    public func executeGameLoop(input: String) throws -> Bool {
         if !isRunning || isGameOver {
             return false
         }
@@ -448,7 +448,7 @@ public class GameEngine {
             printHelp()
         } else {
             let command = parser.parse(input)
-            executeCommand(command)
+            try executeCommand(command)
 
             // Check for game over after command execution
             if isGameOver {
@@ -506,7 +506,7 @@ public class GameEngine {
     }
 
     /// Starts the game and runs the main game loop
-    public func start() {
+    public func start() throws {
         isRunning = true
         isGameOver = false
 
@@ -514,7 +514,7 @@ public class GameEngine {
         outputHandler("Type 'help' for a list of commands.\n")
 
         // Start with a look at the current room
-        executeCommand(.look)
+        try executeCommand(.look)
 
         // Main game loop
         while isRunning {
@@ -525,7 +525,7 @@ public class GameEngine {
 
                 switch input {
                 case "restart":
-                    handleRestart()
+                    try handleRestart()
                 case "quit":
                     handleQuit()
                     break
@@ -544,7 +544,7 @@ public class GameEngine {
             }
 
             let command = parser.parse(input)
-            executeCommand(command)
+            try executeCommand(command)
         }
     }
 
@@ -605,10 +605,10 @@ public class GameEngine {
     }
 
     /// Handle AGAIN command (repeat last command)
-    private func handleAgain() {
+    private func handleAgain() throws {
         if let lastCommand {
             outputHandler("(repeating the last command)")
-            executeCommand(lastCommand)
+            try executeCommand(lastCommand)
         } else {
             outputHandler("There's no command to repeat.")
         }
@@ -1039,7 +1039,7 @@ public class GameEngine {
     }
 
     /// Handle game meta-commands (save, restore, etc.)
-    private func handleGameCommand(_ command: Command) {
+    private func handleGameCommand(_ command: Command) throws {
         switch command {
         case .save:
             outputHandler("Game saved.")
@@ -1048,7 +1048,7 @@ public class GameEngine {
             outputHandler("Game restored.")
             // Implement restore functionality
         case .restart:
-            handleRestart()
+            try handleRestart()
         case .undo:
             outputHandler("You can't change the past.")
             // Implement undo functionality
@@ -1515,19 +1515,19 @@ public class GameEngine {
 
     /// Handle restarting the game
     /// Resets the game world and starts a new game
-    private func handleRestart() {
+    private func handleRestart() throws {
         isGameOver = false
         gameOverMessage = nil
 
         // Reset the game world
-        let newWorld = recreateWorld()
+        let newWorld = try recreateWorld()
         world = newWorld
         parser = CommandParser(world: world)
 
         outputHandler("\n--- Game Restarted ---\n")
 
         // Start with a look at the current room
-        executeCommand(.look)
+        try executeCommand(.look)
     }
 
     /// Handle the RUB command
@@ -2094,9 +2094,9 @@ public class GameEngine {
     /// Recreate the game world for restart
     ///
     /// - Returns: A fresh game world
-    private func recreateWorld() -> GameWorld {
+    private func recreateWorld() throws -> GameWorld {
         if let worldCreator {
-            let freshWorld = worldCreator()
+            let freshWorld = try worldCreator()
 
             // Register the engine in the new world's player
             freshWorld.player.setEngine(self)

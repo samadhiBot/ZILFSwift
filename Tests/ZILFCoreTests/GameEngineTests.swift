@@ -17,20 +17,20 @@ struct GameEngineTests {
         let engine = GameEngine(world: world, outputHandler: outputHandler.handler)
 
         // Test look command
-        engine.executeCommand(.look)
+        try engine.executeCommand(.look)
         #expect(outputHandler.output.contains("The starting room"))
         #expect(outputHandler.output.contains("Exits: north"))
         #expect(outputHandler.output.contains("gold coin"))
         outputHandler.clear()
 
         // Test move command
-        engine.executeCommand(.move(.north))
+        try engine.executeCommand(.move(.north))
         #expect(player.currentRoom === northRoom)
         #expect(outputHandler.output.contains("Room to the north"))
         outputHandler.clear()
 
         // Test invalid move
-        engine.executeCommand(.move(.east))
+        try engine.executeCommand(.move(.east))
         #expect(player.currentRoom === northRoom)
         #expect(outputHandler.output.contains("You can't go that way"))
         outputHandler.clear()
@@ -38,24 +38,24 @@ struct GameEngineTests {
         // Test examine
         // Go back to the start room where the coin is
         player.move(direction: .south)
-        engine.executeCommand(.examine(coin, with: nil))
+        try engine.executeCommand(.examine(coin, with: nil))
         #expect(outputHandler.output.contains("A shiny gold coin"))
         outputHandler.clear()
 
         // Test take
-        engine.executeCommand(.take(coin))
+        try engine.executeCommand(.take(coin))
         #expect(outputHandler.output.contains("Taken"))
         #expect(player.inventory.contains { $0 === coin })
         outputHandler.clear()
 
         // Test inventory
-        engine.executeCommand(.inventory)
+        try engine.executeCommand(.inventory)
         #expect(outputHandler.output.contains("You are carrying"))
         #expect(outputHandler.output.contains("gold coin"))
         outputHandler.clear()
 
         // Test drop
-        engine.executeCommand(.drop(coin))
+        try engine.executeCommand(.drop(coin))
         #expect(outputHandler.output.contains("Dropped"))
         #expect(startRoom.contents.contains { $0 === coin })
         #expect(!player.inventory.contains { $0 === coin })

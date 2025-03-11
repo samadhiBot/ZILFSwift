@@ -2,7 +2,7 @@ import Foundation
 import ZILFCore
 
 // Initialize the game world
-let world = CloakOfDarkness.create()
+let world = try CloakOfDarkness.create()
 
 // Set up output handler that displays the game banner first
 let outputHandler: (String) -> Void = { message in
@@ -26,4 +26,4 @@ Swift conversion by ZILFSwift team
 """)
 
 // Start the game
-engine.start()
+try engine.start()

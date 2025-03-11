@@ -6,19 +6,19 @@ let package = Package(
     name: "ZILFSwift",
     platforms: [.macOS(.v13)],
     products: [
-        .executable(name: "ZILFSwift", targets: ["ZILFSwift"]),
         .executable(name: "CloakOfDarkness", targets: ["CloakOfDarkness"]),
+        .executable(name: "HelloWorldGame", targets: ["HelloWorldGame"]),
         .library(name: "ZILFCore", targets: ["ZILFCore"]),
         .library(name: "ZILFTestSupport", targets: ["ZILFTestSupport"])
     ],
     dependencies: [],
     targets: [
         .executableTarget(
-            name: "ZILFSwift",
+            name: "CloakOfDarkness",
             dependencies: ["ZILFCore"]
         ),
         .executableTarget(
-            name: "CloakOfDarkness",
+            name: "HelloWorldGame",
             dependencies: ["ZILFCore"]
         ),
         .target(
@@ -31,11 +31,18 @@ let package = Package(
         ),
         .testTarget(
             name: "ZILFCoreTests",
-            dependencies: ["ZILFCore", "ZILFTestSupport"]
+            dependencies: [
+                "ZILFCore",
+                "ZILFTestSupport"
+            ]
         ),
         .testTarget(
-            name: "ZILFSwiftTests",
-            dependencies: ["ZILFSwift", "ZILFTestSupport", "CloakOfDarkness"]
+            name: "GameTests",
+            dependencies: [
+                "CloakOfDarkness",
+                "HelloWorldGame",
+                "ZILFTestSupport",
+            ]
         )
     ]
 )

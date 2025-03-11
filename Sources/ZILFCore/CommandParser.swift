@@ -71,7 +71,7 @@ public class CommandParser {
         case "look-under":
             if words.count > 1 {
                 let objName = words.dropFirst().joined(separator: " ")
-                let obj = findObject(named: objName)
+                let obj = find(object: objName)
                 return .lookUnder(obj)
             }
             return .lookUnder(nil)
@@ -84,7 +84,7 @@ public class CommandParser {
         case "take", "get", "pick-up":
             if words.count > 1 {
                 let objName = words.dropFirst().joined(separator: " ")
-                let obj = findObject(named: objName)
+                let obj = find(object: objName)
                 return .take(obj)
             }
             return .take(nil)
@@ -93,7 +93,7 @@ public class CommandParser {
         case "drop", "put-down":
             if words.count > 1 {
                 let objName = words.dropFirst().joined(separator: " ")
-                let obj = findObject(named: objName)
+                let obj = find(object: objName)
                 return .drop(obj)
             }
             return .drop(nil)
@@ -109,7 +109,7 @@ public class CommandParser {
         case "close", "shut":
             if words.count > 1 {
                 let objName = words.dropFirst().joined(separator: " ")
-                let obj = findObject(named: objName)
+                let obj = find(object: objName)
                 return .close(obj)
             }
             return .close(nil)
@@ -120,8 +120,8 @@ public class CommandParser {
                 // Format: put-in OBJ CONTAINER
                 let objName = words[1]
                 let containerName = words.dropFirst(2).joined(separator: " ")
-                let obj = findObject(named: objName)
-                let container = findObject(named: containerName)
+                let obj = find(object: objName)
+                let container = find(object: containerName)
                 return .putIn(obj, container: container)
             }
             return .putIn(nil, container: nil)
@@ -131,8 +131,8 @@ public class CommandParser {
                 // Format: put-on OBJ SURFACE
                 let objName = words[1]
                 let surfaceName = words.dropFirst(2).joined(separator: " ")
-                let obj = findObject(named: objName)
-                let surface = findObject(named: surfaceName)
+                let obj = find(object: objName)
+                let surface = find(object: surfaceName)
                 return .putOn(obj, surface: surface)
             }
             return .putOn(nil, surface: nil)
@@ -148,7 +148,7 @@ public class CommandParser {
         case "turn-on", "activate", "switch-on":
             if words.count > 1 {
                 let objName = words.dropFirst().joined(separator: " ")
-                let obj = findObject(named: objName)
+                let obj = find(object: objName)
                 return .turnOn(obj)
             }
             return .turnOn(nil)
@@ -156,7 +156,7 @@ public class CommandParser {
         case "turn-off", "deactivate", "switch-off":
             if words.count > 1 {
                 let objName = words.dropFirst().joined(separator: " ")
-                let obj = findObject(named: objName)
+                let obj = find(object: objName)
                 return .turnOff(obj)
             }
             return .turnOff(nil)
@@ -165,7 +165,7 @@ public class CommandParser {
         case "flip", "switch", "toggle":
             if words.count > 1 {
                 let objName = words.dropFirst().joined(separator: " ")
-                let obj = findObject(named: objName)
+                let obj = find(object: objName)
                 return .flip(obj)
             }
             return .flip(nil)
@@ -174,7 +174,7 @@ public class CommandParser {
         case "wear", "don", "put-on":
             if words.count > 1 {
                 let objName = words.dropFirst().joined(separator: " ")
-                let obj = findObject(named: objName)
+                let obj = find(object: objName)
                 return .wear(obj)
             }
             return .wear(nil)
@@ -183,7 +183,7 @@ public class CommandParser {
         case "unwear", "remove", "doff", "take-off":
             if words.count > 1 {
                 let objName = words.dropFirst().joined(separator: " ")
-                let obj = findObject(named: objName)
+                let obj = find(object: objName)
                 return .unwear(obj)
             }
             return .unwear(nil)
@@ -214,8 +214,8 @@ public class CommandParser {
                 let toIndex = words.firstIndex(of: "to")!
                 let itemName = words[1..<toIndex].joined(separator: " ")
                 let recipientName = words[(toIndex + 1)...].joined(separator: " ")
-                let item = findObject(named: itemName)
-                let recipient = findObject(named: recipientName)
+                let item = find(object: itemName)
+                let recipient = find(object: recipientName)
                 return .give(item, to: recipient)
             }
             return .give(nil, to: nil)
@@ -226,8 +226,8 @@ public class CommandParser {
                 let atIndex = words.firstIndex(of: "at")!
                 let itemName = words[1..<atIndex].joined(separator: " ")
                 let targetName = words[(atIndex + 1)...].joined(separator: " ")
-                let item = findObject(named: itemName)
-                let target = findObject(named: targetName)
+                let item = find(object: itemName)
+                let target = find(object: targetName)
                 return .throwAt(item, target: target)
             }
             return .throwAt(nil, target: nil)
@@ -238,7 +238,7 @@ public class CommandParser {
                 let aboutIndex = words.firstIndex(of: "about")!
                 let personName = words[1..<aboutIndex].joined(separator: " ")
                 let topic = words[(aboutIndex + 1)...].joined(separator: " ")
-                let person = findObject(named: personName)
+                let person = find(object: personName)
                 return .tell(person, about: topic)
             }
             return .tell(nil, about: nil)
@@ -301,7 +301,7 @@ public class CommandParser {
         case "climb":
             if words.count > 1 {
                 let objName = words.dropFirst().joined(separator: " ")
-                let obj = findObject(named: objName)
+                let obj = find(object: objName)
                 return .climb(obj)
             }
             return .climb(nil)
@@ -309,7 +309,7 @@ public class CommandParser {
         case "drink", "sip", "quaff":
             if words.count > 1 {
                 let objName = words.dropFirst().joined(separator: " ")
-                let obj = findObject(named: objName)
+                let obj = find(object: objName)
                 return .drink(obj)
             }
             return .drink(nil)
@@ -317,7 +317,7 @@ public class CommandParser {
         case "eat", "consume", "devour":
             if words.count > 1 {
                 let objName = words.dropFirst().joined(separator: " ")
-                let obj = findObject(named: objName)
+                let obj = find(object: objName)
                 return .eat(obj)
             }
             return .eat(nil)
@@ -325,7 +325,7 @@ public class CommandParser {
         case "empty":
             if words.count > 1 {
                 let objName = words.dropFirst().joined(separator: " ")
-                let obj = findObject(named: objName)
+                let obj = find(object: objName)
                 return .empty(obj)
             }
             return .empty(nil)
@@ -333,7 +333,7 @@ public class CommandParser {
         case "fill":
             if words.count > 1 {
                 let objName = words.dropFirst().joined(separator: " ")
-                let obj = findObject(named: objName)
+                let obj = find(object: objName)
                 return .fill(obj)
             }
             return .fill(nil)
@@ -341,7 +341,7 @@ public class CommandParser {
         case "pull":
             if words.count > 1 {
                 let objName = words.dropFirst().joined(separator: " ")
-                let obj = findObject(named: objName)
+                let obj = find(object: objName)
                 return .pull(obj)
             }
             return .pull(nil)
@@ -349,7 +349,7 @@ public class CommandParser {
         case "push":
             if words.count > 1 {
                 let objName = words.dropFirst().joined(separator: " ")
-                let obj = findObject(named: objName)
+                let obj = find(object: objName)
                 return .push(obj)
             }
             return .push(nil)
@@ -363,7 +363,7 @@ public class CommandParser {
         case "search":
             if words.count > 1 {
                 let objName = words.dropFirst().joined(separator: " ")
-                let obj = findObject(named: objName)
+                let obj = find(object: objName)
                 return .search(obj)
             }
             return .search(nil)
@@ -371,7 +371,7 @@ public class CommandParser {
         case "smell":
             if words.count > 1 {
                 let objName = words.dropFirst().joined(separator: " ")
-                let obj = findObject(named: objName)
+                let obj = find(object: objName)
                 return .smell(obj)
             }
             return .smell(nil)
@@ -379,7 +379,7 @@ public class CommandParser {
         case "think-about", "ponder", "contemplate":
             if words.count > 1 {
                 let objName = words.dropFirst().joined(separator: " ")
-                let obj = findObject(named: objName)
+                let obj = find(object: objName)
                 return .thinkAbout(obj)
             }
             return .thinkAbout(nil)
@@ -387,7 +387,7 @@ public class CommandParser {
         case "wake":
             if words.count > 1 {
                 let objName = words.dropFirst().joined(separator: " ")
-                let obj = findObject(named: objName)
+                let obj = find(object: objName)
                 return .wake(obj)
             }
             return .wake(nil)
@@ -395,7 +395,7 @@ public class CommandParser {
         case "wave":
             if words.count > 1 {
                 let objName = words.dropFirst().joined(separator: " ")
-                let obj = findObject(named: objName)
+                let obj = find(object: objName)
                 return .wave(obj)
             }
             return .wave(nil)
@@ -414,15 +414,15 @@ public class CommandParser {
             if withIndex < words.count - 1 {
                 let objName = words[0..<withIndex].joined(separator: " ")
                 let toolName = words[(withIndex + 1)...].joined(separator: " ")
-                let obj = findObject(named: objName)
-                let tool = findObject(named: toolName)
+                let obj = find(object: objName)
+                let tool = find(object: toolName)
                 return .attack(obj, with: tool)
             }
         }
 
         // No "with" clause found
         let objName = words.joined(separator: " ")
-        let obj = findObject(named: objName)
+        let obj = find(object: objName)
         return .attack(obj, with: nil)
     }
 
@@ -432,15 +432,15 @@ public class CommandParser {
             if withIndex < words.count - 1 {
                 let objName = words[0..<withIndex].joined(separator: " ")
                 let toolName = words[(withIndex + 1)...].joined(separator: " ")
-                let obj = findObject(named: objName)
-                let tool = findObject(named: toolName)
+                let obj = find(object: objName)
+                let tool = find(object: toolName)
                 return .burn(obj, with: tool)
             }
         }
 
         // No "with" clause found
         let objName = words.joined(separator: " ")
-        let obj = findObject(named: objName)
+        let obj = find(object: objName)
         return .burn(obj, with: nil)
     }
 
@@ -450,15 +450,15 @@ public class CommandParser {
             if withIndex < words.count - 1 {
                 let objName = words[0..<withIndex].joined(separator: " ")
                 let toolName = words[(withIndex + 1)...].joined(separator: " ")
-                let obj = findObject(named: objName)
-                let tool = findObject(named: toolName)
+                let obj = find(object: objName)
+                let tool = find(object: toolName)
                 return .examine(obj, with: tool)
             }
         }
 
         // No "with" clause found
         let objName = words.joined(separator: " ")
-        let obj = findObject(named: objName)
+        let obj = find(object: objName)
         return .examine(obj, with: nil)
     }
 
@@ -468,15 +468,15 @@ public class CommandParser {
             if withIndex < words.count - 1 {
                 let objName = words[0..<withIndex].joined(separator: " ")
                 let toolName = words[(withIndex + 1)...].joined(separator: " ")
-                let obj = findObject(named: objName)
-                let tool = findObject(named: toolName)
+                let obj = find(object: objName)
+                let tool = find(object: toolName)
                 return .lock(obj, with: tool)
             }
         }
 
         // No "with" clause found
         let objName = words.joined(separator: " ")
-        let obj = findObject(named: objName)
+        let obj = find(object: objName)
         return .lock(obj, with: nil)
     }
 
@@ -486,15 +486,15 @@ public class CommandParser {
             if withIndex < words.count - 1 {
                 let objName = words[0..<withIndex].joined(separator: " ")
                 let toolName = words[(withIndex + 1)...].joined(separator: " ")
-                let obj = findObject(named: objName)
-                let tool = findObject(named: toolName)
+                let obj = find(object: objName)
+                let tool = find(object: toolName)
                 return .open(obj, with: tool)
             }
         }
 
         // No "with" clause found
         let objName = words.joined(separator: " ")
-        let obj = findObject(named: objName)
+        let obj = find(object: objName)
         return .open(obj, with: nil)
     }
 
@@ -504,15 +504,15 @@ public class CommandParser {
             if withIndex < words.count - 1 {
                 let objName = words[0..<withIndex].joined(separator: " ")
                 let toolName = words[(withIndex + 1)...].joined(separator: " ")
-                let obj = findObject(named: objName)
-                let tool = findObject(named: toolName)
+                let obj = find(object: objName)
+                let tool = find(object: toolName)
                 return .read(obj, with: tool)
             }
         }
 
         // No "with" clause found
         let objName = words.joined(separator: " ")
-        let obj = findObject(named: objName)
+        let obj = find(object: objName)
         return .read(obj, with: nil)
     }
 
@@ -522,15 +522,15 @@ public class CommandParser {
             if withIndex < words.count - 1 {
                 let objName = words[0..<withIndex].joined(separator: " ")
                 let toolName = words[(withIndex + 1)...].joined(separator: " ")
-                let obj = findObject(named: objName)
-                let tool = findObject(named: toolName)
+                let obj = find(object: objName)
+                let tool = find(object: toolName)
                 return .rub(obj, with: tool)
             }
         }
 
         // No "with" clause found
         let objName = words.joined(separator: " ")
-        let obj = findObject(named: objName)
+        let obj = find(object: objName)
         return .rub(obj, with: nil)
     }
 
@@ -540,15 +540,15 @@ public class CommandParser {
             if withIndex < words.count - 1 {
                 let objName = words[0..<withIndex].joined(separator: " ")
                 let toolName = words[(withIndex + 1)...].joined(separator: " ")
-                let obj = findObject(named: objName)
-                let tool = findObject(named: toolName)
+                let obj = find(object: objName)
+                let tool = find(object: toolName)
                 return .unlock(obj, with: tool)
             }
         }
 
         // No "with" clause found
         let objName = words.joined(separator: " ")
-        let obj = findObject(named: objName)
+        let obj = find(object: objName)
         return .unlock(obj, with: nil)
     }
 
@@ -580,7 +580,7 @@ public class CommandParser {
     /// - Parameter name: The name of the object to find
     ///
     /// - Returns: The game object if found, nil otherwise
-    private func findObject(named name: String) -> GameObject? {
+    private func find(object name: String) -> GameObject? {
         // If "it" is used, return the last mentioned object
         if name.lowercased() == "it" {
             return world.lastMentionedObject

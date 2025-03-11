@@ -6,40 +6,49 @@ struct HelloWorldGame {
         // Create rooms
         let entrance = Room(
             name: "Entrance",
-            description:
-                "You are standing at the entrance to a small cave. Sunlight streams in from outside."
+            description: """
+                You are standing at the entrance to a small cave. Sunlight streams in from outside.
+                """,
+            flags: .isNaturallyLit
         )
-        entrance.setFlag(.isNaturallyLit)
 
         let mainCavern = Room(
             name: "Main Cavern",
-            description:
-                "This spacious cavern has smooth walls that glisten with moisture. A strange glow emanates from deeper in the cave."
+            description: """
+                This spacious cavern has smooth walls that glisten with moisture. A strange glow \
+                emanates from deeper in the cave.
+                """,
+            flags: .isNaturallyLit
         )
-        mainCavern.setFlag(.isNaturallyLit)
 
         let treasureRoom = Room(
             name: "Treasure Room",
-            description:
-                "This small chamber is filled with a soft, magical light. The walls are adorned with ancient markings."
+            description: """
+                This small chamber is filled with a soft, magical light. The walls are adorned \
+                with ancient markings.
+                """,
+            flags: .isNaturallyLit
         )
-        treasureRoom.setFlag(.isNaturallyLit)
 
         // New secret room
         let secretRoom = Room(
             name: "Secret Chamber",
-            description:
-                "This hidden chamber appears to have been untouched for centuries. Mysterious symbols cover the walls."
+            description: """
+                This hidden chamber appears to have been untouched for centuries. Mysterious \
+                symbols cover the walls.
+                """,
+            flags: .isNaturallyLit
         )
-        secretRoom.setFlag(.isNaturallyLit)
 
         // New locked room
         let vaultRoom = Room(
             name: "Ancient Vault",
-            description:
-                "An impressive stone vault with ornate carvings. It looks like it once held great treasures."
+            description: """
+                An impressive stone vault with ornate carvings. It looks like it once held \
+                great treasures.
+                """,
+            flags: .isNaturallyLit
         )
-        vaultRoom.setFlag(.isNaturallyLit)
 
         // Connect rooms with exits
         entrance.setExit(direction: .north, room: mainCavern)
@@ -63,9 +72,8 @@ struct HelloWorldGame {
             name: "lantern",
             description: "A brass lantern that provides warm light.",
             location: entrance,
-            flags: .isTakable
+            flags: .isTakable, .isLightSource
         )
-        lantern.setFlag(.isLightSource)
 
         let coin = GameObject(
             name: "gold coin",
@@ -74,22 +82,21 @@ struct HelloWorldGame {
             flags: .isTakable
         )
 
+        // Chest is not takeable
         let chest = GameObject(
             name: "treasure chest",
             description: "An ornate wooden chest with intricate carvings.",
             location: treasureRoom,
             flags: .isContainer, .isOpenable
         )
-        // Chest is not takeable
 
         // Maybe add a treasure inside the chest
         let treasure = GameObject(
             name: "golden amulet",
             description: "An exquisite golden amulet that gleams with an inner light.",
             location: chest,
-            flags: .isTakable
+            flags: .isTakable, .isLightSource, .isOn
         )
-        treasure.setFlags(.isLightSource, .isOn)
 
         // Make sure to close the chest
         chest.clearFlag(.isOpen)
@@ -109,12 +116,12 @@ struct HelloWorldGame {
         world.register(ancientKey)
 
         // Add event examples
-        world.queueEvent(name: "lantern-flicker", turns: 3) {
+        world.queueEvent(name: "lantern-flicker", turns: 8) {
             print("The lantern's flame flickers briefly.")
             return true
         }
 
-        world.queueEvent(name: "ambient-sounds", turns: -1) {
+        world.queueEvent(name: "ambient-sounds", turns: 4) {
             // This will run every turn
             let sounds = [
                 "You hear water dripping somewhere nearby.",

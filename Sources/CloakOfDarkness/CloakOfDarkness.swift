@@ -13,7 +13,7 @@ public enum CloakOfDarkness {
     /// This method sets up all rooms, objects, and connections for the Cloak of Darkness game.
     ///
     /// - Returns: A fully configured game world ready to be played.
-    public static func create() -> GameWorld {
+    public static func create() throws -> GameWorld {
         // Create the rooms
         let foyer = createFoyer()
         let bar = createBar()
@@ -57,7 +57,10 @@ public enum CloakOfDarkness {
         createClosetObjects(world: world, closet: closet)
 
         // Create global objects
-        createGlobalObjects(world: world, hallToStudy: hallToStudy)
+        try createGlobalObjects(
+            world: world,
+            hallToStudy: hallToStudy
+        )
 
         return world
     }
@@ -171,7 +174,7 @@ public enum CloakOfDarkness {
             // Access the game world directly
             let world = room.findWorld()
 
-            if let study = world?.rooms.first(where: { $0.name == "Study" }),
+            if let study = try? world?.find(room: "Study" ),
                 let lightSwitch = study.contents.first(where: { $0.name == "light switch" })
             {
                 if lightSwitch.hasFlag(.isOn) {
@@ -201,7 +204,7 @@ public enum CloakOfDarkness {
         cloakroom.enterAction = { (room: Room) -> Bool in
             // Check if rug is a local-global in foyer
             if let world = room.findWorld(),
-                let foyer = world.rooms.first(where: { $0.name == "Foyer of the Opera House" }),
+               let foyer = try? world.find(room: "Foyer of the Opera House" ),
                 let rug = world.globalObjects.first(where: { $0.name == "rug" })
             {
                 if foyer.getAccessibleLocalGlobals().contains(where: { $0 === rug }) {
@@ -235,7 +238,7 @@ public enum CloakOfDarkness {
 
                 // Try to find the hallway
                 if let world,
-                    let hallToStudy = world.rooms.first(where: { $0.name == "Hallway to Study" })
+                   let hallToStudy = try? world.find(room: "Hallway to Study")
                 {
                     if let player, let currentRoom = player.currentRoom {
                         // Remove from current room
@@ -629,7 +632,7 @@ public enum CloakOfDarkness {
     private static func createGlobalObjects(
         world: GameWorld,
         hallToStudy: GameObject
-    ) {
+    ) throws {
         // Ceiling with cobwebs
         let ceiling = GameObject(
             name: "ceiling",
@@ -672,12 +675,12 @@ public enum CloakOfDarkness {
             return false
         }
 
-        if let foyer = world.rooms.first(where: { $0.name == "Foyer of the Opera House" }),
-            let bar = world.rooms.first(where: { $0.name == "Foyer Bar" })
-        {
-            foyer.addLocalGlobal(rug)
-            bar.addLocalGlobal(rug)
-        }
+        let foyer = try world.find(room: "Foyer of the Opera House")
+        foyer.addLocalGlobal(rug)
+
+        let bar = try world.find(room: "Foyer Bar")
+        bar.addLocalGlobal(rug)
+
         world.register(rug)
 
         // Sign in hallway

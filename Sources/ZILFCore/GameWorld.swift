@@ -108,7 +108,7 @@ extension GameWorld {
         case roomNotFound(String)
     }
 
-    func findObject(named name: String) throws -> GameObject {
+    public func find(object name: String) throws -> GameObject {
         guard let object = objects.first(where: { $0.name == name }) else {
             throw NotFound.objectNotFound(name)
         }
@@ -116,7 +116,7 @@ extension GameWorld {
     }
 
     /// Helper function to get a room by name from the world
-    func findRoom(named name: String) throws -> Room {
+    public func find(room name: String) throws -> Room {
         guard let room = rooms.first(where: { $0.name == name }) else {
             throw NotFound.roomNotFound(name)
         }

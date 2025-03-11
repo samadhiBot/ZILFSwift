@@ -11,7 +11,7 @@ import Foundation
 import ZILFTestSupport
 
 @Suite struct GameOverTests {
-    @Test func testPlayerDeath() {
+    @Test func testPlayerDeath() throws {
         // Setup a basic test world
         let room = Room(name: "Test Room", description: "A test room")
         room.setFlag(.isNaturallyLit)
@@ -51,7 +51,7 @@ import ZILFTestSupport
         #expect(outputHandler.output.contains("RESTART or QUIT"))
     }
 
-    @Test func testPlayerVictory() {
+    @Test func testPlayerVictory() throws {
         // Setup a basic test world
         let room = Room(name: "Test Room", description: "A test room")
         room.setFlag(.isNaturallyLit)
@@ -81,7 +81,7 @@ import ZILFTestSupport
         #expect(outputHandler.output.contains("RESTART or QUIT"))
     }
 
-    @Test func testDeadlyExit() {
+    @Test func testDeadlyExit() throws {
         // Setup a basic test world
         let room = Room(name: "Test Room", description: "A test room")
         room.setFlag(.isNaturallyLit)
@@ -111,18 +111,18 @@ import ZILFTestSupport
         let engine = GameEngine(world: world, outputHandler: outputHandler.handler)
 
         // Move to deadly room
-        engine.executeCommand(.move(.north))
+        try engine.executeCommand(.move(.north))
         outputHandler.clear()
 
         // Try deadly exit
-        engine.executeCommand(.move(.east))
+        try engine.executeCommand(.move(.east))
 
         // Check result
         #expect(outputHandler.output.contains("You fell into a pit of spikes!"))
         #expect(outputHandler.output.contains("GAME OVER"))
     }
 
-    @Test func testVictoryExit() {
+    @Test func testVictoryExit() throws {
         // Setup a basic test world
         let room = Room(name: "Start Room", description: "Starting room")
         room.setFlag(.isNaturallyLit)
@@ -153,7 +153,7 @@ import ZILFTestSupport
         let engine = GameEngine(world: world, outputHandler: outputHandler.handler)
 
         // Try victory exit
-        engine.executeCommand(.move(.north))
+        try engine.executeCommand(.move(.north))
 
         // Check result
         #expect(outputHandler.output.contains("You've won the game!"))
