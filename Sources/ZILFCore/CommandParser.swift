@@ -270,7 +270,7 @@ public class CommandParser {
             return .verbose
         case "version":
             return .version
-        case "wait":
+        case "wait", "z":
             return .wait
         case "yes":
             return .yes

@@ -130,42 +130,42 @@ public class GameEngine {
             handleInventory()
 
         case .move(let direction):
-            if let direction = direction {
+            if let direction {
                 handleMove(direction: direction)
             } else {
                 outputHandler("Which way do you want to go?")
             }
 
         case .take(let obj):
-            if let obj = obj {
+            if let obj {
                 handleTake(obj)
             } else {
                 outputHandler("Take what?")
             }
 
         case .drop(let obj):
-            if let obj = obj {
+            if let obj {
                 handleDrop(obj)
             } else {
                 outputHandler("Drop what?")
             }
 
         case .examine(let obj, let tool):
-            if let obj = obj {
+            if let obj {
                 handleExamine(obj, with: tool)
             } else {
                 outputHandler("Examine what?")
             }
 
         case .open(let obj, let tool):
-            if let obj = obj {
+            if let obj {
                 handleOpen(obj, with: tool)
             } else {
                 outputHandler("Open what?")
             }
 
         case .close(let obj):
-            if let obj = obj {
+            if let obj {
                 handleClose(obj)
             } else {
                 outputHandler("Close what?")
@@ -178,49 +178,49 @@ public class GameEngine {
             outputHandler(message)
 
         case .wear(let obj):
-            if let obj = obj {
+            if let obj {
                 handleWear(obj)
             } else {
                 outputHandler("Wear what?")
             }
 
         case .unwear(let obj):
-            if let obj = obj {
+            if let obj {
                 handleUnwear(obj)
             } else {
                 outputHandler("Take off what?")
             }
 
         case .putIn(let item, let container):
-            if let item = item, let container = container {
+            if let item, let container {
                 handlePutIn(item, container: container)
             } else {
                 outputHandler("You need to specify what to put where.")
             }
 
         case .putOn(let item, let surface):
-            if let item = item, let surface = surface {
+            if let item, let surface {
                 handlePutOn(item, surface: surface)
             } else {
                 outputHandler("You need to specify what to put where.")
             }
 
         case .turnOn(let obj):
-            if let obj = obj {
+            if let obj {
                 handleTurnOn(obj)
             } else {
                 outputHandler("Turn on what?")
             }
 
         case .turnOff(let obj):
-            if let obj = obj {
+            if let obj {
                 handleTurnOff(obj)
             } else {
                 outputHandler("Turn off what?")
             }
 
         case .flip(let obj):
-            if let obj = obj {
+            if let obj {
                 handleFlip(obj)
             } else {
                 outputHandler("Flip what?")
@@ -233,161 +233,161 @@ public class GameEngine {
             try handleAgain()
 
         case .read(let obj, let tool):
-            if let obj = obj {
+            if let obj {
                 handleRead(obj, with: tool)
             } else {
                 outputHandler("Read what?")
             }
 
         case .attack(let obj, let tool):
-            if let obj = obj {
+            if let obj {
                 handleAttack(obj, with: tool)
             } else {
                 outputHandler("Attack what?")
             }
 
         case .burn(let obj, let tool):
-            if let obj = obj {
+            if let obj {
                 handleBurn(obj, with: tool)
             } else {
                 outputHandler("Burn what?")
             }
 
         case .climb(let obj):
-            if let obj = obj {
+            if let obj {
                 handleClimb(obj)
             } else {
                 outputHandler("Climb what?")
             }
 
         case .drink(let obj):
-            if let obj = obj {
+            if let obj {
                 handleDrink(obj)
             } else {
                 outputHandler("Drink what?")
             }
 
         case .eat(let obj):
-            if let obj = obj {
+            if let obj {
                 handleEat(obj)
             } else {
                 outputHandler("Eat what?")
             }
 
         case .empty(let obj):
-            if let obj = obj {
+            if let obj {
                 handleEmpty(obj)
             } else {
                 outputHandler("Empty what?")
             }
 
         case .fill(let obj):
-            if let obj = obj {
+            if let obj {
                 handleFill(obj)
             } else {
                 outputHandler("Fill what?")
             }
 
         case .lock(let obj, let tool):
-            if let obj = obj {
+            if let obj {
                 handleLock(obj, with: tool)
             } else {
                 outputHandler("Lock what?")
             }
 
         case .lookUnder(let obj):
-            if let obj = obj {
+            if let obj {
                 handleLookUnder(obj)
             } else {
                 outputHandler("Look under what?")
             }
 
         case .pull(let obj):
-            if let obj = obj {
+            if let obj {
                 handlePull(obj)
             } else {
                 outputHandler("Pull what?")
             }
 
         case .push(let obj):
-            if let obj = obj {
+            if let obj {
                 handlePush(obj)
             } else {
                 outputHandler("Push what?")
             }
 
         case .remove(let obj):
-            if let obj = obj {
+            if let obj {
                 handleRemove(obj)
             } else {
                 outputHandler("Remove what?")
             }
 
         case .rub(let obj, let tool):
-            if let obj = obj {
+            if let obj {
                 handleRub(obj, with: tool)
             } else {
                 outputHandler("Rub what?")
             }
 
         case .search(let obj):
-            if let obj = obj {
+            if let obj {
                 handleSearch(obj)
             } else {
                 outputHandler("Search what?")
             }
 
         case .smell(let obj):
-            if let obj = obj {
+            if let obj {
                 handleSmell(obj)
             } else {
                 outputHandler("Smell what?")
             }
 
         case .thinkAbout(let obj):
-            if let obj = obj {
+            if let obj {
                 handleThinkAbout(obj)
             } else {
                 outputHandler("Think about what?")
             }
 
         case .throwAt(let item, let target):
-            if let item = item, let target = target {
+            if let item, let target {
                 handleThrowAt(item, target: target)
             } else {
                 outputHandler("You need to specify what to throw and at what.")
             }
 
         case .unlock(let obj, let tool):
-            if let obj = obj {
+            if let obj {
                 handleUnlock(obj, with: tool)
             } else {
                 outputHandler("Unlock what?")
             }
 
         case .wake(let obj):
-            if let obj = obj {
+            if let obj {
                 handleWake(obj)
             } else {
                 outputHandler("Wake whom?")
             }
 
         case .wave(let obj):
-            if let obj = obj {
+            if let obj {
                 handleWave(obj)
             } else {
                 outputHandler("Wave what?")
             }
 
         case .give(let item, let recipient):
-            if let item = item, let recipient = recipient {
+            if let item, let recipient {
                 handleGive(item, to: recipient)
             } else {
                 outputHandler("You need to specify what to give and to whom.")
             }
 
         case .tell(let person, let topic):
-            if let person = person, let topic = topic {
+            if let person, let topic {
                 handleTell(person, about: topic)
             } else {
                 outputHandler("You need to specify whom to tell and about what.")
