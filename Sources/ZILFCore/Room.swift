@@ -53,7 +53,22 @@ public class Room: GameObject {
     /// Called when the room is being looked at (M-LOOK in ZIL).
     /// - Returns: `true` if the action produced a description (prevents default description).
     public var lookAction: ((Room) -> Bool)?
-    
+
+    /// Direct reference to the game world
+    private weak var gameWorld: GameWorld?
+
+    /// Sets the game world reference for this room
+    /// - Parameter world: The game world
+    public func setWorld(_ world: GameWorld) {
+        gameWorld = world
+    }
+
+    /// Finds the game world by first checking the direct reference, then falling back to the object graph
+    /// - Returns: The game world, or nil if not found
+    override public func findWorld() -> GameWorld? {
+        gameWorld ?? super.findWorld()
+    }
+
     /// Executes the begin-command action for this room.
     /// - Parameter command: The command to process.
     /// - Returns: `true` if the action handled the command.
@@ -130,5 +145,14 @@ public class Room: GameObject {
     ///   - room: The destination room.
     public func setExit(direction: Direction, room: Room) {
         exits[direction] = room
+    }
+
+    /// Checks if this room is currently lit
+    /// - Returns: true if the room is lit, false otherwise
+    override public func isLit() -> Bool {
+        if let world = findWorld() {
+            return world.isRoomLit(self)
+        }
+        return super.isLit()
     }
 }

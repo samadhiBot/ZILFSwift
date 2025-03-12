@@ -4,29 +4,24 @@ import Foundation
 
 struct LightingSystemTests {
     @Test func testBasicLighting() {
-        // Create test rooms
-        let brightRoom = Room(
-            name: "Bright Room",
-            description: "A brightly lit room",
-            flags: .isNaturallyLit
-        )
+        // Create a naturally lit room
+        let litRoom = Room(name: "Lit Room", description: "A naturally lit room")
+        litRoom.setFlag(.isNaturallyLit)
 
+        // Create a dark room
         let darkRoom = Room(name: "Dark Room", description: "A dark room")
-        // No naturally lit flag for dark room
 
-        // Connect rooms
-        brightRoom.setExit(direction: .north, room: darkRoom)
-        darkRoom.setExit(direction: .south, room: brightRoom)
+        // Create a player
+        let player = Player(startingRoom: litRoom)
 
-        // Create a player and world
-        let player = Player(startingRoom: brightRoom)
+        // Create a game world
         let world = GameWorld(player: player)
-        world.register(room: brightRoom)
+        world.register(room: litRoom)
         world.register(room: darkRoom)
 
         // Test if bright room is naturally lit
-        #expect(brightRoom.hasFlag(.isNaturallyLit))
-        #expect(brightRoom.isLit())
+        #expect(litRoom.hasFlag(.isNaturallyLit))
+        #expect(litRoom.isLit())
 
         // Mark previous state and verify brightness remains unchanged
 //        brightRoom.setState(true, forKey: "wasLit")
@@ -161,7 +156,6 @@ struct LightingSystemTests {
     @Test func testTransparentContainers() {
         // Create a room
         let room = Room(name: "Test Room", description: "A test room")
-        // Room is dark by default
 
         // Create a player
         let player = Player(startingRoom: room)
