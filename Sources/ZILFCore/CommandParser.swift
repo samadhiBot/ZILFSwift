@@ -220,14 +220,23 @@ public class CommandParser {
 
         // Turn on/off commands
         case "turn":
-            if words.count > 2 && words[1] == "on" {
-                let objName = words.dropFirst(2).joined(separator: " ")
-                let obj = findObject(objName)
-                return .turnOn(obj)
-            } else if words.count > 2 && words[1] == "off" {
-                let objName = words.dropFirst(2).joined(separator: " ")
-                let obj = findObject(objName)
-                return .turnOff(obj)
+            // Natural language "turn on/off" commands
+            if words.count > 2 {
+                if words[1] == "on" {
+                    let objName = words.dropFirst(2).joined(separator: " ")
+                    let obj = findObject(objName)
+                    return .turnOn(obj)
+                } else if words[1] == "off" {
+                    let objName = words.dropFirst(2).joined(separator: " ")
+                    let obj = findObject(objName)
+                    return .turnOff(obj)
+                }
+            } else if words.count == 2 {
+                if words[1] == "on" {
+                    return .turnOn(nil)
+                } else if words[1] == "off" {
+                    return .turnOff(nil)
+                }
             }
             return .custom(words)
 
@@ -522,9 +531,18 @@ public class CommandParser {
             return .drop(object)
         }
 
-        // Special case for "put on X" - this needs to be a wear command in tests
+        // Special case for "put on X" - this should be a wear command
         if words.count >= 3 && words[1] == "on" {
             let objName = words.dropFirst(2).joined(separator: " ")
+            if let obj = findObject(objName) {
+                return .wear(obj)
+            }
+            return .wear(nil)
+        }
+
+        // Special case for "put X on" - this should also be a wear command
+        if words.count >= 3 && words[words.count - 1] == "on" {
+            let objName = words.dropFirst(1).dropLast().joined(separator: " ")
             if let obj = findObject(objName) {
                 return .wear(obj)
             }
@@ -544,9 +562,18 @@ public class CommandParser {
         }
 
         // Find first preposition
-        if let (prepositionIndex, _) = findPrepositionInfo(), prepositionIndex > 0 {
-            // For both "put X in Y" and "put X on Y", tests expect custom commands
-            return .custom(words)
+        if let (prepositionIndex, prepositionType) = findPrepositionInfo(), prepositionIndex > 0 {
+            let objectPhrase = words[1..<prepositionIndex].joined(separator: " ")
+            let containerPhrase = words[(prepositionIndex + 1)...].joined(separator: " ")
+
+            let object = findObject(objectPhrase)
+            let container = findObject(containerPhrase)
+
+            if prepositionType == "in" {
+                return .putIn(object, container: container)
+            } else if prepositionType == "on" {
+                return .putOn(object, surface: container)
+            }
         }
 
         // Handle the case where just an object is specified, like "put object"

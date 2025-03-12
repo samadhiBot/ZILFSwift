@@ -449,38 +449,36 @@ struct CommandParserTests {
             location: world.player.currentRoom
         )
 
-        // Test "put X in Y"
-        if case let .custom(words) = parser.parse("put apple in box") {
-            #expect(words.count > 0)
-            // The raw parser doesn't have special handling for "put X in Y"
-            // It will be handled in the command execution phase
-        } else {
-            throw TestFailure("Expected custom command for put-in")
-        }
-
-        // Test "put X on Y"
-        if case let .custom(words) = parser.parse("put apple on table") {
-            #expect(words.count > 0)
-            // The raw parser doesn't have special handling for "put X on Y"
-            // It will be handled in the command execution phase
-        } else {
-            throw TestFailure("Expected custom command for put-on")
-        }
-
-        // Test "put-in" command directly (hyphenated version)
-        if case let .putIn(parsedApple, container: parsedBox) = parser.parse("put-in apple box") {
+        // Test "put X in Y" - natural language command
+        if case let .putIn(parsedApple, container: parsedBox) = parser.parse("put apple in box") {
             #expect(parsedApple === apple)
             #expect(parsedBox === box)
         } else {
-            throw TestFailure("Expected put-in command")
+            throw TestFailure("Expected putIn command for 'put apple in box'")
         }
 
-        // Test "put-on" command directly (hyphenated version)
-        if case let .putOn(parsedApple, surface: parsedTable) = parser.parse("put-on apple table") {
+        // Test "put X on Y" - natural language command
+        if case let .putOn(parsedApple, surface: parsedTable) = parser.parse("put apple on table") {
             #expect(parsedApple === apple)
             #expect(parsedTable === table)
         } else {
-            throw TestFailure("Expected put-on command")
+            throw TestFailure("Expected putOn command for 'put apple on table'")
+        }
+
+        // Test with articles
+        if case let .putIn(parsedApple, container: parsedBox) = parser.parse("put the apple in the box") {
+            #expect(parsedApple === apple)
+            #expect(parsedBox === box)
+        } else {
+            throw TestFailure("Expected putIn command with articles")
+        }
+
+        // Test with "into" preposition
+        if case let .putIn(parsedApple, container: parsedBox) = parser.parse("put apple into box") {
+            #expect(parsedApple === apple)
+            #expect(parsedBox === box)
+        } else {
+            throw TestFailure("Expected putIn command with 'into' preposition")
         }
 
         // Test "put X" (incomplete)
@@ -793,39 +791,18 @@ struct CommandParserTests {
             flags: .isDevice
         )
 
-        // Test "turn on lamp" (non-hyphenated) - may be custom
-        if case .custom(let words) = parser.parse("turn on lamp") {
-            #expect(words.count >= 3)
-            #expect(words[0] == "turn")
-            #expect(words[1] == "on")
-        } else if case let .turnOn(parsedLamp) = parser.parse("turn on lamp") {
+        // Test "turn on lamp" (natural language command)
+        if case let .turnOn(parsedLamp) = parser.parse("turn on lamp") {
             #expect(parsedLamp === lamp)
         } else {
-            throw TestFailure("Expected either custom or turnOn command for 'turn on lamp'")
+            throw TestFailure("Expected turnOn command for 'turn on lamp'")
         }
 
-        // Test "turn off lamp" (non-hyphenated) - may be custom
-        if case .custom(let words) = parser.parse("turn off lamp") {
-            #expect(words.count >= 3)
-            #expect(words[0] == "turn")
-            #expect(words[1] == "off")
-        } else if case let .turnOff(parsedLamp) = parser.parse("turn off lamp") {
+        // Test "turn off lamp" (natural language command)
+        if case let .turnOff(parsedLamp) = parser.parse("turn off lamp") {
             #expect(parsedLamp === lamp)
         } else {
-            throw TestFailure("Expected either custom or turnOff command for 'turn off lamp'")
-        }
-
-        // Test hyphenated commands which should map directly
-        if case let .turnOn(parsedLamp) = parser.parse("turn-on lamp") {
-            #expect(parsedLamp === lamp)
-        } else {
-            throw TestFailure("Expected turn_on command")
-        }
-
-        if case let .turnOff(parsedLamp) = parser.parse("turn-off lamp") {
-            #expect(parsedLamp === lamp)
-        } else {
-            throw TestFailure("Expected turn_off command")
+            throw TestFailure("Expected turnOff command for 'turn off lamp'")
         }
 
         // Test activate/deactivate
@@ -848,14 +825,14 @@ struct CommandParserTests {
             location: world.player.currentRoom
         )
 
-        if case let .turnOn(parsedBook) = parser.parse("turn-on book") {
+        if case let .turnOn(parsedBook) = parser.parse("turn on book") {
             #expect(parsedBook === book)
         } else {
-            throw TestFailure("Expected turn_on command even with non-device")
+            throw TestFailure("Expected turnOn command even with non-device")
         }
 
         // Test with no object
-        guard case .turnOn(nil) = parser.parse("turn-on") else {
+        guard case .turnOn(nil) = parser.parse("turn on") else {
             throw TestFailure("Expected turnOn(nil) command")
         }
 
@@ -917,33 +894,19 @@ struct CommandParserTests {
             throw TestFailure("Expected wear command")
         }
 
-        // Test "put on coat" command - may be custom or wear
-        let putOnResult = parser.parse("put on coat")
-
-        // Accept either custom or wear
-        if case .custom = putOnResult {
-            // This is fine
-        } else if case let .wear(parsedCoat) = putOnResult {
+        // Test "put on coat" command (natural language)
+        if case let .wear(parsedCoat) = parser.parse("put on coat") {
             #expect(parsedCoat === coat)
         } else {
-            throw TestFailure("Expected either custom or wear command for 'put on coat'")
+            throw TestFailure("Expected wear command for 'put on coat'")
         }
 
-        // Test "put coat on" command - may be custom or wear
-        let putCoatOnResult = parser.parse("put coat on")
-
-        // Accept either custom or wear
-        if case .custom = putCoatOnResult {
-            // This is fine
-        } else if case let .wear(parsedCoat) = putCoatOnResult {
+        // Test "put coat on" command (natural language)
+        if case let .wear(parsedCoat) = parser.parse("put coat on") {
             #expect(parsedCoat === coat)
         } else {
-            throw TestFailure("Expected either custom or wear command for 'put coat on'")
+            throw TestFailure("Expected wear command for 'put coat on'")
         }
-
-        // Get direct access to the command's handler - no need to use parse here
-        // This test is flakey because put-on could be handled as putOn or wear
-        // So we'll just skip this specific part of the test
 
         // Test with non-wearable item - parser doesn't check wearability
         let rock = GameObject(
