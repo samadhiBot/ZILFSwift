@@ -45,7 +45,7 @@ struct GameEngineTests {
         let eastRoom = Room(name: "East Room", description: "Room to the east")
         eastRoom.setFlag(.isNaturallyLit)
         world.register(room: eastRoom)
-        startRoom.setExit(direction: .east, room: eastRoom)
+        startRoom.setExit(.east, to: eastRoom)
 
         try engine.executeCommand(.move(.east))
         #expect(player.currentRoom === eastRoom)
@@ -468,8 +468,8 @@ struct GameEngineTests {
         let northRoom = Room(name: "North Room", description: "Room to the north")
         northRoom.setFlag(.isNaturallyLit) // Make the north room naturally lit for testing
 
-        startRoom.setExit(direction: .north, room: northRoom)
-        northRoom.setExit(direction: .south, room: startRoom)
+        startRoom.setExit(.north, to: northRoom)
+        northRoom.setExit(.south, to: startRoom)
 
         let player = Player(startingRoom: startRoom)
         let world = GameWorld(player: player)

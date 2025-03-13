@@ -143,7 +143,7 @@ public class Room: GameObject {
     /// - Parameters:
     ///   - direction: The direction of the exit.
     ///   - room: The destination room.
-    public func setExit(direction: Direction, room: Room) {
+    public func setExit(_ direction: Direction, to room: Room) {
         exits[direction] = room
     }
 

@@ -88,8 +88,8 @@ let startRoom = Room(name: "Starting Room", description: "You are in a small roo
 let hallway = Room(name: "Hallway", description: "A long hallway stretches before you.")
 
 // Connect the rooms
-startRoom.setExit(direction: .north, room: hallway)
-hallway.setExit(direction: .south, room: startRoom)
+startRoom.setExit(.north, to: hallway)
+hallway.setExit(.south, to: startRoom)
 
 // Add some objects
 let lamp = GameObject(name: "lamp", description: "A brass lamp.")

@@ -111,7 +111,7 @@ struct SpecialTextPropertiesTests {
 
         // Test full room description with exits
         let northRoom = Room(name: "North Room", description: "Room to the north")
-        room.setExit(direction: .north, room: northRoom)
+        room.setExit(.north, to: northRoom)
 
         let fullDesc = room.getFullRoomDescription(in: world)
         #expect(fullDesc.contains("You see a room with fancy decorations"))

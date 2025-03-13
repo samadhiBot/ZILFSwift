@@ -376,10 +376,10 @@
 //        kitchen.addToContainer(kettle)
 //
 //        // Set up exits
-//        foyer.setExit(direction: .north, room: bar)
-//        bar.setExit(direction: .south, room: foyer)
-//        bar.setExit(direction: .east, room: kitchen)
-//        kitchen.setExit(direction: .west, room: bar)
+//        foyer.setExit(.north, to: bar)
+//        bar.setExit(.south, to: foyer)
+//        bar.setExit(.east, to: kitchen)
+//        kitchen.setExit(.west, to: bar)
 //
 //        // Track room states
 //        var barHasLight = true

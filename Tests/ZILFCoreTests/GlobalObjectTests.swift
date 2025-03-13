@@ -16,8 +16,8 @@ import Testing
         let hall = Room(name: "Hall", description: "A large hall.")
         let kitchen = Room(name: "Kitchen", description: "A cozy kitchen.")
 
-        hall.setExit(direction: .east, room: kitchen)
-        kitchen.setExit(direction: .west, room: hall)
+        hall.setExit(.east, to: kitchen)
+        kitchen.setExit(.west, to: hall)
 
         let player = Player(startingRoom: hall)
         let world = GameWorld(player: player)
@@ -80,8 +80,8 @@ import Testing
         hall.setFlag(.isNaturallyLit)
         kitchen.setFlag(.isNaturallyLit)
 
-        hall.setExit(direction: .east, room: kitchen)
-        kitchen.setExit(direction: .west, room: hall)
+        hall.setExit(.east, to: kitchen)
+        kitchen.setExit(.west, to: hall)
 
         let player = Player(startingRoom: hall)
         let world = GameWorld(player: player)

@@ -114,8 +114,8 @@ struct EventSystemTests {
         let startRoom = Room(name: "Start", description: "Starting room")
         let northRoom = Room(name: "North", description: "Northern room")
 
-        startRoom.setExit(direction: .north, room: northRoom)
-        northRoom.setExit(direction: .south, room: startRoom)
+        startRoom.setExit(.north, to: northRoom)
+        northRoom.setExit(.south, to: startRoom)
 
         var enterCalled = false
         var endTurnCalled = false
@@ -287,8 +287,8 @@ struct EventSystemTests {
         let garden = Room(name: "Garden", description: "A beautiful garden.")
 
         // Set up exits
-        kitchen.setExit(direction: .east, room: garden)
-        garden.setExit(direction: .west, room: kitchen)
+        kitchen.setExit(.east, to: garden)
+        garden.setExit(.west, to: kitchen)
 
         // Create player with the kitchen as starting room
         let player = Player(startingRoom: kitchen)

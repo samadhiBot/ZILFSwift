@@ -948,8 +948,8 @@ struct CommandParserTests {
         let startRoom = Room(name: "Start Room", description: "The starting room")
         let northRoom = Room(name: "North Room", description: "Room to the north")
 
-        startRoom.setExit(direction: .north, room: northRoom)
-        northRoom.setExit(direction: .south, room: startRoom)
+        startRoom.setExit(.north, to: northRoom)
+        northRoom.setExit(.south, to: startRoom)
 
         let player = Player(startingRoom: startRoom)
         let world = GameWorld(player: player)

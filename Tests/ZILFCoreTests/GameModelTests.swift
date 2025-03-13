@@ -22,8 +22,8 @@ struct GameModelTests {
         let room1 = Room(name: "Room 1", description: "First room")
         let room2 = Room(name: "Room 2", description: "Second room")
 
-        room1.setExit(direction: .north, room: room2)
-        room2.setExit(direction: .south, room: room1)
+        room1.setExit(.north, to: room2)
+        room2.setExit(.south, to: room1)
 
         #expect(room1.getExit(direction: .north) === room2)
         #expect(room2.getExit(direction: .south) === room1)
@@ -42,8 +42,8 @@ struct GameModelTests {
     @Test func playerMovement() {
         let startRoom = Room(name: "Start", description: "Starting room")
         let northRoom = Room(name: "North", description: "Northern room")
-        startRoom.setExit(direction: .north, room: northRoom)
-        northRoom.setExit(direction: .south, room: startRoom)
+        startRoom.setExit(.north, to: northRoom)
+        northRoom.setExit(.south, to: startRoom)
 
         let player = Player(startingRoom: startRoom)
 

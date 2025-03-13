@@ -105,7 +105,8 @@ extension GameObject {
     public func getContentsDescription() -> String {
         guard hasFlag(.isContainer) else { return "" }
 
-        if !hasFlag(.isTransparent) {
+        // Check if the container is closed, not whether it's transparent
+        if !hasFlag(.isOpen) {
             return getSpecialText(forKey: .closedText) ?? "It's closed."
         }
 
@@ -152,8 +153,8 @@ extension Room {
     public func getFullRoomDescription(in world: GameWorld) -> String {
         var result = getRoomDescription(in: world)
 
-        // If the room is dark, don't show contents or exits
-        if isLit() {
+        // If the room is not lit, don't show contents or exits
+        if !isLit() {
             return result
         }
 
@@ -178,7 +179,7 @@ extension Room {
                 result += "\n  \(obj.name)"
 
                 // If it's an open container, show its contents
-                if obj.hasFlags(.isContainer, .isTransparent) && !obj.contents.isEmpty {
+                if obj.hasFlags(.isContainer, .isOpen) && !obj.contents.isEmpty {
                     let containedItems = obj.contents
                         .map { "    \($0.name)"}
                         .joined(separator: "\n")

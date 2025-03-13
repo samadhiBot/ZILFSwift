@@ -51,10 +51,10 @@ struct HelloWorldGame {
         )
 
         // Connect rooms with exits
-        entrance.setExit(direction: .north, room: mainCavern)
-        mainCavern.setExit(direction: .south, room: entrance)
-        mainCavern.setExit(direction: .east, room: treasureRoom)
-        treasureRoom.setExit(direction: .west, room: mainCavern)
+        entrance.setExit(.north, to: mainCavern)
+        mainCavern.setExit(.south, to: entrance)
+        mainCavern.setExit(.east, to: treasureRoom)
+        treasureRoom.setExit(.west, to: mainCavern)
 
         // Create player
         let player = Player(startingRoom: entrance)
@@ -200,8 +200,8 @@ struct HelloWorldGame {
         pitRoom.setFlag(.isNaturallyLit)
 
         // Connect the pit room
-        treasureRoom.setExit(direction: .south, room: pitRoom)
-        pitRoom.setExit(direction: .north, room: treasureRoom)
+        treasureRoom.setExit(.south, to: pitRoom)
+        pitRoom.setExit(.north, to: treasureRoom)
 
         // Add the deadly pit exit
         pitRoom.setDeadlyExit(

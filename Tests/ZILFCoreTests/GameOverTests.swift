@@ -25,8 +25,8 @@ import ZILFTestSupport
         deadlyRoom.setFlag(.isNaturallyLit)
 
         // Connect rooms
-        room.setExit(direction: .north, room: deadlyRoom)
-        deadlyRoom.setExit(direction: .south, room: room)
+        room.setExit(.north, to: deadlyRoom)
+        deadlyRoom.setExit(.south, to: room)
 
         world.register(room: deadlyRoom)
 
@@ -95,7 +95,7 @@ import ZILFTestSupport
         deadlyRoom.setFlag(.isNaturallyLit)
 
         // Connect rooms
-        room.setExit(direction: .north, room: deadlyRoom)
+        room.setExit(.north, to: deadlyRoom)
 
         // Add a deadly exit
         deadlyRoom.setDeadlyExit(
