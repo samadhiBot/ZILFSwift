@@ -168,7 +168,7 @@ import Testing
         #expect(player.currentRoom === room2)
 
         // Verify that there's no return path
-        #expect(room2.getExit(direction: .up) == nil)
+        #expect(room2.getExit(.up) == nil)
         #expect(room2.getSpecialExit(direction: .up) == nil)
         #expect(!player.move(direction: .up))
         #expect(player.currentRoom === room2)

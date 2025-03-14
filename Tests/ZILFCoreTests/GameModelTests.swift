@@ -25,9 +25,9 @@ struct GameModelTests {
         room1.setExit(.north, to: room2)
         room2.setExit(.south, to: room1)
 
-        #expect(room1.getExit(direction: .north) === room2)
-        #expect(room2.getExit(direction: .south) === room1)
-        #expect(room1.getExit(direction: .east) == nil)
+        #expect(room1.getExit(.north) === room2)
+        #expect(room2.getExit(.south) === room1)
+        #expect(room1.getExit(.east) == nil)
     }
 
     @Test func objectLocation() {

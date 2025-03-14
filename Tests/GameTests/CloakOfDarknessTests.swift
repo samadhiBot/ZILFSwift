@@ -18,10 +18,10 @@ import ZILFTestSupport
         let cloakroom = try world.find(room: "Cloakroom")
 
         // Verify room connections
-        #expect(foyer.getExit(direction: .south) === bar)
-        #expect(foyer.getExit(direction: .west) === cloakroom)
-        #expect(bar.getExit(direction: .north) === foyer)
-        #expect(cloakroom.getExit(direction: .east) === foyer)
+        #expect(foyer.getExit(.south) === bar)
+        #expect(foyer.getExit(.west) === cloakroom)
+        #expect(bar.getExit(.north) === foyer)
+        #expect(cloakroom.getExit(.east) === foyer)
 
         // Verify objects
         let cloak = try world.find(object: "cloak")

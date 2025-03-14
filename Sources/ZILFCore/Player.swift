@@ -77,7 +77,7 @@ public class Player: GameObject {
         }
 
         // If no special exit, use the regular exit
-        guard let newRoom = currentRoom.getExit(direction: direction) else {
+        guard let newRoom = currentRoom.getExit(direction) else {
             return false
         }
 

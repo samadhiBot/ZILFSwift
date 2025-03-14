@@ -27,10 +27,10 @@ struct HelloWorldGameTests {
         #expect(pitRoom != nil)
 
         // Verify standard room connections
-        #expect(entrance?.getExit(direction: .north) === mainCavern)
-        #expect(mainCavern?.getExit(direction: .south) === entrance)
-        #expect(mainCavern?.getExit(direction: .east) === treasureRoom)
-        #expect(treasureRoom?.getExit(direction: .west) === mainCavern)
+        #expect(entrance?.getExit(.north) === mainCavern)
+        #expect(mainCavern?.getExit(.south) === entrance)
+        #expect(mainCavern?.getExit(.east) === treasureRoom)
+        #expect(treasureRoom?.getExit(.west) === mainCavern)
 
         // Verify special exits exist (not testing condition)
         #expect(treasureRoom?.getSpecialExit(direction: .down) != nil)
