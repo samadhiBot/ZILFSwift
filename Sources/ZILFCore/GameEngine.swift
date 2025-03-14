@@ -30,6 +30,12 @@ public class GameEngine {
     /// Message to display when the game ends
     private var gameOverMessage: String?
 
+    /// Introductory text to display when the game starts
+    private var welcomeMessage: String?
+
+    /// Version information to display at startup
+    private var gameVersion: String?
+
     /// Function that creates a new game world instance, used for game restarts
     private var worldCreator: (() throws -> GameWorld)?
 
@@ -39,15 +45,21 @@ public class GameEngine {
     ///   - world: The game world that contains all game objects and state
     ///   - outputHandler: Function that handles text output from the game
     ///   - worldCreator: Optional function that creates a new world instance for game restarts
+    ///   - welcomeMessage: Optional introductory text to display when the game starts
+    ///   - gameVersion: Optional version information to display at startup
     public init(
         world: GameWorld,
         outputHandler: @escaping (String) -> Void = { print($0) },
-        worldCreator: (() throws -> GameWorld)? = nil
+        worldCreator: (() throws -> GameWorld)? = nil,
+        welcomeMessage: String? = nil,
+        gameVersion: String? = nil
     ) {
         self.world = world
         self.parser = CommandParser(world: world)
         self.outputHandler = outputHandler
         self.worldCreator = worldCreator
+        self.welcomeMessage = welcomeMessage
+        self.gameVersion = gameVersion
 
         // Set engine directly on player using proper API instead of state dictionary
         world.player.setEngine(self)
@@ -510,7 +522,18 @@ public class GameEngine {
         isRunning = true
         isGameOver = false
 
-        outputHandler("Welcome to the Hello World Adventure!")
+        // Display welcome message if provided
+        if let welcomeMessage = welcomeMessage {
+            outputHandler(welcomeMessage)
+        } else {
+            outputHandler("Welcome to the Text Adventure!")
+        }
+
+        // Display version information if provided
+        if let gameVersion = gameVersion {
+            outputHandler(gameVersion)
+        }
+
         outputHandler("Type 'help' for a list of commands.\n")
 
         // Start with a look at the current room
@@ -1053,7 +1076,11 @@ public class GameEngine {
             outputHandler("You can't change the past.")
             // Implement undo functionality
         case .version:
-            outputHandler("ZILF Game Engine v1.0")
+            if let gameVersion = gameVersion {
+                outputHandler(gameVersion)
+            } else {
+                outputHandler("ZILF Game Engine v1.0")
+            }
         case .help:
             printHelp()
         case .script:
