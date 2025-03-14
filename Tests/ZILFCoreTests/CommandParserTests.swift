@@ -13,7 +13,7 @@ struct CommandParserTests {
             name: "box",
             description: "A wooden box",
             location: world.player.currentRoom,
-            flags: [.isContainer, .isOpen]
+            flags: .isContainer, .isOpen
         ) // Start opened
 
         // Test basic close command
@@ -561,7 +561,7 @@ struct CommandParserTests {
             name: "hat",
             description: "A fancy hat",
             location: world.player,
-            flags: [.isWearable, .isBeingWorn]  // Mark as currently worn
+            flags: .isWearable, .isBeingWorn  // Mark as currently worn
         )
 
         // Test "remove hat" command
@@ -652,7 +652,7 @@ struct CommandParserTests {
             name: "hat",
             description: "A fancy hat",
             location: world.player,
-            flags: [.isWearable, .isBeingWorn]  // Mark as currently worn
+            flags: .isWearable, .isBeingWorn  // Mark as currently worn
         )
 
         // Check if take-off (hyphenated) is recognized - it should be an unwear command
@@ -733,7 +733,7 @@ struct CommandParserTests {
             name: "hat",
             description: "A fancy hat",
             location: world.player,
-            flags: [.isWearable, .isBeingWorn]  // Mark as currently worn
+            flags: .isWearable, .isBeingWorn  // Mark as currently worn
         )
 
         // Test "take off hat" command - check what the actual implementation does

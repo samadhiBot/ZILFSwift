@@ -181,4 +181,59 @@ struct GameModelTests {
             throw TestFailure("Expected take command with nil object for coin in closed box")
         }
     }
+
+    @Test func testSynonyms() {
+        // Create an object with synonyms
+        let lantern = GameObject(
+            name: "lantern",
+            description: "A brass lantern",
+            synonyms: "lamp", "light"
+        )
+
+        // Check that the synonyms were added correctly
+        #expect(lantern.synonyms.count == 2)
+        #expect(lantern.synonyms.contains("lamp"))
+        #expect(lantern.synonyms.contains("light"))
+
+        // Test matchesName with primary name
+        #expect(lantern.matchesName("lantern"))
+        #expect(lantern.matchesName("LANTERN")) // Case insensitive
+
+        // Test matchesName with synonyms
+        #expect(lantern.matchesName("lamp"))
+        #expect(lantern.matchesName("LAMP")) // Case insensitive
+        #expect(lantern.matchesName("light"))
+
+        // Test non-matches
+        #expect(!lantern.matchesName("torch"))
+        #expect(!lantern.matchesName(""))
+
+        // Test adding synonyms after creation
+        lantern.addSynonym("torch")
+        #expect(lantern.synonyms.count == 3)
+        #expect(lantern.matchesName("torch"))
+
+        // Test adding multiple synonyms
+        lantern.addSynonyms("flashlight", "illuminator")
+        #expect(lantern.synonyms.count == 5)
+        #expect(lantern.matchesName("flashlight"))
+        #expect(lantern.matchesName("illuminator"))
+
+        // Test removing a synonym
+        lantern.removeSynonym("torch")
+        #expect(lantern.synonyms.count == 4)
+        #expect(!lantern.matchesName("torch"))
+
+        // Test creating an object with array of synonyms
+        let sword = GameObject(
+            name: "sword",
+            description: "A sharp sword",
+            flags: .isTakable,
+            synonyms: "blade", "weapon"
+        )
+
+        #expect(sword.synonyms.count == 2)
+        #expect(sword.matchesName("blade"))
+        #expect(sword.matchesName("weapon"))
+    }
 }

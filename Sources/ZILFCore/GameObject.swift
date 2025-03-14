@@ -4,23 +4,26 @@ import Foundation
 /// Provides functionality for object relationships, state management, and interactions.
 @dynamicMemberLookup
 public class GameObject {
-    /// The maximum number of objects this object can contain.
-    public private(set) var capacity: Int?
-
-    /// Any objects contained within this object.
-    public private(set) var contents = [GameObject]()
+    /// The object's primary identifier.
+    public let name: String
 
     /// The descriptive text for this object.
     public private(set) var description: String
 
-    /// The set of flags that define object behaviors and states.
-    public private(set) var flags = Set<Flag>()
-
     /// The room or container that holds this object.
     public private(set) var location: GameObject?
 
-    /// The object's identifier.
-    public var name: String
+    /// Any objects contained within this object.
+    public private(set) var contents = [GameObject]()
+
+    /// The set of flags that define object behaviors and states.
+    public private(set) var flags = Set<Flag>()
+
+    /// Alternative words that can be used to refer to this object.
+    public private(set) var synonyms: Set<String>
+
+    /// The maximum number of objects this object can contain.
+    public private(set) var capacity: Int?
 
     /// A dictionary storing dynamic state values.
     var stateValues = [String: Any]()
@@ -33,37 +36,24 @@ public class GameObject {
     ///   - name: The name of the object.
     ///   - description: The description of the object.
     ///   - location: The location of the object (optional).
-    ///   - flags: Array of flags to set on the object.
+    ///   - flags: Variadic list of flags to set on the object.
+    ///   - synonyms: Variadic list of synonyms for the object.
     public init(
         name: String,
         description: String,
         location: GameObject? = nil,
-        flags: [Flag] = []
+        flags: Flag...,
+        synonyms: String...
     ) {
         self.name = name
         self.description = description
         self.location = nil
-        flags.forEach { setFlag($0) }
+        self.flags = Set(flags)
+        self.synonyms = Set(synonyms)
 
         if let location {
             moveTo(location)
         }
-    }
-
-    /// Convenience initializer with location and variadic flags.
-    ///
-    /// - Parameters:
-    ///   - name: The name of the object.
-    ///   - description: The description of the object.
-    ///   - location: The location of the object (optional).
-    ///   - flags: Variadic list of flags to set on the object.
-    public convenience init(
-        name: String,
-        description: String,
-        location: GameObject? = nil,
-        flags: Flag...
-    ) {
-        self.init(name: name, description: description, location: location, flags: flags)
     }
 
     // MARK: - Core Functions
@@ -115,7 +105,7 @@ public class GameObject {
     public func moveTo(_ destination: GameObject?) {
         // If we already have a location, remove from its contents
         if let oldLocation = location {
-            oldLocation.remove(self)
+            _ = oldLocation.remove(self)
         }
 
         // Update our location reference
@@ -449,6 +439,35 @@ public class GameObject {
     /// - Returns: A PropertyExistenceChecker for the specified key.
     public subscript(dynamicMember key: String) -> PropertyExistenceChecker {
         PropertyExistenceChecker(object: self, key: key)
+    }
+
+    // MARK: - Synonym Management
+
+    /// Adds a new synonym for this object.
+    /// - Parameter synonym: The synonym to add.
+    public func addSynonym(_ synonym: String) {
+        guard !synonym.isEmpty, synonym != name else { return }
+        synonyms.insert(synonym)
+    }
+
+    /// Adds multiple synonyms for this object using a variadic parameter.
+    /// - Parameter newSynonyms: The synonyms to add as a variadic parameter.
+    public func addSynonyms(_ newSynonyms: String...) {
+        newSynonyms.forEach { addSynonym($0) }
+    }
+
+    /// Removes a synonym from this object.
+    /// - Parameter synonym: The synonym to remove.
+    public func removeSynonym(_ synonym: String) {
+        synonyms.remove(synonym)
+    }
+
+    /// Checks if a given word matches this object's name or any of its synonyms.
+    /// - Parameter word: The word to check.
+    /// - Returns: Whether the word matches this object.
+    public func matchesName(_ word: String) -> Bool {
+        return name.lowercased() == word.lowercased() ||
+               synonyms.contains { $0.lowercased() == word.lowercased() }
     }
 }
 

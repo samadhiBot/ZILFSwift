@@ -441,7 +441,8 @@ public enum CloakOfDarkness {
             name: "small brass hook",
             description: "A small brass hook mounted on the wall.",
             location: cloakroom,
-            flags: .isContainer, .isSurface
+            flags: .isContainer, .isSurface,
+            synonyms: "peg"
         )
         hook.firstDescription = "A small brass hook is on the wall."
         world.register(hook)
@@ -500,7 +501,8 @@ public enum CloakOfDarkness {
             name: "table",
             description: "Tatty but functional.",
             location: foyer,
-            flags: .isContainer, .isSurface
+            flags: .isContainer, .isSurface,
+            synonyms: "furniture"
         )
         world.register(table)
 
@@ -575,7 +577,8 @@ public enum CloakOfDarkness {
         let painting = GameObject(
             name: "painting",
             description: "An unusual painting that seems to change.",
-            location: foyer
+            location: foyer,
+            synonyms: "picture", "art"
         )
         world.register(painting)
 
@@ -649,7 +652,8 @@ public enum CloakOfDarkness {
         let darkness = GameObject(
             name: "darkness",
             description: "It's too dark to see anything.",
-            flags: .omitArticle
+            flags: .omitArticle,
+            synonyms: "dark"
         )
         world.globalObjects.append(darkness)
 
@@ -711,7 +715,8 @@ public enum CloakOfDarkness {
             name: "cloak",
             description: "The cloak is unnaturally dark.",
             location: world.player,
-            flags: .isTakable, .isWearable, .isBeingWorn
+            flags: .isTakable, .isWearable, .isBeingWorn,
+            synonyms: "garment", "cloth"
         )
         world.register(cloak)
 
@@ -731,7 +736,8 @@ public enum CloakOfDarkness {
             name: "light switch",
             description: "An ordinary light switch.",
             location: study,
-            flags: .isDevice
+            flags: .isDevice,
+            synonyms: "switch"
         )
         world.register(lightSwitch)
 
@@ -830,7 +836,8 @@ public enum CloakOfDarkness {
             name: "flashlight",
             description: "A cheap plastic flashlight.",
             location: study,
-            flags: .isDevice, .isTakable
+            flags: .isDevice, .isTakable,
+            synonyms: "torch", "light"
         )
         world.register(flashlight)
 
@@ -955,7 +962,8 @@ public enum CloakOfDarkness {
             name: "book",
             description: "A tattered hard-cover book with a red binding.",
             location: stand,
-            flags: .isTakable, .isReadable
+            flags: .isTakable, .isReadable,
+            synonyms: "tome", "volume"
         )
         book.text =
             "It tells of an adventurer who was tasked with testing out a library that was old and new at the same time."
@@ -974,7 +982,8 @@ public enum CloakOfDarkness {
             name: "dollar",
             description: "A crisp one-dollar bill.",
             location: safe,
-            flags: .isTakable
+            flags: .isTakable,
+            synonyms: "bill"
         )
         world.register(bill)
 
@@ -982,7 +991,8 @@ public enum CloakOfDarkness {
             name: "case",
             description: "A large glass case.",
             location: study,
-            flags: .isContainer, .isTransparent
+            flags: .isContainer, .isTransparent,
+            synonyms: "display", "container"
         )
         world.register(glassCase)
 

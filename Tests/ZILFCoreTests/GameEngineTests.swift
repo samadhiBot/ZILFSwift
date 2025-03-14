@@ -170,8 +170,12 @@ struct GameEngineTests {
         let engine = GameEngine(world: world, outputHandler: outputHandler.handler)
 
         // Create a container
-        let box = GameObject(name: "wooden box", description: "A small wooden box",
-                             location: startRoom, flags: [.isContainer, .isOpenable])
+        let box = GameObject(
+            name: "wooden box",
+            description: "A small wooden box",
+            location: startRoom,
+            flags: .isContainer, .isOpenable
+        )
         world.register(box)
 
         // Move coin to player inventory - ensure we have it
@@ -257,8 +261,12 @@ struct GameEngineTests {
         let engine = GameEngine(world: world, outputHandler: outputHandler.handler)
 
         // Create a wearable item
-        let hat = GameObject(name: "hat", description: "A fancy hat",
-                             location: player, flags: [.isTakable, .isWearable])
+        let hat = GameObject(
+            name: "hat",
+            description: "A fancy hat",
+            location: player,
+            flags: .isTakable, .isWearable
+        )
         world.register(hat)
 
         // Test wear command
@@ -301,8 +309,12 @@ struct GameEngineTests {
         let engine = GameEngine(world: world, outputHandler: outputHandler.handler)
 
         // Create a device
-        let lamp = GameObject(name: "lamp", description: "A brass lamp",
-                              location: player, flags: [.isTakable, .isDevice])
+        let lamp = GameObject(
+            name: "lamp",
+            description: "A brass lamp",
+            location: player,
+            flags: .isTakable, .isDevice
+        )
         world.register(lamp)
 
         // Test turn on command

@@ -782,9 +782,9 @@ public class CommandParser {
         // Get objects in scope (inventory + visible in room)
         let objectsInScope = getObjectsInScope()
 
-        // Try exact match first
+        // Try exact match first (checking both primary name and synonyms)
         for obj in objectsInScope {
-            if obj.name.lowercased() == cleanDescription.lowercased() {
+            if obj.matchesName(cleanDescription) {
                 return obj
             }
         }
@@ -795,6 +795,13 @@ public class CommandParser {
             if objNameLower.contains(cleanDescription.lowercased()) {
                 return obj
             }
+
+            // Also check synonyms for partial matches
+            for synonym in obj.synonyms {
+                if synonym.lowercased().contains(cleanDescription.lowercased()) {
+                    return obj
+                }
+            }
         }
 
         // Try matching if all words in cleanDescription appear in the object name
@@ -803,19 +810,49 @@ public class CommandParser {
         outer: for obj in objectsInScope {
             let objName = obj.name.lowercased()
 
-            // Skip if any word in the description is not found in the object name
-            for word in descriptionWords where !objName.contains(word) {
-                continue outer
+            // First check primary name
+            var allWordsFound = true
+            for word in descriptionWords {
+                if !objName.contains(word) {
+                    allWordsFound = false
+                    break
+                }
             }
 
-            return obj
+            if allWordsFound {
+                return obj
+            }
+
+            // Then check each synonym
+            for synonym in obj.synonyms {
+                let synonymLower = synonym.lowercased()
+
+                allWordsFound = true
+                for word in descriptionWords {
+                    if !synonymLower.contains(word) {
+                        allWordsFound = false
+                        break
+                    }
+                }
+
+                if allWordsFound {
+                    return obj
+                }
+            }
         }
 
-        // As a fallback, try finding if any object name contains the first word of the description
+        // As a fallback, try finding if any object name or synonym contains the first word of the description
         if let firstWord = descriptionWords.first, !firstWord.isEmpty {
             for obj in objectsInScope {
                 if obj.name.lowercased().contains(firstWord) {
                     return obj
+                }
+
+                // Check synonyms too
+                for synonym in obj.synonyms {
+                    if synonym.lowercased().contains(firstWord) {
+                        return obj
+                    }
                 }
             }
         }
