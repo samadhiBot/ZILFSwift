@@ -65,6 +65,23 @@ public enum CloakOfDarkness {
         return world
     }
 
+    // MARK: - Helper Methods
+
+    /// Helper method for outputting text properly through the game engine
+    private static func outputText(_ text: String, from obj: GameObject? = nil) {
+        if let player = obj?.findPlayer(), let engine = player.engine {
+            Task { @MainActor in
+                // Use the global output function which is properly configured
+                output(text)
+            }
+        } else {
+            // Fallback to global output if no object context is available
+            Task { @MainActor in
+                output(text)
+            }
+        }
+    }
+
     // MARK: - Room Creation Methods
 
     /// Creates and configures the bar room.
@@ -131,7 +148,7 @@ public enum CloakOfDarkness {
                     }
                 }
 
-                print("You grope around clumsily in the dark. Better be careful.")
+                outputText("You grope around clumsily in the dark. Better be careful.", from: room)
 
                 // Update disturbed counter
                 room.disturbed = (room.disturbed ?? 0) + 1
@@ -144,12 +161,13 @@ public enum CloakOfDarkness {
         // Override look handler for bar to make the description match test expectations
         bar.lookAction = { (room: Room) -> Bool in
             if room.hasFlag(.isOn) {
-                print(
-                    "The bar, much rougher than you'd have guessed after the opulence of the foyer to the north, is completely empty. You can see a message scrawled in the sawdust on the floor."
+                outputText(
+                    "The bar, much rougher than you'd have guessed after the opulence of the foyer to the north, is completely empty. You can see a message scrawled in the sawdust on the floor.",
+                    from: room
                 )
                 return true
             } else {
-                print("It's too dark to see.")
+                outputText("It's too dark to see.", from: room)
                 return true
             }
         }
@@ -308,13 +326,13 @@ public enum CloakOfDarkness {
 
         // Hall enter action
         hallToStudy.enterAction = { (room: Room) -> Bool in
-            print("Oof - it's cramped in here.")
+            outputText("Oof - it's cramped in here.", from: room)
             return true
         }
 
         // Hall end-turn action
         hallToStudy.endTurnAction = { (room: Room) -> Bool in
-            print("A spider scuttles across your feet and then disappears into a crack.")
+            outputText("A spider scuttles across your feet and then disappears into a crack.", from: room)
             return true
         }
 
@@ -334,12 +352,12 @@ public enum CloakOfDarkness {
 
         // End-turn action for study
         study.endTurnAction = { (room: Room) -> Bool in
-            let random = Int.random(in: 1...4)
+            let random = Int.random(in: 1...10)
             if random == 1 {
-                print("A mouse zips across the floor and into a hole.")
+                outputText("A mouse zips across the floor and into a hole.", from: room)
                 return true
             } else if random == 2 {
-                print("A faint scratching sound can be heard from the ceiling.")
+                outputText("A faint scratching sound can be heard from the ceiling.", from: room)
                 return true
             }
             return false
@@ -371,19 +389,18 @@ public enum CloakOfDarkness {
 
             // Find the player using our helper method
             if let player = obj.findPlayer() {
-                print("The message simply reads: \"You ", terminator: "")
                 if disturbed > 1 {
-                    print("lose.\"")
+                    outputText("The message simply reads: \"You lose.\"", from: obj)
                     if let engine = player.engine {
                         Task { @MainActor in
-                            engine.gameOver(message: "You lose", isVictory: false)
+                            engine.playerDied(message: "You lose")
                         }
                     }
                 } else {
-                    print("win.\"")
+                    outputText("The message simply reads: \"You win.\"", from: obj)
                     if let engine = player.engine {
                         Task { @MainActor in
-                            engine.gameOver(message: "You win", isVictory: true)
+                            engine.playerWon(message: "You win")
                         }
                     }
                 }
@@ -392,7 +409,7 @@ public enum CloakOfDarkness {
         }
 
         message.setTakeHandler { obj in
-            print("The message is just sawdust on the floor, you can't take it.")
+            outputText("The message is just sawdust on the floor, you can't take it.", from: obj)
 
             // Disturb the floor
             let room = obj.location as? Room
@@ -725,15 +742,14 @@ public enum CloakOfDarkness {
         // Cloak
         let cloak = GameObject(
             name: "cloak",
-            description: "The cloak is unnaturally dark.",
+            description: "A handsome cloak, of velvet trimmed with satin, and slightly spattered with raindrops. Its blackness is so deep that it almost seems to suck light from the room.",
             location: world.player,
-            flags: .isTakable, .isWearable, .isBeingWorn,
-            synonyms: "garment", "cloth"
+            flags: .isTakable, .isWearable, .isBeingWorn
         )
         world.register(cloak)
 
         cloak.setExamineHandler { obj in
-            print("The cloak is unnaturally dark.")
+            outputText("The cloak is unnaturally dark.", from: obj)
             return true
         }
     }
@@ -754,14 +770,8 @@ public enum CloakOfDarkness {
         world.register(lightSwitch)
 
         lightSwitch.setExamineHandler { obj in
-            print(
-                "An ordinary light switch set in the wall to the left of the entrance to the closet. It is currently ",
-                terminator: "")
-            if obj.hasFlag(.isOn) {
-                print("on.")
-            } else {
-                print("off.")
-            }
+            outputText("An ordinary light switch set in the wall to the left of the entrance to the closet. It is currently " +
+                (obj.hasFlag(.isOn) ? "on." : "off."), from: obj)
             return true
         }
 
@@ -776,10 +786,10 @@ public enum CloakOfDarkness {
                     currentRoom.name == "Closet"
                 {
                     currentRoom.setFlag(.isOn)
-                    print("The closet lights up!")
+                    outputText("The closet lights up!", from: obj)
                 }
 
-                print("You switch on the light switch.")
+                outputText("You switch on the light switch.", from: obj)
                 return true
             }
             return false
@@ -796,10 +806,10 @@ public enum CloakOfDarkness {
                     currentRoom.name == "Closet"
                 {
                     currentRoom.clearFlag(.isOn)
-                    print("The closet goes dark!")
+                    outputText("The closet goes dark!", from: obj)
                 }
 
-                print("You switch off the light switch.")
+                outputText("You switch off the light switch.", from: obj)
                 return true
             }
             return false
@@ -818,10 +828,10 @@ public enum CloakOfDarkness {
                         currentRoom.name == "Closet"
                     {
                         currentRoom.clearFlag(.isOn)
-                        print("The closet goes dark!")
+                        outputText("The closet goes dark!", from: obj)
                     }
 
-                    print("You switch off the light switch.")
+                    outputText("You switch off the light switch.", from: obj)
                 } else {
                     // Turn it on
                     obj.setFlag(.isOn)
@@ -833,10 +843,10 @@ public enum CloakOfDarkness {
                         currentRoom.name == "Closet"
                     {
                         currentRoom.setFlag(.isOn)
-                        print("The closet lights up!")
+                        outputText("The closet lights up!", from: obj)
                     }
 
-                    print("You switch on the light switch.")
+                    outputText("You switch on the light switch.", from: obj)
                 }
                 return true
             }
@@ -848,30 +858,25 @@ public enum CloakOfDarkness {
             name: "flashlight",
             description: "A cheap plastic flashlight.",
             location: study,
-            flags: .isDevice, .isTakable,
+            flags: .isDevice, .isTakable, .isLightSource,
             synonyms: "torch", "light"
         )
         world.register(flashlight)
 
         flashlight.setExamineHandler { obj in
-            print("A cheap plastic flashlight. It is currently ", terminator: "")
-            if obj.hasFlag(.isOn) {
-                print("on.")
-            } else {
-                print("off.")
-            }
+            outputText("A cheap plastic flashlight. It is currently " +
+                (obj.hasFlag(.isOn) ? "on." : "off."), from: obj)
             return true
         }
 
         flashlight.setCustomCommandHandler(verb: "turn-on") { obj, objects in
             if objects.contains(where: { $0 === obj }) {
                 if obj.hasFlag(.isOn) {
-                    print("It's already on.")
+                    outputText("It's already on.", from: obj)
                 } else {
                     obj.setFlag(.isOn)
                     obj.setFlag(.isLightSource)
-                    obj.setFlag(.isOn)
-                    print("You switch on the flashlight.")
+                    outputText("You switch on the flashlight.", from: obj)
 
                     // Find the player using the findPlayer helper
                     if let player = obj.findPlayer(),
@@ -879,7 +884,7 @@ public enum CloakOfDarkness {
                         !currentRoom.hasFlag(.isOn) && !currentRoom.hasFlag(.isNaturallyLit)
                     {
                         currentRoom.setFlag(.isOn)
-                        print("The flashlight illuminates the area!")
+                        outputText("The flashlight illuminates the area!", from: obj)
                     }
                 }
                 return true
@@ -890,11 +895,10 @@ public enum CloakOfDarkness {
         flashlight.setCustomCommandHandler(verb: "turn-off") { obj, objects in
             if objects.contains(where: { $0 === obj }) {
                 if !obj.hasFlag(.isOn) {
-                    print("It's already off.")
+                    outputText("It's already off.", from: obj)
                 } else {
                     obj.clearFlag(.isOn)
-                    obj.clearFlag(.isOn)
-                    print("You switch off the flashlight.")
+                    outputText("You switch off the flashlight.", from: obj)
 
                     // Find the player using the findPlayer helper
                     if let player = obj.findPlayer(),
@@ -907,7 +911,7 @@ public enum CloakOfDarkness {
                         }
                         if !hasOtherLight {
                             currentRoom.clearFlag(.isOn)
-                            print("The area goes dark!")
+                            outputText("The area goes dark!", from: obj)
                         }
                     }
                 }
@@ -921,8 +925,7 @@ public enum CloakOfDarkness {
                 if obj.hasFlag(.isOn) {
                     // Turn it off
                     obj.clearFlag(.isOn)
-                    obj.clearFlag(.isOn)
-                    print("You switch off the flashlight.")
+                    outputText("You switch off the flashlight.", from: obj)
 
                     // Find the player using the findPlayer helper
                     if let player = obj.findPlayer(),
@@ -935,15 +938,14 @@ public enum CloakOfDarkness {
                         }
                         if !hasOtherLight {
                             currentRoom.clearFlag(.isOn)
-                            print("The area goes dark!")
+                            outputText("The area goes dark!", from: obj)
                         }
                     }
                 } else {
                     // Turn it on
                     obj.setFlag(.isOn)
                     obj.setFlag(.isLightSource)
-                    obj.setFlag(.isOn)
-                    print("You switch on the flashlight.")
+                    outputText("You switch on the flashlight.", from: obj)
 
                     // Find the player using the findPlayer helper
                     if let player = obj.findPlayer(),
@@ -951,7 +953,7 @@ public enum CloakOfDarkness {
                         !currentRoom.hasFlag(.isOn) && !currentRoom.hasFlag(.isNaturallyLit)
                     {
                         currentRoom.setFlag(.isOn)
-                        print("The flashlight illuminates the area!")
+                        outputText("The flashlight illuminates the area!", from: obj)
                     }
                 }
                 return true
@@ -1113,19 +1115,21 @@ public enum CloakOfDarkness {
             let room = obj.location as? Room
             let disturbed = (room?.disturbed as Int?) ?? 0
 
-            print("The message simply reads: \"You ", terminator: "")
-            if disturbed > 1 {
-                print("lose.\"")
-                if let engine = obj.findPlayer()?.engine {
-                    Task { @MainActor in
-                        engine.gameOver(message: "You lose", isVictory: false)
+            // Find the player using our helper method
+            if let player = obj.findPlayer() {
+                if disturbed > 1 {
+                    outputText("The message simply reads: \"You lose.\"", from: obj)
+                    if let engine = player.engine {
+                        Task { @MainActor in
+                            engine.playerDied(message: "You lose")
+                        }
                     }
-                }
-            } else {
-                print("win.\"")
-                if let engine = obj.findPlayer()?.engine {
-                    Task { @MainActor in
-                        engine.gameOver(message: "You win", isVictory: true)
+                } else {
+                    outputText("The message simply reads: \"You win.\"", from: obj)
+                    if let engine = player.engine {
+                        Task { @MainActor in
+                            engine.playerWon(message: "You win")
+                        }
                     }
                 }
             }
