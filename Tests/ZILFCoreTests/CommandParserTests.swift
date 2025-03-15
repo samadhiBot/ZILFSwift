@@ -177,17 +177,17 @@ struct CommandParserTests {
 
         // Test with non-existent object
         guard case .examine(nil, with: nil) = parser.parse("examine unicorn") else {
-            throw TestFailure("Expected examine(nil, with: nil) command for non-existent object")
+            throw TestFailure("Expected examine(nil) command for non-existent object")
         }
 
         // Test examine with no object
         guard case .examine(nil, with: nil) = parser.parse("examine") else {
-            throw TestFailure("Expected examine(nil, with: nil) command for no object")
+            throw TestFailure("Expected examine(nil) command for no object")
         }
 
         // Test x with no object
         guard case .examine(nil, with: nil) = parser.parse("x") else {
-            throw TestFailure("Expected examine(nil, with: nil) command for no object")
+            throw TestFailure("Expected examine(nil) command for no object")
         }
     }
 
@@ -416,12 +416,12 @@ struct CommandParserTests {
 
         // Test no object specified
         guard case .open(nil, with: nil) = parser.parse("open") else {
-            throw TestFailure("Expected open(nil, with: nil) command")
+            throw TestFailure("Expected open(nil) command")
         }
 
         // Test non-existent object
         guard case .open(nil, with: nil) = parser.parse("open unicorn") else {
-            throw TestFailure("Expected open(nil, with: nil) command for non-existent object")
+            throw TestFailure("Expected open(nil) command for non-existent object")
         }
     }
 
@@ -549,7 +549,7 @@ struct CommandParserTests {
 
         // Test with no object
         guard case .read(nil, with: nil) = parser.parse("read") else {
-            throw TestFailure("Expected read(nil, with: nil) command")
+            throw TestFailure("Expected read(nil) command")
         }
     }
 

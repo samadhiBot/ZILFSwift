@@ -578,7 +578,7 @@ public extension GameWorld {
         } else if objectType == String.localGlobalObject {
             // Local-global objects are only accessible from rooms that list them
             let accessibleRooms: [Room]? = object.getState(forKey: "accessibleRooms")
-            return accessibleRooms?.contains { $0 === room } ?? false
+            return accessibleRooms?.contains(room) ?? false
         }
 
         return false
@@ -639,7 +639,7 @@ public extension Room {
 
         return world.getGlobalObjects(localGlobal: true).filter { object in
             let accessibleRooms: [Room]? = object.getState(forKey: "accessibleRooms")
-            return accessibleRooms?.contains { $0 === self } ?? false
+            return accessibleRooms?.contains(self) ?? false
         }
     }
 }
@@ -649,5 +649,13 @@ public extension Room {
 extension GameObject: CustomDebugStringConvertible {
     public var debugDescription: String {
         name
+    }
+}
+
+// MARK: - Equatable
+
+extension GameObject: Equatable {
+    public static func == (lhs: GameObject, rhs: GameObject) -> Bool {
+        lhs === rhs
     }
 }

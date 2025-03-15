@@ -112,12 +112,12 @@ struct GlobalObjectTests {
         let engine = GameEngine(world: world, outputManager: outputHandler)
 
         // Test examining global objects
-        try engine.executeCommand(Command.examine(sky, with: nil))
+        try engine.executeCommand(.examine(sky))
         #expect(outputHandler.output.contains("A clear blue sky"))
         outputHandler.clear()
 
         // Test examining local-global objects
-        try engine.executeCommand(Command.examine(rug, with: nil))
+        try engine.executeCommand(.examine(rug))
         #expect(outputHandler.output.contains("A tatty rug"))
         outputHandler.clear()
 
@@ -125,12 +125,12 @@ struct GlobalObjectTests {
         _ = player.move(direction: .east)
 
         // Should still be able to examine sky from kitchen
-        try engine.executeCommand(Command.examine(sky, with: nil))
+        try engine.executeCommand(.examine(sky))
         #expect(outputHandler.output.contains("A clear blue sky"))
         outputHandler.clear()
 
         // Shouldn't be able to examine rug from kitchen
-        try engine.executeCommand(Command.examine(rug, with: nil))
+        try engine.executeCommand(.examine(rug))
         #expect(outputHandler.output.contains("You don't see that here"))
     }
 

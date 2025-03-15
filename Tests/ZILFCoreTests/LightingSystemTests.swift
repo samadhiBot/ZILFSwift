@@ -41,7 +41,7 @@ struct LightingSystemTests {
         lantern.moveTo(player)
 
         // Verify lantern is in player's inventory
-        #expect(player.inventory.contains { $0 === lantern })
+        #expect(player.inventory.contains(lantern))
 
         // Move player to dark room
         player.moveTo(darkRoom)
@@ -130,7 +130,7 @@ struct LightingSystemTests {
         candle.moveTo(player)
 
         // Verify player has the candle
-        #expect(player.inventory.contains { $0 === candle })
+        #expect(player.inventory.contains(candle))
 
         // Check all light sources again
         lightSources = []

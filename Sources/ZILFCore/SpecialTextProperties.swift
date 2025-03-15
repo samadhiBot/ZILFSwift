@@ -191,7 +191,7 @@ extension Room {
         // Add exits
         var exitDirections: [String] = []
         for direction in Direction.allCases {
-            if getExit(direction) != nil {
+            if find(exit: direction) != nil {
                 exitDirections.append(direction.rawValue)
             }
         }

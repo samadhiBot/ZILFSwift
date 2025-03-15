@@ -25,9 +25,9 @@ struct GameModelTests {
         room1.setExit(.north, to: room2)
         room2.setExit(.south, to: room1)
 
-        #expect(room1.getExit(.north) === room2)
-        #expect(room2.getExit(.south) === room1)
-        #expect(room1.getExit(.east) == nil)
+        #expect(room1.find(exit: .north) === room2)
+        #expect(room2.find(exit: .south) === room1)
+        #expect(room1.find(exit: .east) == nil)
     }
 
     @Test func objectLocation() {
@@ -35,7 +35,7 @@ struct GameModelTests {
         let obj = GameObject(name: "Object", description: "A test object", location: room)
 
         #expect(obj.location === room)
-        #expect(room.contents.contains { $0 === obj })
+        #expect(room.contents.contains(obj))
         #expect(obj.isIn(room))
     }
 

@@ -37,10 +37,10 @@ import Testing
         room1.setSpecialExit(direction: .north, specialExit: specialExit, world: world)
 
         // Test that the exit exists
-        #expect(room1.getSpecialExit(direction: .north) != nil)
+        #expect(room1.find(specialExit: .north) != nil)
 
         // Test that the exit condition passes
-        #expect(room1.getSpecialExit(direction: .north)?.checkCondition() == true)
+        #expect(room1.find(specialExit: .north)?.checkCondition() == true)
 
         // Test player movement through the special exit
         #expect(player.move(direction: .north))
@@ -73,7 +73,7 @@ import Testing
         )
 
         // Test that the exit exists but isn't available yet
-        #expect(room1.getSpecialExit(direction: .east) != nil)
+        #expect(room1.find(specialExit: .east) != nil)
         #expect(!room1.isSpecialExitAvailable(direction: .east))
 
         // Test that we can't use the exit
@@ -120,7 +120,7 @@ import Testing
         )
 
         // Test that the exit exists but isn't available yet (no key)
-        #expect(room1.getSpecialExit(direction: .west) != nil)
+        #expect(room1.find(specialExit: .west) != nil)
         #expect(!room1.isSpecialExitAvailable(direction: .west))
 
         // Test that we can't use the exit without the key
@@ -160,7 +160,7 @@ import Testing
         )
 
         // Test that the exit exists and is available
-        #expect(room1.getSpecialExit(direction: .down) != nil)
+        #expect(room1.find(specialExit: .down) != nil)
         #expect(room1.isSpecialExitAvailable(direction: .down))
 
         // Test player movement from room1 to room2
@@ -168,8 +168,8 @@ import Testing
         #expect(player.currentRoom === room2)
 
         // Verify that there's no return path
-        #expect(room2.getExit(.up) == nil)
-        #expect(room2.getSpecialExit(direction: .up) == nil)
+        #expect(room2.find(exit: .up) == nil)
+        #expect(room2.find(specialExit: .up) == nil)
         #expect(!player.move(direction: .up))
         #expect(player.currentRoom === room2)
     }
@@ -201,7 +201,7 @@ import Testing
         )
 
         // Test that the exit exists and is available
-        #expect(room1.getSpecialExit(direction: .south) != nil)
+        #expect(room1.find(specialExit: .south) != nil)
         #expect(room1.isSpecialExitAvailable(direction: .south))
 
         // Test player movement through the exit
@@ -237,7 +237,7 @@ import Testing
         )
 
         // Test that the exit exists but isn't available yet
-        #expect(room1.getSpecialExit(direction: .north) != nil)
+        #expect(room1.find(specialExit: .north) != nil)
         #expect(!room1.isSpecialExitAvailable(direction: .north))
 
         // Test that we can't use the exit

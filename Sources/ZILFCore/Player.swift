@@ -42,7 +42,7 @@ public class Player: GameObject {
         }
 
         // First check if there's a special exit in this direction
-        if let specialExit = currentRoom.getSpecialExit(direction: direction) {
+        if let specialExit = currentRoom.find(specialExit: direction) {
             // Check if the exit condition passes
             if specialExit.checkCondition() {
                 // Display success message if there is one
@@ -77,7 +77,7 @@ public class Player: GameObject {
         }
 
         // If no special exit, use the regular exit
-        guard let newRoom = currentRoom.getExit(direction) else {
+        guard let newRoom = currentRoom.find(exit: direction) else {
             return false
         }
 

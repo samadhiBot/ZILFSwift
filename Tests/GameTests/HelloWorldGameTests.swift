@@ -1,7 +1,9 @@
+import CustomDump
 import Testing
+import ZILFTestSupport
+
 @testable import HelloWorldGame
 @testable import ZILFCore
-import ZILFTestSupport
 
 @Suite
 @MainActor
@@ -14,69 +16,56 @@ struct HelloWorldGameTests {
         #expect(world.rooms.count == 6)
 
         // Find rooms
-        let entrance = world.rooms.first { $0.name == "Entrance" }
-        let mainCavern = world.rooms.first { $0.name == "Main Cavern" }
-        let treasureRoom = world.rooms.first { $0.name == "Treasure Room" }
-        let secretRoom = world.rooms.first { $0.name == "Secret Chamber" }
-        let vaultRoom = world.rooms.first { $0.name == "Ancient Vault" }
-        let pitRoom = world.rooms.first { $0.name == "Unstable Ledge" }
-
-        #expect(entrance != nil)
-        #expect(mainCavern != nil)
-        #expect(treasureRoom != nil)
-        #expect(secretRoom != nil)
-        #expect(vaultRoom != nil)
-        #expect(pitRoom != nil)
+        let entrance = try world.find(room: "Entrance")
+        let mainCavern = try world.find(room: "Main Cavern")
+        let treasureRoom = try world.find(room: "Treasure Room")
+        let secretRoom = try world.find(room: "Secret Chamber")
+        let vaultRoom = try world.find(room: "Ancient Vault")
+        let pitRoom = try world.find(room: "Unstable Ledge")
 
         // Verify standard room connections
-        #expect(entrance?.getExit(.north) === mainCavern)
-        #expect(mainCavern?.getExit(.south) === entrance)
-        #expect(mainCavern?.getExit(.east) === treasureRoom)
-        #expect(treasureRoom?.getExit(.west) === mainCavern)
+        #expect(entrance.find(exit: .north) === mainCavern)
+        #expect(mainCavern.find(exit: .south) === entrance)
+        #expect(mainCavern.find(exit: .east) === treasureRoom)
+        #expect(treasureRoom.find(exit: .west) === mainCavern)
 
         // Verify special exits exist (not testing condition)
-        #expect(treasureRoom?.getSpecialExit(direction: .down) != nil)
-        #expect(secretRoom?.getSpecialExit(direction: .north) != nil)
-        #expect(vaultRoom?.getSpecialExit(direction: .down) != nil)
+        #expect(treasureRoom.find(specialExit: .down) != nil)
+        #expect(secretRoom.find(specialExit: .north) != nil)
+        #expect(vaultRoom.find(specialExit: .down) != nil)
 
         // Verify the one-way exit destination
-        #expect(vaultRoom?.getSpecialExit(direction: .down)?.destination === mainCavern)
+        #expect(vaultRoom.find(specialExit: .down)?.destination === mainCavern)
 
         // Verify objects
-        let lantern = world.objects.first { $0.name == "lantern" }
-        let coin = world.objects.first { $0.name == "gold coin" }
-        let chest = world.objects.first { $0.name == "treasure chest" }
-        let amulet = world.objects.first { $0.name == "golden amulet" }
-        let ancientKey = world.objects.first { $0.name == "ancient key" }
-
-        #expect(lantern != nil)
-        #expect(coin != nil)
-        #expect(chest != nil)
-        #expect(amulet != nil)
-        #expect(ancientKey != nil)
+        let lantern = try world.find(object: "lantern")
+        let coin = try world.find(object: "gold coin")
+        let chest = try world.find(object: "treasure chest")
+        let amulet = try world.find(object: "golden amulet")
+        let ancientKey = try world.find(object: "ancient key")
 
         // Verify object locations
-        #expect(lantern?.location === entrance)
-        #expect(coin?.location === mainCavern)
-        #expect(chest?.location === treasureRoom)
-        #expect(amulet?.location === chest)
-        #expect(ancientKey?.location === secretRoom)
+        #expect(lantern.location === entrance)
+        #expect(coin.location === mainCavern)
+        #expect(chest.location === treasureRoom)
+        #expect(amulet.location === chest)
+        #expect(ancientKey.location === secretRoom)
 
         // Verify object properties
-        #expect(lantern!.hasFlag(Flag.isTakable))
-        #expect(coin!.hasFlag(Flag.isTakable))
-        #expect(!chest!.hasFlag(Flag.isTakable))
-        #expect(amulet!.hasFlag(Flag.isTakable))
-        #expect(ancientKey!.hasFlag(Flag.isTakable))
+        #expect(lantern.hasFlag(.isTakable))
+        #expect(coin.hasFlag(.isTakable))
+        #expect(!chest.hasFlag(.isTakable))
+        #expect(amulet.hasFlag(.isTakable))
+        #expect(ancientKey.hasFlag(.isTakable))
 
         // Verify chest is not open
-        #expect(!chest!.hasFlag(Flag.isOpen))
+        #expect(!chest.hasFlag(.isOpen))
 
         // Verify light sources
-        #expect(lantern!.hasFlag(Flag.isLightSource))
-        #expect(!lantern!.hasFlag(Flag.isOn))  // Initially not lit
-        #expect(amulet!.hasFlag(Flag.isLightSource))
-        #expect(amulet!.hasFlag(Flag.isOn))  // Initially lit
+        #expect(lantern.hasFlag(.isLightSource))
+        #expect(!lantern.hasFlag(.isOn))  // Initially not lit
+        #expect(amulet.hasFlag(.isLightSource))
+        #expect(amulet.hasFlag(.isOn))  // Initially lit
     }
 
     @Test func testGameCommands() throws {
@@ -85,75 +74,121 @@ struct HelloWorldGameTests {
         let engine = GameEngine(world: world, outputManager: outputHandler)
 
         // Test initial look command
-        try engine.executeCommand(Command.look)
-        print("Output after look: \(outputHandler.output)")
-        #expect(outputHandler.output.contains("You are standing at the entrance"))
-        #expect(outputHandler.output.contains("lantern"))
-        outputHandler.clear()
+        try engine.executeCommand(.look)
+        expectNoDifference(outputHandler.flush(), """
+            You are standing at the entrance to a small cave. Sunlight streams in from outside.
+            
+            You can see:
+              lantern
+              magnifying glass
+            
+            Exits: north
+            Location: Entrance | Score: 0 | Moves: 1
+            """)
 
         // Test taking the lantern
-        let lantern = world.objects.first { $0.name == "lantern" }!
-        try engine.executeCommand(Command.take(lantern))
-        print("Output after take lantern: \(outputHandler.output)")
-        #expect(outputHandler.output.contains("Taken"))
-        #expect(world.player.inventory.contains { $0.name == "lantern" })
-        outputHandler.clear()
+        let lantern = try world.find(object: "lantern" )
+        try engine.executeCommand(.take(lantern))
+        expectNoDifference(outputHandler.flush(), """
+            Taken.
+            Location: Entrance | Score: 0 | Moves: 2
+            """)
+        #expect(world.player.inventory.contains(lantern))
 
         // Test examining the lantern after taking it
-        try engine.executeCommand(Command.examine(lantern, with: nil))
-        print("Output after examine lantern: \(outputHandler.output)")
-        #expect(outputHandler.output.contains("brass lantern"))
-        outputHandler.clear()
+        try engine.executeCommand(.examine(lantern))
+        expectNoDifference(outputHandler.flush(), """
+            A brass lantern that provides warm light.
+            Location: Entrance | Score: 0 | Moves: 3
+            """)
 
         // Test moving to the main cavern
-        try engine.executeCommand(Command.move(Direction.north))
+        try engine.executeCommand(.move(.north))
         print("Output after move north: \(outputHandler.output)")
         #expect(world.player.currentRoom?.name == "Main Cavern")
-        #expect(outputHandler.output.contains("spacious cavern"))
-        #expect(outputHandler.output.contains("gold coin"))
-        outputHandler.clear()
+        expectNoDifference(outputHandler.flush(), """
+            This spacious cavern has smooth walls that glisten with moisture. A strange glow \
+            emanates from deeper in the cave.
+            
+            You can see:
+              gold coin
+              dagger
+            
+            Exits: south, east
+            Location: Main Cavern | Score: 0 | Moves: 4
+            """)
 
         // Test taking the coin
-        try engine.executeCommand(Command.take(world.objects.first { $0.name == "gold coin" }!))
-        #expect(outputHandler.output.contains("Taken"))
+        let coin = try world.find(object: "gold coin" )
+        try engine.executeCommand(.take(coin))
         #expect(world.player.inventory.contains { $0.name == "gold coin" })
-        outputHandler.clear()
+        expectNoDifference(outputHandler.flush(), """
+            Taken.
+            Location: Main Cavern | Score: 0 | Moves: 5
+            """)
 
         // Test inventory
-        try engine.executeCommand(Command.inventory)
-        #expect(outputHandler.output.contains("lantern"))
-        #expect(outputHandler.output.contains("gold coin"))
-        outputHandler.clear()
+        try engine.executeCommand(.inventory)
+        expectNoDifference(outputHandler.flush(), """
+            You are carrying:
+              lantern
+              gold coin
+            Location: Main Cavern | Score: 0 | Moves: 6
+            """)
 
         // Test moving to the treasure room
-        try engine.executeCommand(Command.move(Direction.east))
+        try engine.executeCommand(.move(.east))
         #expect(world.player.currentRoom?.name == "Treasure Room")
-        #expect(outputHandler.output.contains("small chamber"))
-        #expect(outputHandler.output.contains("treasure chest"))
-        outputHandler.clear()
+        expectNoDifference(outputHandler.flush(), """
+            This small chamber is filled with a soft, magical light. The walls are adorned with \
+            ancient markings.
+            
+            You can see:
+              treasure chest
+              locked box
+            
+            Exits: south, west
+            Location: Treasure Room | Score: 0 | Moves: 7
+            """)
 
         // Test examining the chest
-        try engine.executeCommand(Command.examine(world.objects.first { $0.name == "treasure chest" }!, with: nil))
-        #expect(outputHandler.output.contains("ornate wooden chest"))
-        outputHandler.clear()
+        let chest = try world.find(object: "treasure chest" )
+        try engine.executeCommand(.examine(chest))
+        expectNoDifference(outputHandler.flush(), """
+            An ornate wooden chest with intricate carvings.
+            Location: Treasure Room | Score: 0 | Moves: 8
+            """)
 
-        // Test trying to take the chest (which shouldn't be takeable)
-        try engine.executeCommand(Command.take(world.objects.first { $0.name == "treasure chest" }!))
-        #expect(outputHandler.output.contains("You can't take that"))
-        #expect(!world.player.inventory.contains { $0.name == "treasure chest" })
-        outputHandler.clear()
+        // Test trying to take the chest (which shouldn't be take-able)
+        try engine.executeCommand(.take(chest))
+        #expect(!world.player.inventory.contains(chest))
+        expectNoDifference(outputHandler.flush(), """
+            You can't take that.
+            Location: Treasure Room | Score: 0 | Moves: 9
+            """)
 
         // Test going back to the main cavern
-        try engine.executeCommand(Command.move(Direction.west))
+        try engine.executeCommand(.move(.west))
         #expect(world.player.currentRoom?.name == "Main Cavern")
-        outputHandler.clear()
+        expectNoDifference(outputHandler.flush(), """
+            This spacious cavern has smooth walls that glisten with moisture. A strange glow \
+            emanates from deeper in the cave.
+            
+            You can see:
+              dagger
+            
+            Exits: south, east
+            Location: Main Cavern | Score: 0 | Moves: 10
+            """)
 
         // Test dropping the coin
-        try engine.executeCommand(Command.drop(world.objects.first { $0.name == "gold coin" }!))
-        #expect(outputHandler.output.contains("Dropped"))
-        #expect(!world.player.inventory.contains { $0.name == "gold coin" })
-        #expect(world.player.currentRoom?.contents.contains { $0.name == "gold coin" } ?? false)
-        outputHandler.clear()
+        try engine.executeCommand(.drop(coin))
+        #expect(!world.player.inventory.contains(coin))
+        #expect(world.player.currentRoom?.contents.contains(coin) ?? false)
+        expectNoDifference(outputHandler.flush(), """
+            Dropped.
+            Location: Main Cavern | Score: 0 | Moves: 11
+            """)
     }
 
     @Test func testParser() throws {
@@ -174,14 +209,12 @@ struct HelloWorldGameTests {
         }
 
         // Test look command
-        if case .look = parser.parse("look") {
-            // Success
-        } else {
+        guard case .look = parser.parse("look") else {
             throw TestFailure("Expected look command")
         }
 
         // Test examine command
-        let lantern = world.objects.first { $0.name == "lantern" }!
+        let lantern = try world.find(object: "lantern" )
         if case let .examine(obj, _) = parser.parse("examine lantern") {
             #expect(obj === lantern)
         } else {
@@ -196,16 +229,12 @@ struct HelloWorldGameTests {
         }
 
         // Test inventory command
-        if case .inventory = parser.parse("inventory") {
-            // Success
-        } else {
+        guard case .inventory = parser.parse("inventory") else {
             throw TestFailure("Expected inventory command")
         }
 
         // Test quit command
-        if case .quit = parser.parse("quit") {
-            // Success
-        } else {
+        guard case .quit = parser.parse("quit") else {
             throw TestFailure("Expected quit command")
         }
     }

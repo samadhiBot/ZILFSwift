@@ -195,87 +195,9 @@ public enum Command {
     case version
 }
 
-extension Command {
-//    /// Returns a command that matches the user input.
-//    ///
-//    /// - Parameter input: User input expressed as an array of strings.
-//    init(from input: [String]) {
-//        guard let command = input.first else {
-//            self = .unknown("No command given")
-//            return
-//        }
-//        switch command {
-//        case "attack", "kill", "destroy": self = .attack
-//        case "burn", "light": self = .burn
-//        case "climb": self = .climb
-//        case "close", "shut": self = .close
-//        case "dance": self = .dance
-//        case "drink", "sip", "quaff": self = .drink
-//        case "drop", "put-down": self = .drop
-//        case "eat", "consume", "devour": self = .eat
-//        case "empty": self = .empty
-//        case "examine", "x", "look-at", "inspect": self = .examine
-//        case "fill": self = .fill
-//        case "flip", "switch", "toggle": self = .flip
-//        case "give": self = .give
-//        case "inventory", "i", "inv": self = .inventory
-//        case "jump": self = .jump
-//        case "lock": self = .lock
-//        case "look", "l", "look-around": self = .look
-//        case "look-under": self = .lookUnder
-//        case "move", "go", "walk", "run": self = .move
-//        case "no": self = .no
-//        case "open": self = .open
-//        case "pronouns": self = .pronouns
-//        case "pull": self = .pull
-//        case "push": self = .push
-//        case "put-in": self = .putIn
-//        case "put-on", "place-on", "set-on": self = .putOn
-//        case "read", "peruse": self = .read
-//        case "remove", "doff", "take-off": self = .remove
-//        case "rub": self = .rub
-//        case "search": self = .search
-//        case "sing": self = .sing
-//        case "smell": self = .smell
-//        case "swim": self = .swim
-//        case "take", "get", "pick-up": self = .take
-//        case "tell": self = .tell
-//        case "think-about", "ponder", "contemplate": self = .thinkAbout
-//        case "throw": self = .throwAt
-//        case "turn-off", "deactivate", "switch-off": self = .turnOff
-//        case "turn-on", "activate", "switch-on": self = .turnOn
-//        case "unlock": self = .unlock
-//        case "unwear": self = .unwear
-//        case "wait": self = .wait
-//        case "wake": self = .wake
-//        case "wave": self = .wave
-//        case "wave-hands": self = .waveHands
-//        case "wear", "don", "put-on": self = .wear
-//        case "yes": self = .yes
-//
-//        case "again", "g", "repeat": self = .again
-//        case "brief": self = .brief
-//        case "help", "?", "info": self = .help
-//        case "quit", "q", "exit": self = .quit
-//        case "restart": self = .restart
-//        case "restore", "load": self = .restore
-//        case "save": self = .save
-//        case "script": self = .script
-//        case "superbrief": self = .superbrief
-//        case "undo": self = .undo
-//        case "unscript": self = .unscript
-//        case "verbose": self = .verbose
-//        case "version": self = .version
-//
-//        }
-//        if let command = Self.allCases.first(where: {
-//            $0.synonyms.contains(input[0])
-//        }) {
-//            self = command
-//        }
-//        self = .custom(input)
-//    }
+// MARK: - Synonyms
 
+extension Command {
     /// Alternative string representations that resolve to this command.
     public var synonyms: [String] {
         switch self {
@@ -344,6 +266,42 @@ extension Command {
         case .verbose: ["verbose"]
         case .version: ["version"]
         }
+    }
+}
+
+// MARK: - Conveniences
+
+extension Command {
+    static func attack(_ gameObject: GameObject?) -> Command {
+        .attack(gameObject, with: nil)
+    }
+
+    static func burn(_ gameObject: GameObject?) -> Command {
+        .burn(gameObject, with: nil)
+    }
+    
+    static func examine(_ gameObject: GameObject?) -> Command {
+        .examine(gameObject, with: nil)
+    }
+
+    static func lock(_ gameObject: GameObject?) -> Command {
+        .lock(gameObject, with: nil)
+    }
+
+    static func open(_ gameObject: GameObject?) -> Command {
+        .open(gameObject, with: nil)
+    }
+
+    static func read(_ gameObject: GameObject?) -> Command {
+        .read(gameObject, with: nil)
+    }
+
+    static func rub(_ gameObject: GameObject?) -> Command {
+        .rub(gameObject, with: nil)
+    }
+
+    static func unlock(_ gameObject: GameObject?) -> Command {
+        .unlock(gameObject, with: nil)
     }
 }
 

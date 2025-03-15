@@ -12,6 +12,7 @@ let package = Package(
         .library(name: "ZILFTestSupport", targets: ["ZILFTestSupport"])
     ],
     dependencies: [
+        .package(url: "https://github.com/pointfreeco/swift-custom-dump", from: "1.0.0"),
         .package(url: "https://github.com/rderik/SwiftCursesTerm.git", from: "0.1.2"),
     ],
     targets: [
@@ -36,7 +37,8 @@ let package = Package(
             name: "ZILFCoreTests",
             dependencies: [
                 "ZILFCore",
-                "ZILFTestSupport"
+                "ZILFTestSupport",
+                .product(name: "CustomDump", package: "swift-custom-dump"),
             ]
         ),
         .testTarget(
@@ -45,6 +47,7 @@ let package = Package(
                 "CloakOfDarkness",
                 "HelloWorldGame",
                 "ZILFTestSupport",
+                .product(name: "CustomDump", package: "swift-custom-dump"),
             ]
         )
     ]

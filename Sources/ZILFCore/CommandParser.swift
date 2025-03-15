@@ -104,17 +104,17 @@ public class CommandParser {
             case "no":
                 return .no
             case "examine", "x":
-                return .examine(nil, with: nil)
+                return .examine(nil)
             case "take", "get":
                 return .take(nil)
             case "drop":
                 return .drop(nil)
             case "open":
-                return .open(nil, with: nil)
+                return .open(nil)
             case "close", "shut":
                 return .close(nil)
             case "read", "peruse":
-                return .read(nil, with: nil)
+                return .read(nil)
             case "flip", "switch", "toggle":
                 return .flip(nil)
             case "wear", "don":
@@ -157,7 +157,7 @@ public class CommandParser {
             if words.count > 1 {
                 return parseExamineCommand(words: Array(words.dropFirst()))
             }
-            return .examine(nil, with: nil)
+            return .examine(nil)
 
         // Take/Get commands
         case "take", "get", "grab", "pick":
@@ -200,7 +200,7 @@ public class CommandParser {
             if words.count > 1 {
                 return parseOpenCommand(words: Array(words.dropFirst()))
             }
-            return .open(nil, with: nil)
+            return .open(nil)
 
         // Close commands
         case "close", "shut":
@@ -216,7 +216,7 @@ public class CommandParser {
             if words.count > 1 {
                 return parseReadCommand(words: Array(words.dropFirst()))
             }
-            return .read(nil, with: nil)
+            return .read(nil)
 
         // Turn on/off commands
         case "turn":
@@ -288,20 +288,20 @@ public class CommandParser {
             if words.count > 1 {
                 return parseAttackCommand(words: Array(words.dropFirst()))
             }
-            return .attack(nil, with: nil)
+            return .attack(nil)
 
         // Lock/Unlock commands
         case "lock":
             if words.count > 1 {
                 return parseLockCommand(words: Array(words.dropFirst()))
             }
-            return .lock(nil, with: nil)
+            return .lock(nil)
 
         case "unlock":
             if words.count > 1 {
                 return parseUnlockCommand(words: Array(words.dropFirst()))
             }
-            return .unlock(nil, with: nil)
+            return .unlock(nil)
 
         // Give commands
         case "give":
@@ -320,7 +320,7 @@ public class CommandParser {
             if words.count > 1 {
                 return parseBurnCommand(words: Array(words.dropFirst()))
             }
-            return .burn(nil, with: nil)
+            return .burn(nil)
 
         case "climb":
             if words.count > 1 {
@@ -382,7 +382,7 @@ public class CommandParser {
             if words.count > 1 {
                 return parseRubCommand(words: Array(words.dropFirst()))
             }
-            return .rub(nil, with: nil)
+            return .rub(nil)
 
         case "search":
             if words.count > 1 {
@@ -487,9 +487,9 @@ public class CommandParser {
             if words.count >= 2 {
                 let objectName = words.dropFirst().joined(separator: " ")
                 let obj = findObject(objectName)
-                return .examine(obj, with: nil)
+                return .examine(obj)
             }
-            return .examine(nil, with: nil)
+            return .examine(nil)
 
         case "look-under":
             if words.count >= 2 {
@@ -681,21 +681,21 @@ public class CommandParser {
             // Handle empty input
             switch commandType {
             case "attack":
-                return .attack(nil, with: nil)
+                return .attack(nil)
             case "burn":
-                return .burn(nil, with: nil)
+                return .burn(nil)
             case "examine":
-                return .examine(nil, with: nil)
+                return .examine(nil)
             case "lock":
-                return .lock(nil, with: nil)
+                return .lock(nil)
             case "open":
-                return .open(nil, with: nil)
+                return .open(nil)
             case "read":
-                return .read(nil, with: nil)
+                return .read(nil)
             case "rub":
-                return .rub(nil, with: nil)
+                return .rub(nil)
             case "unlock":
-                return .unlock(nil, with: nil)
+                return .unlock(nil)
             default:
                 return .custom([])
             }
@@ -737,21 +737,21 @@ public class CommandParser {
 
         switch commandType {
         case "attack":
-            return .attack(obj, with: nil)
+            return .attack(obj)
         case "burn":
-            return .burn(obj, with: nil)
+            return .burn(obj)
         case "examine":
-            return .examine(obj, with: nil)
+            return .examine(obj)
         case "lock":
-            return .lock(obj, with: nil)
+            return .lock(obj)
         case "open":
-            return .open(obj, with: nil)
+            return .open(obj)
         case "read":
-            return .read(obj, with: nil)
+            return .read(obj)
         case "rub":
-            return .rub(obj, with: nil)
+            return .rub(obj)
         case "unlock":
-            return .unlock(obj, with: nil)
+            return .unlock(obj)
         default:
             return .custom(words)
         }

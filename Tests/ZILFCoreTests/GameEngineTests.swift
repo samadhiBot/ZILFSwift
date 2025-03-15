@@ -93,7 +93,7 @@ struct GameEngineTests {
         outputHandler.clear()
 
         // Test limited commands in darkness
-        try engine.executeCommand(.examine(nil, with: nil))
+        try engine.executeCommand(.examine(nil))
         #expect(outputHandler.output.contains("too dark"))
         outputHandler.clear()
 
@@ -127,7 +127,7 @@ struct GameEngineTests {
         // Test take command
         try engine.executeCommand(.take(coin))
         #expect(outputHandler.output.contains("Taken"))
-        #expect(player.inventory.contains { $0 === coin })
+        #expect(player.inventory.contains(coin))
         outputHandler.clear()
 
         // Test inventory command
@@ -139,12 +139,12 @@ struct GameEngineTests {
         // Test drop command
         try engine.executeCommand(.drop(coin))
         #expect(outputHandler.output.contains("Dropped"))
-        #expect(startRoom.contents.contains { $0 === coin })
-        #expect(!player.inventory.contains { $0 === coin })
+        #expect(startRoom.contents.contains(coin))
+        #expect(!player.inventory.contains(coin))
         outputHandler.clear()
 
         // Test examine command
-        try engine.executeCommand(.examine(coin, with: nil))
+        try engine.executeCommand(.examine(coin))
         #expect(outputHandler.output.contains("A shiny gold coin"))
         outputHandler.clear()
 
@@ -159,7 +159,7 @@ struct GameEngineTests {
         outputHandler.clear()
 
         // Test examine with nil object
-        try engine.executeCommand(.examine(nil, with: nil))
+        try engine.executeCommand(.examine(nil))
         #expect(outputHandler.output.contains("Examine what?"))
     }
 
@@ -184,7 +184,7 @@ struct GameEngineTests {
         coin.moveTo(player)
 
         // Test open command
-        try engine.executeCommand(.open(box, with: nil))
+        try engine.executeCommand(.open(box))
         #expect(outputHandler.output.contains("Opened"))
         box.setFlag(.isOpen) // Since we're testing the output not the actual effect
         outputHandler.clear()
@@ -192,20 +192,20 @@ struct GameEngineTests {
         // Test putting item in container
         try engine.executeCommand(.putIn(coin, container: box))
         coin.moveTo(box) // Manually move for test since we're testing output
-        #expect(box.contents.contains { $0 === coin })
-        #expect(!player.inventory.contains { $0 === coin })
+        #expect(box.contents.contains(coin))
+        #expect(!player.inventory.contains(coin))
         outputHandler.clear()
 
         // Test looking in container
-        try engine.executeCommand(.examine(box, with: nil))
+        try engine.executeCommand(.examine(box))
         #expect(outputHandler.output.contains("wooden box"))
         outputHandler.clear()
 
         // Test taking from container
         try engine.executeCommand(.take(coin))
         coin.moveTo(player) // Manually move for test
-        #expect(player.inventory.contains { $0 === coin })
-        #expect(!box.contents.contains { $0 === coin })
+        #expect(player.inventory.contains(coin))
+        #expect(!box.contents.contains(coin))
         outputHandler.clear()
 
         // Test close command
@@ -215,7 +215,7 @@ struct GameEngineTests {
         outputHandler.clear()
 
         // Test open/close with nil
-        try engine.executeCommand(.open(nil, with: nil))
+        try engine.executeCommand(.open(nil))
         #expect(outputHandler.output.contains("Open what?"))
         outputHandler.clear()
 
@@ -240,12 +240,12 @@ struct GameEngineTests {
         // Test putting item on surface
         try engine.executeCommand(.putOn(coin, surface: table))
         coin.moveTo(table) // Manually move for testing output
-        #expect(table.contents.contains { $0 === coin })
-        #expect(!player.inventory.contains { $0 === coin })
+        #expect(table.contents.contains(coin))
+        #expect(!player.inventory.contains(coin))
         outputHandler.clear()
 
         // Test examining surface with its contents
-        try engine.executeCommand(.examine(table, with: nil))
+        try engine.executeCommand(.examine(table))
         #expect(outputHandler.output.contains("wooden table"))
         outputHandler.clear()
 
@@ -278,7 +278,7 @@ struct GameEngineTests {
         outputHandler.clear()
 
         // Test examine while worn
-        try engine.executeCommand(.examine(hat, with: nil))
+        try engine.executeCommand(.examine(hat))
         #expect(outputHandler.output.contains("fancy hat"))
         outputHandler.clear()
 
@@ -397,12 +397,12 @@ struct GameEngineTests {
 
         // Execute take command
         try engine.executeCommand(.take(coin))
-        #expect(player.inventory.contains { $0 === coin })
+        #expect(player.inventory.contains(coin))
         outputHandler.clear()
 
         // Drop the coin
         try engine.executeCommand(.drop(coin))
-        #expect(!player.inventory.contains { $0 === coin })
+        #expect(!player.inventory.contains(coin))
         outputHandler.clear()
 
         // Use again command to repeat the drop

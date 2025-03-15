@@ -83,7 +83,7 @@ extension Room {
     /// Get a special exit in the specified direction, if one exists
     /// - Parameter direction: Direction of the exit
     /// - Returns: The special exit, or nil if no special exit exists in that direction
-    public func getSpecialExit(direction: Direction) -> SpecialExit? {
+    public func find(specialExit direction: Direction) -> SpecialExit? {
         return getState(forKey: "specialExit_\(direction.rawValue)")
     }
 
@@ -91,7 +91,7 @@ extension Room {
     /// - Parameter direction: Direction to check
     /// - Returns: True if a special exit exists and its condition passes
     public func isSpecialExitAvailable(direction: Direction) -> Bool {
-        guard let specialExit = getSpecialExit(direction: direction) else {
+        guard let specialExit = find(specialExit: direction) else {
             return false
         }
         return specialExit.checkCondition()
@@ -140,7 +140,7 @@ extension Room {
         let condition: (GameWorld?) -> Bool = { world in
             guard let world = world else { return false }
             // Check if player has the key
-            return world.player.inventory.contains { $0 === key }
+            return world.player.inventory.contains(key)
         }
 
         let specialExit = SpecialExit(

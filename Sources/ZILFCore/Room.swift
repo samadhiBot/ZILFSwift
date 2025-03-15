@@ -132,11 +132,11 @@ public class Room: GameObject {
         return action(self)
     }
 
-    /// Gets the room connected to this room in the specified direction.
+    /// Finds the room connected to this room in the specified direction.
     /// - Parameter direction: The direction to check.
     /// - Returns: The connected room, or `nil` if no exit exists in that direction.
-    public func getExit(_ direction: Direction) -> Room? {
-        return exits[direction]
+    public func find(exit direction: Direction) -> Room? {
+        exits[direction]
     }
 
     /// Creates an exit from this room to another room in the specified direction.

@@ -91,7 +91,8 @@ public enum CloakOfDarkness {
         let bar = Room(
             name: "Foyer Bar",
             description:
-                "The bar, much rougher than you'd have guessed after the opulence of the foyer to the north, is completely empty."
+                "The bar, much rougher than you'd have guessed after the opulence of the foyer to the north, is completely empty.",
+            flags: .isNaturallyLit
         )
 
         // Bar enter action - handle lighting based on cloak
@@ -106,11 +107,11 @@ public enum CloakOfDarkness {
 
             if hasCloak {
                 // Player has cloak - set room to dark
-                room.clearFlag(.isOn)
+                room.clearFlag(.isNaturallyLit)
                 return false
             } else {
                 // Player doesn't have cloak - set room to lit
-                room.setFlag(.isOn)
+                room.setFlag(.isNaturallyLit)
                 return false
             }
         }
@@ -215,7 +216,7 @@ public enum CloakOfDarkness {
             name: "Cloakroom",
             description:
                 "The walls of this small room were clearly once lined with hooks, though now only one remains. The exit is a door to the east, but there is also a cramped opening to the west.",
-            flags: .isOn
+            flags: .isNaturallyLit
         )
 
         // Custom enter action for the cloakroom
@@ -287,10 +288,9 @@ public enum CloakOfDarkness {
         let foyer = Room(
             name: "Foyer of the Opera House",
             description:
-                "You are standing in a spacious hall, splendidly decorated in red and gold, with glittering chandeliers overhead. The entrance from the street is to the north, and there are doorways south and west."
+                "You are standing in a spacious hall, splendidly decorated in red and gold, with glittering chandeliers overhead. The entrance from the street is to the north, and there are doorways south and west.",
+            flags: .isNaturallyLit
         )
-
-        foyer.setFlag(.isOn)
 
         // Foyer end-turn action
         foyer.endTurnAction = { (room: Room) -> Bool in
@@ -320,9 +320,9 @@ public enum CloakOfDarkness {
         let hallToStudy = Room(
             name: "Hallway to Study",
             description:
-                "The hallway leads to a Study to the west, and back to the Cloakroom to the east."
+                "The hallway leads to a Study to the west, and back to the Cloakroom to the east.",
+            flags: .isNaturallyLit
         )
-        hallToStudy.setFlag(.isOn)
 
         // Hall enter action
         hallToStudy.enterAction = { (room: Room) -> Bool in
@@ -346,9 +346,9 @@ public enum CloakOfDarkness {
         let study = Room(
             name: "Study",
             description:
-                "A small room with a worn stand in the middle. A hallway lies east of here, a closet off to the west."
+                "A small room with a worn stand in the middle. A hallway lies east of here, a closet off to the west.",
+            flags: .isNaturallyLit
         )
-        study.setFlag(.isOn)
 
         // End-turn action for study
         study.endTurnAction = { (room: Room) -> Bool in

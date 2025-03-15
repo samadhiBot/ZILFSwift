@@ -3,8 +3,7 @@ import Foundation
 
 /// Test output handler that stores output for verification
 public class OutputCapture: OutputManager {
-    public var output = ""
-    public var capturedOutput: [String] = []
+    public private(set) var capturedOutput: [String] = []
     private var inputResponses: [String] = []
     private var currentResponseIndex = 0
 
@@ -12,15 +11,18 @@ public class OutputCapture: OutputManager {
         self.inputResponses = inputResponses
     }
 
-    // Function that conforms to GameEngine's expected (String) -> Void type
-    public lazy var handler: (String) -> Void = { [weak self] text in
-        self?.output += text + "\n"
+    public func flush() -> String {
+        defer { clear() }
+        return output
+    }
+
+    public var output: String {
+        capturedOutput.joined(separator: "\n")
     }
 
     // MARK: - OutputManager Protocol Methods
 
     public func output(_ message: String) {
-        output += message + "\n"
         capturedOutput.append(message)
     }
 
@@ -47,7 +49,8 @@ public class OutputCapture: OutputManager {
     }
 
     public func clear() {
-        output = ""
+        if capturedOutput.isEmpty { return }
+        print("Clearing: `\(capturedOutput.joined(separator: "\n"))`")
         capturedOutput = []
     }
 }
