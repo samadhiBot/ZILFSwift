@@ -294,7 +294,11 @@ extension Room {
         }
 
         // Create a room that doesn't matter (player will never reach it)
-        let dummyRoom = Room(name: "Victory", description: "Victory room")
+        let dummyRoom = Room(
+            name: "Victory",
+            description: "Victory room",
+            flags: .isNaturallyLit
+        )
 
         // Create a special exit instance
         let specialExit = SpecialExit(

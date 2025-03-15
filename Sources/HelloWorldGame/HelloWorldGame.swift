@@ -1,7 +1,7 @@
 import Foundation
 import ZILFCore
 
-struct HelloWorldGame {
+enum HelloWorldGame {
     static func create() -> GameWorld {
         // Create rooms
         let entrance = Room(
@@ -294,5 +294,24 @@ struct HelloWorldGame {
         world.register(gem)
 
         return world
+    }
+}
+
+// MARK: - Helper Methods
+
+extension HelloWorldGame {
+    /// Helper method for outputting text properly through the game engine
+    private static func outputText(_ text: String, from obj: GameObject? = nil) {
+        if let player = obj?.findPlayer(), let engine = player.engine {
+            Task { @MainActor in
+                // Use the global output function which is properly configured
+                output(text)
+            }
+        } else {
+            // Fallback to global output if no object context is available
+            Task { @MainActor in
+                output(text)
+            }
+        }
     }
 }
