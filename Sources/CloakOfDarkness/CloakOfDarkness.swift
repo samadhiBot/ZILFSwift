@@ -374,10 +374,18 @@ public enum CloakOfDarkness {
                 print("The message simply reads: \"You ", terminator: "")
                 if disturbed > 1 {
                     print("lose.\"")
-                    player.engine.gameOver(message: "You lose", isVictory: false)
+                    if let engine = player.engine {
+                        Task { @MainActor in
+                            engine.gameOver(message: "You lose", isVictory: false)
+                        }
+                    }
                 } else {
                     print("win.\"")
-                    player.engine.gameOver(message: "You win", isVictory: true)
+                    if let engine = player.engine {
+                        Task { @MainActor in
+                            engine.gameOver(message: "You win", isVictory: true)
+                        }
+                    }
                 }
             }
             return true
@@ -489,7 +497,11 @@ public enum CloakOfDarkness {
             print("Oh no! It was actually a poison apple (mostly so we could test JIGS-UP).")
             // Find the player
             if let player = obj.findPlayer() {
-                player.engine.gameOver(message: "You've been poisoned by the apple.")
+                if let engine = player.engine {
+                    Task { @MainActor in
+                        engine.gameOver(message: "You've been poisoned by the apple.")
+                    }
+                }
             }
             return true
         }
@@ -1082,7 +1094,11 @@ public enum CloakOfDarkness {
         case .eat(let target) where target === obj:
             print("Oh no! It was actually a poison apple (mostly so we could test JIGS-UP).")
             if let player = obj.findPlayer() {
-                player.engine.gameOver(message: "You've been poisoned by the apple.")
+                if let engine = player.engine {
+                    Task { @MainActor in
+                        engine.gameOver(message: "You've been poisoned by the apple.")
+                    }
+                }
             }
             return true
         default:
@@ -1100,13 +1116,17 @@ public enum CloakOfDarkness {
             print("The message simply reads: \"You ", terminator: "")
             if disturbed > 1 {
                 print("lose.\"")
-                if let player = obj.findPlayer() {
-                    player.engine.gameOver(message: "You lose", isVictory: false)
+                if let engine = obj.findPlayer()?.engine {
+                    Task { @MainActor in
+                        engine.gameOver(message: "You lose", isVictory: false)
+                    }
                 }
             } else {
                 print("win.\"")
-                if let player = obj.findPlayer() {
-                    player.engine.gameOver(message: "You win", isVictory: true)
+                if let engine = obj.findPlayer()?.engine {
+                    Task { @MainActor in
+                        engine.gameOver(message: "You win", isVictory: true)
+                    }
                 }
             }
             return true

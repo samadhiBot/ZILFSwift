@@ -3,6 +3,8 @@ import Testing
 @testable import ZILFCore
 import ZILFTestSupport
 
+@Suite
+@MainActor
 struct HelloWorldGameTests {
     @Test func testGameCreation() throws {
         let world = HelloWorldGame.create()
@@ -80,7 +82,7 @@ struct HelloWorldGameTests {
     @Test func testGameCommands() throws {
         let world = HelloWorldGame.create()
         let outputHandler = OutputCapture()
-        let engine = GameEngine(world: world, outputHandler: outputHandler.handler)
+        let engine = GameEngine(world: world, outputManager: outputHandler)
 
         // Test initial look command
         try engine.executeCommand(Command.look)

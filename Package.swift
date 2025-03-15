@@ -11,7 +11,9 @@ let package = Package(
         .library(name: "ZILFCore", targets: ["ZILFCore"]),
         .library(name: "ZILFTestSupport", targets: ["ZILFTestSupport"])
     ],
-    dependencies: [],
+    dependencies: [
+        .package(url: "https://github.com/rderik/SwiftCursesTerm.git", from: "0.1.2"),
+    ],
     targets: [
         .executableTarget(
             name: "CloakOfDarkness",
@@ -22,7 +24,8 @@ let package = Package(
             dependencies: ["ZILFCore"]
         ),
         .target(
-            name: "ZILFCore"
+            name: "ZILFCore",
+            dependencies: ["SwiftCursesTerm"]
         ),
         .target(
             name: "ZILFTestSupport",

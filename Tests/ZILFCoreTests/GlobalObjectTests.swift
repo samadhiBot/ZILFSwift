@@ -9,7 +9,9 @@ import Foundation
 import Testing
 @testable import ZILFCore
 
-@Suite struct GlobalObjectTests {
+@Suite
+@MainActor
+struct GlobalObjectTests {
 
     @Test func testGlobalObjects() {
         // Setup a simple world with a few rooms
@@ -107,7 +109,7 @@ import Testing
 
         // Create engine to test object interactions
         let outputHandler = OutputCapture()
-        let engine = GameEngine(world: world, outputHandler: outputHandler.handler)
+        let engine = GameEngine(world: world, outputManager: outputHandler)
 
         // Test examining global objects
         try engine.executeCommand(Command.examine(sky, with: nil))

@@ -10,6 +10,8 @@ import Foundation
 @testable import ZILFCore
 import ZILFTestSupport
 
+@Suite
+@MainActor
 struct GameEngineTests {
     // MARK: - Movement Commands Tests
 
@@ -17,7 +19,7 @@ struct GameEngineTests {
         let (world, player, startRoom, northRoom, _) = try setupTestWorld()
 
         let outputHandler = OutputCapture()
-        let engine = GameEngine(world: world, outputHandler: outputHandler.handler)
+        let engine = GameEngine(world: world, outputManager: outputHandler)
 
         // Test successful move command
         try engine.executeCommand(.move(.north))
@@ -58,7 +60,7 @@ struct GameEngineTests {
         let (world, _, _, _, _) = try setupTestWorld()
 
         let outputHandler = OutputCapture()
-        let engine = GameEngine(world: world, outputHandler: outputHandler.handler)
+        let engine = GameEngine(world: world, outputManager: outputHandler)
 
         // Test basic look command
         try engine.executeCommand(.look)
@@ -83,7 +85,7 @@ struct GameEngineTests {
         startRoom.clearFlag(.isNaturallyLit)
 
         let outputHandler = OutputCapture()
-        let engine = GameEngine(world: world, outputHandler: outputHandler.handler)
+        let engine = GameEngine(world: world, outputManager: outputHandler)
 
         // Test look in darkness
         try engine.executeCommand(.look)
@@ -120,7 +122,7 @@ struct GameEngineTests {
         let (world, player, startRoom, _, coin) = try setupTestWorld()
 
         let outputHandler = OutputCapture()
-        let engine = GameEngine(world: world, outputHandler: outputHandler.handler)
+        let engine = GameEngine(world: world, outputManager: outputHandler)
 
         // Test take command
         try engine.executeCommand(.take(coin))
@@ -167,7 +169,7 @@ struct GameEngineTests {
         let (world, player, startRoom, _, coin) = try setupTestWorld()
 
         let outputHandler = OutputCapture()
-        let engine = GameEngine(world: world, outputHandler: outputHandler.handler)
+        let engine = GameEngine(world: world, outputManager: outputHandler)
 
         // Create a container
         let box = GameObject(
@@ -225,7 +227,7 @@ struct GameEngineTests {
         let (world, player, startRoom, _, coin) = try setupTestWorld()
 
         let outputHandler = OutputCapture()
-        let engine = GameEngine(world: world, outputHandler: outputHandler.handler)
+        let engine = GameEngine(world: world, outputManager: outputHandler)
 
         // Create a surface
         let table = GameObject(name: "table", description: "A wooden table",
@@ -258,7 +260,7 @@ struct GameEngineTests {
         let (world, player, _, _, _) = try setupTestWorld()
 
         let outputHandler = OutputCapture()
-        let engine = GameEngine(world: world, outputHandler: outputHandler.handler)
+        let engine = GameEngine(world: world, outputManager: outputHandler)
 
         // Create a wearable item
         let hat = GameObject(
@@ -306,7 +308,7 @@ struct GameEngineTests {
         let (world, player, _, _, _) = try setupTestWorld()
 
         let outputHandler = OutputCapture()
-        let engine = GameEngine(world: world, outputHandler: outputHandler.handler)
+        let engine = GameEngine(world: world, outputManager: outputHandler)
 
         // Create a device
         let lamp = GameObject(
@@ -373,7 +375,7 @@ struct GameEngineTests {
         let (world, _, _, _, _) = try setupTestWorld()
 
         let outputHandler = OutputCapture()
-        let engine = GameEngine(world: world, outputHandler: outputHandler.handler)
+        let engine = GameEngine(world: world, outputManager: outputHandler)
 
         // Create an event to test with
         var eventTriggered = false
@@ -391,7 +393,7 @@ struct GameEngineTests {
         let (world, player, _, _, coin) = try setupTestWorld()
 
         let outputHandler = OutputCapture()
-        let engine = GameEngine(world: world, outputHandler: outputHandler.handler)
+        let engine = GameEngine(world: world, outputManager: outputHandler)
 
         // Execute take command
         try engine.executeCommand(.take(coin))
@@ -413,7 +415,7 @@ struct GameEngineTests {
         let (world, _, _, _, _) = try setupTestWorld()
 
         let outputHandler = OutputCapture()
-        let engine = GameEngine(world: world, outputHandler: outputHandler.handler)
+        let engine = GameEngine(world: world, outputManager: outputHandler)
 
         // Test brief mode
         try engine.executeCommand(.brief)
@@ -436,7 +438,7 @@ struct GameEngineTests {
         let (world, _, _, _, _) = try setupTestWorld()
 
         let outputHandler = OutputCapture()
-        let engine = GameEngine(world: world, outputHandler: outputHandler.handler)
+        let engine = GameEngine(world: world, outputManager: outputHandler)
 
         // Test player died
         engine.playerDied(message: "You have been eaten by a grue.")
@@ -445,7 +447,7 @@ struct GameEngineTests {
         outputHandler.clear()
 
         // Reset engine for next test
-        let newEngine = GameEngine(world: world, outputHandler: outputHandler.handler)
+        let newEngine = GameEngine(world: world, outputManager: outputHandler)
 
         // Test player won
         newEngine.playerWon(message: "You have found the treasure!")
@@ -458,7 +460,7 @@ struct GameEngineTests {
         let (world, _, _, _, _) = try setupTestWorld()
 
         let outputHandler = OutputCapture()
-        let engine = GameEngine(world: world, outputHandler: outputHandler.handler)
+        let engine = GameEngine(world: world, outputManager: outputHandler)
 
         // Test unknown command handling
         try engine.executeCommand(.custom(["dance"]))

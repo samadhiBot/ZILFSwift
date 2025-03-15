@@ -4,11 +4,6 @@ import ZILFCore
 // Initialize the game world
 let world = try CloakOfDarkness.create()
 
-// Set up output handler that displays the game banner first
-let outputHandler: (String) -> Void = { message in
-    print(message)
-}
-
 // Game banner
 let gameBanner = """
 Cloak of Darkness
@@ -30,14 +25,23 @@ people about but, hey, what do you expect in a cheap demo game...?
 // Game version
 let gameVersion = "ZILFSwift Cloak of Darkness v1.0"
 
+// Create output manager based on command line arguments
+let outputMode: OutputMode = CommandLine.arguments.contains("--no-ui") ? .standard : .terminal
+let outputManager = OutputManagerFactory.create(mode: outputMode)
+
 // Create the game engine
 let engine = GameEngine(
     world: world,
-    outputHandler: outputHandler,
+    outputManager: outputManager,
     worldCreator: CloakOfDarkness.create,
     welcomeMessage: introText,
     gameVersion: gameVersion
 )
+
+// Setup signal handler for terminal resize
+if case .terminal = outputMode {
+    setupSignalHandler(gameEngine: engine)
+}
 
 // Start the game
 try engine.start()
