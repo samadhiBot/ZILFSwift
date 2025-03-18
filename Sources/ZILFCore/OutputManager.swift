@@ -2,7 +2,7 @@ import Foundation
 import SwiftCursesTerm
 
 /// Protocol defining the interface for game output management
-public protocol OutputManager {
+public protocol OutputManager: AnyObject {
     /// Outputs a message to the appropriate destination
     func output(_ message: String)
 

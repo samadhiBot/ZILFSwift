@@ -3,8 +3,7 @@ import Foundation
 /// The main game engine for ZILF games.
 ///
 /// Handles command processing, game state management, and core gameplay logic.
-@MainActor
-public class GameEngine {
+@MainActor public class GameEngine {
     /// The game world containing rooms, objects, and the player
     public var world: GameWorld
 
@@ -14,11 +13,20 @@ public class GameEngine {
     /// Flag indicating if the game engine is currently running
     private var isRunning = false
 
-    /// Output manager for handling game output and input
-    private var outputManager: OutputManager
+    /// Output handler for the game engine
+    private var outputHandler: ((String) -> Void)
+
+    /// Input handler for the game engine
+    private var inputHandler: ((String) -> String?)
+
+    /// Status line update handler
+    private var statusLineHandler: ((String, Int, Int) -> Void)
 
     /// Player's current score
     public private(set) var score: Int = 0
+
+    /// Maximum possible score in the game
+    public var maximumScore: Int = 0
 
     /// Count of moves made in the game
     public private(set) var moveCount: Int = 0
@@ -50,52 +58,47 @@ public class GameEngine {
     ///
     /// - Parameters:
     ///   - world: The game world that contains all game objects and state
-    ///   - outputManager: Manager for handling game output and input
+    ///   - outputHandler: Handler for outputting text
+    ///   - inputHandler: Handler for getting input from the player
+    ///   - statusLineHandler: Handler for updating the status line
     ///   - worldCreator: Optional function that creates a new world instance for game restarts
-    ///   - welcomeMessage: Optional introductory text to display when the game starts
-    ///   - gameVersion: Optional version information to display at startup
     public init(
         world: GameWorld,
-        outputManager: OutputManager = StandardOutputManager(),
-        worldCreator: (() throws -> GameWorld)? = nil,
-        welcomeMessage: String? = nil,
-        gameVersion: String? = nil
+        outputHandler: @escaping (String) -> Void,
+        inputHandler: @escaping (String) -> String?,
+        statusLineHandler: @escaping (String, Int, Int) -> Void,
+        worldCreator: (() throws -> GameWorld)? = nil
     ) {
         self.world = world
         self.parser = CommandParser(world: world)
-        self.outputManager = outputManager
+        self.outputHandler = outputHandler
+        self.inputHandler = inputHandler
+        self.statusLineHandler = statusLineHandler
         self.worldCreator = worldCreator
-        self.welcomeMessage = welcomeMessage
-        self.gameVersion = gameVersion
 
-        // Set engine directly on player using proper API instead of state dictionary
+        // Set engine directly on player
         world.player.setEngine(self)
-
-        // Set up global output to route through this engine
-        setGlobalOutput { [weak self] message in
-            self?.output(message)
-        }
     }
 
-    /// Outputs a message to the game's output
+    /// Sets the function used to recreate the world (for game restarts)
+    public func setWorldCreator(_ creator: @escaping () throws -> GameWorld) {
+        self.worldCreator = creator
+    }
+
+    /// Outputs a message through the configured output handler
     public func output(_ message: String) {
-        outputManager.output(message)
+        outputHandler(message)
     }
 
     /// Gets input from the player
     public func getInput(prompt: String = "> ") -> String? {
-        return outputManager.getInput(prompt: prompt)
+        return inputHandler(prompt)
     }
 
-    /// Handle terminal resize event
-    public func handleTerminalResize() {
-        if let termManager = outputManager as? TerminalOutputManager {
-            termManager.handleResize()
-
-            // Update status line
-            let locationName = world.player.currentRoom?.name ?? "Unknown"
-            outputManager.updateStatusLine(location: locationName, score: score, moves: moveCount)
-        }
+    /// Updates the status line with current game information
+    private func updateStatusLine() {
+        let locationName = world.player.currentRoom?.name ?? "Unknown"
+        statusLineHandler(locationName, score, moveCount)
     }
 
     // MARK: - Public Methods
@@ -480,7 +483,8 @@ public class GameEngine {
 
         // After executing any command, update the status line
         let locationName = world.player.currentRoom?.name ?? "Unknown"
-        outputManager.updateStatusLine(location: locationName, score: score, moves: moveCount)
+
+        updateStatusLine()
     }
 
     /// Execute the game loop - an alternative to start() that doesn't block
@@ -578,7 +582,8 @@ public class GameEngine {
 
         // Update status line with initial information
         let locationName = world.player.currentRoom?.name ?? "Unknown"
-        outputManager.updateStatusLine(location: locationName, score: score, moves: moveCount)
+
+        updateStatusLine()
 
         // Main game loop
         while isRunning {
@@ -608,9 +613,6 @@ public class GameEngine {
             let command = parser.parse(input)
             try executeCommand(command)
         }
-
-        // Clean up resources
-        outputManager.shutdown()
     }
 
     /// Updates the player's score

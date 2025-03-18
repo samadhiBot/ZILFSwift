@@ -2,11 +2,11 @@ import Foundation
 import Dispatch
 
 /// Setup signal handler for terminal resize events
-public func setupSignalHandler(gameEngine: GameEngine) {
+@MainActor public func setupSignalHandler(game: Game) {
     let sigwinchSource = DispatchSource.makeSignalSource(signal: SIGWINCH, queue: .main)
     sigwinchSource.setEventHandler {
         Task { @MainActor in
-            gameEngine.handleTerminalResize()
+            game.handleTerminalResize()
         }
     }
     sigwinchSource.resume()

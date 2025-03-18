@@ -1,9 +1,39 @@
 import Foundation
 import ZILFCore
 
+/// A simple Hello World game implementing the ZILF framework
 @MainActor
-enum HelloWorldGame {
-    static func create() -> GameWorld {
+public class HelloWorldGame: Game {
+    /// Creates a new Hello World game instance
+    /// - Parameter outputMode: The output mode to use (standard, terminal, or mock)
+    public init(outputMode: OutputMode = .standard) {
+        // Create the world
+        let world: GameWorld
+        do {
+            world = try Self.create()
+        } catch {
+            fatalError("Failed to create game world: \(error)")
+        }
+
+        // Create the output manager
+        let outputManager = OutputManagerFactory.create(mode: outputMode)
+
+        // Initialize with the base game
+        super.init(
+            world: world,
+            outputManager: outputManager,
+            welcomeText: """
+            ===================================
+            Welcome to Hello World Adventure!
+            A tiny demonstration game using ZILF
+            ===================================
+            """,
+            versionInfo: "Hello World Game v1.0"
+        )
+    }
+
+    /// Creates the game world
+    override public class func create() throws -> GameWorld {
         // Create rooms
         let entrance = Room(
             name: "Entrance",
