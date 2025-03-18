@@ -1,6 +1,7 @@
 import Foundation
 import ZILFCore
 
+@MainActor
 enum HelloWorldGame {
     static func create() -> GameWorld {
         // Create rooms
@@ -117,7 +118,7 @@ enum HelloWorldGame {
 
         // Add event examples
         world.queueEvent(name: "lantern-flicker", turns: 8) {
-            print("The lantern's flame flickers briefly.")
+            output("The lantern's flame flickers briefly.")
             return true
         }
 
@@ -130,7 +131,7 @@ enum HelloWorldGame {
                 "You hear a faint whisper echoing off the walls.",
             ]
             if Int.random(in: 1...4) == 1 {  // 25% chance each turn
-                print(sounds.randomElement()!)
+                output(sounds.randomElement()!)
                 return true
             }
             return false
@@ -139,14 +140,14 @@ enum HelloWorldGame {
         // Add room action handlers
         mainCavern.endTurnAction = { room in
             if world.isEventRunning(named: "lantern-flicker") {
-                print("The cavern walls seem to shimmer in the flickering light.")
+                output("The cavern walls seem to shimmer in the flickering light.")
                 return true  // Output was produced
             }
             return false  // No output
         }
 
         treasureRoom.enterAction = { room in
-            print("You feel a sense of awe as you enter this ancient chamber.")
+            output("You feel a sense of awe as you enter this ancient chamber.")
             return true  // Output was produced
         }
 
@@ -165,7 +166,7 @@ enum HelloWorldGame {
         treasureRoom.addCommandAction(Room.PrioritizedCommandAction { room, command in
             if case .examine(let obj, _) = command, obj === treasureRoom {
                 treasureExamined = true
-                print("You carefully examine the walls of the treasure room and notice subtle markings that suggest a hidden passage somewhere in the floor.")
+                output("You carefully examine the walls of the treasure room and notice subtle markings that suggest a hidden passage somewhere in the floor.")
                 return true
             }
             return false
@@ -239,7 +240,7 @@ enum HelloWorldGame {
             if case .examine(let target, let tool) = command,
                target === coin,
                tool?.name == "magnifying glass" {
-                print("Using the magnifying glass, you can see tiny inscriptions on the coin that tell the story of an ancient civilization that once inhabited this cave.")
+                output("Using the magnifying glass, you can see tiny inscriptions on the coin that tell the story of an ancient civilization that once inhabited this cave.")
                 return true
             }
             return false
@@ -266,13 +267,13 @@ enum HelloWorldGame {
             if case .attack(let target, let weapon) = command,
                target === lockedBox {
                 if weapon?.name == "dagger" {
-                    print("You use the dagger to pry open the locked box. The lid pops open with a satisfying crack!")
+                    output("You use the dagger to pry open the locked box. The lid pops open with a satisfying crack!")
                     lockedBox.clearFlag(.isLocked)
                     lockedBox.setFlag(.isOpen)
                     lockedBox.setFlag(.isOpenable) // Now it can be opened and closed normally
                     return true
                 } else {
-                    print("You need something sharp to break open this box.")
+                    output("You need something sharp to break open this box.")
                     return true
                 }
             }
@@ -294,24 +295,5 @@ enum HelloWorldGame {
         world.register(gem)
 
         return world
-    }
-}
-
-// MARK: - Helper Methods
-
-extension HelloWorldGame {
-    /// Helper method for outputting text properly through the game engine
-    private static func outputText(_ text: String, from obj: GameObject? = nil) {
-        if let player = obj?.findPlayer(), let engine = player.engine {
-            Task { @MainActor in
-                // Use the global output function which is properly configured
-                output(text)
-            }
-        } else {
-            // Fallback to global output if no object context is available
-            Task { @MainActor in
-                output(text)
-            }
-        }
     }
 }

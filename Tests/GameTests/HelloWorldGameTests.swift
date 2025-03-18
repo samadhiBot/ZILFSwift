@@ -414,6 +414,7 @@ struct HelloWorldGameTests {
         // Move to Treasure Room
         try engine.executeCommand(.move(.east))
         expectNoDifference(outputHandler.flush(), """
+            You feel a sense of awe as you enter this ancient chamber.
             This small chamber is filled with a soft, magical light. The walls are adorned with \
             ancient markings.
             
