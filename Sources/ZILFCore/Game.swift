@@ -9,29 +9,27 @@ import Foundation
     public let versionInfo: String
 
     public let engine: GameEngine
-    public let world: GameWorld
+    public var world: GameWorld {
+        engine.world
+    }
     public let outputManager: OutputManager
 
     /// Creates a new game instance
     /// - Parameters:
-    ///   - world: The game world
     ///   - outputManager: The output manager (defaults to standard console output)
     ///   - welcomeText: Welcome message to display at game start
     ///   - versionInfo: Version information to display
     public init(
-        world: GameWorld,
         outputManager: OutputManager = StandardOutputManager(),
         welcomeText: String,
         versionInfo: String
     ) {
-        self.world = world
         self.outputManager = outputManager
         self.welcomeText = welcomeText
         self.versionInfo = versionInfo
 
-        // Create the engine without the world creator initially
-        self.engine = GameEngine(
-            world: world,
+        // Create the engine without a world initially
+        engine = GameEngine(
             outputHandler: { [weak outputManager] message in
                 outputManager?.output(message)
             },
@@ -43,11 +41,10 @@ import Foundation
             }
         )
 
-        // Set the world creator after engine is initialized
-        self.engine.setWorldCreator { try type(of: self).create() }
-
-        // Run game-specific setup
-        setupGame()
+        // Set the world creator function
+        engine.setWorldCreator { [weak self] in
+            try type(of: self!).create()
+        }
     }
 
     /// Outputs a message to the game's display mechanism
@@ -65,13 +62,13 @@ import Foundation
         fatalError("Subclasses must implement create()")
     }
 
-    /// Runs a single command from text input
-    /// - Parameter input: The command text to process
-    /// - Returns: True if the game is still running
-    @discardableResult
-    public func runCommand(_ input: String) throws -> Bool {
-        return try engine.executeGameLoop(input: input)
-    }
+//    /// Runs a single command from text input
+//    /// - Parameter input: The command text to process
+//    /// - Returns: True if the game is still running
+//    @discardableResult
+//    public func runCommand(_ input: String) throws -> Bool {
+//        return try engine.executeGameLoop(input: input)
+//    }
 
     /// Starts the game and runs until completion
     open func start() throws {
@@ -81,7 +78,7 @@ import Foundation
         output("Type 'help' for a list of commands.\n")
 
         // Start with a look at the current room
-        try runCommand("look")
+        try engine.executeCommand(.look)
 
         // Run the game loop through the engine
         try engine.start()

@@ -4,85 +4,114 @@ import Foundation
 ///
 /// Handles command processing, game state management, and core gameplay logic.
 @MainActor public class GameEngine {
-    /// The game world containing rooms, objects, and the player
-    public var world: GameWorld
+    /// The game world containing rooms, objects, and the player.
+    public private(set) var world: GameWorld?
 
-    /// Command parser used to convert text input to game commands
-    private var parser: CommandParser
+    /// Command parser used to convert text input to game commands.
+    private var parser: CommandParser!
 
-    /// Flag indicating if the game engine is currently running
+    /// Flag indicating if the game engine is currently running.
     private var isRunning = false
 
-    /// Output handler for the game engine
+    /// Output handler for the game engine.
     private var outputHandler: ((String) -> Void)
 
-    /// Input handler for the game engine
+    /// Input handler for the game engine.
     private var inputHandler: ((String) -> String?)
 
-    /// Status line update handler
+    /// Status line update handler.
     private var statusLineHandler: ((String, Int, Int) -> Void)
 
-    /// Player's current score
+    /// Player's current score.
     public private(set) var score: Int = 0
 
-    /// Maximum possible score in the game
+    /// Maximum possible score in the game.
     public var maximumScore: Int = 0
 
-    /// Count of moves made in the game
+    /// Count of moves made in the game.
     public private(set) var moveCount: Int = 0
 
-    /// Stores the last command processed by the engine
+    /// Stores the last command processed by the engine.
     private var lastCommand: Command?
 
-    /// Public accessor for the current command (the last processed command)
+    /// Public accessor for the current command (the last processed command).
     public var currentCommand: Command? {
         return lastCommand
     }
 
-    /// Flag indicating if the game has ended
+    /// Flag indicating if the game has ended.
     private(set) var isGameOver = false
 
-    /// Message to display when the game ends
+    /// Message to display when the game ends.
     private var gameOverMessage: String?
 
-    /// Introductory text to display when the game starts
+    /// Introductory text to display when the game starts.
     private var welcomeMessage: String?
 
-    /// Version information to display at startup
+    /// Version information to display at startup.
     private var gameVersion: String?
 
-    /// Function that creates a new game world instance, used for game restarts
+    /// Function that creates a new game world instance, used for game restarts.
     private var worldCreator: (() throws -> GameWorld)?
 
-    /// Initializes a new game engine with a game world
+    /// Initializes a new game engine.
     ///
     /// - Parameters:
-    ///   - world: The game world that contains all game objects and state
     ///   - outputHandler: Handler for outputting text
     ///   - inputHandler: Handler for getting input from the player
     ///   - statusLineHandler: Handler for updating the status line
-    ///   - worldCreator: Optional function that creates a new world instance for game restarts
     public init(
-        world: GameWorld,
         outputHandler: @escaping (String) -> Void,
         inputHandler: @escaping (String) -> String?,
-        statusLineHandler: @escaping (String, Int, Int) -> Void,
-        worldCreator: (() throws -> GameWorld)? = nil
+        statusLineHandler: @escaping (String, Int, Int) -> Void
     ) {
-        self.world = world
-        self.parser = CommandParser(world: world)
         self.outputHandler = outputHandler
         self.inputHandler = inputHandler
         self.statusLineHandler = statusLineHandler
-        self.worldCreator = worldCreator
+    }
+
+    /// Sets the function used to recreate the world and immediately creates the world
+    public func setWorldCreator(_ creator: @escaping () throws -> GameWorld) throws {
+        self.worldCreator = creator
+        self.world = try createWorld()
+    }
+
+    /// Creates the world using the worldCreator
+    private func createWorld() throws -> GameWorld {
+        guard let worldCreator else {
+            throw GameError.noWorldCreator
+        }
+
+        // Create the world
+        let world = try worldCreator()
+
+        // Initialize the parser with the new world
+        self.parser = CommandParser(world: world)
 
         // Set engine directly on player
         world.player.setEngine(self)
+
+        return world
     }
 
-    /// Sets the function used to recreate the world (for game restarts)
-    public func setWorldCreator(_ creator: @escaping () throws -> GameWorld) {
-        self.worldCreator = creator
+    /// Handle restarting the game
+    private func handleRestart() throws {
+        isGameOver = false
+        gameOverMessage = nil
+
+        // Reset the game world
+        world = try createWorld()
+
+        output("\n--- Game Restarted ---\n")
+
+        // Start with a look at the current room
+        try executeCommand(.look)
+    }
+
+    // Define possible errors
+    enum GameError: Error {
+        case noWorldCreator
+        case worldNotInitialized
     }
 
     /// Outputs a message through the configured output handler
@@ -97,7 +126,7 @@ import Foundation
 
     /// Updates the status line with current game information
     private func updateStatusLine() {
-        let locationName = world.player.currentRoom?.name ?? "Unknown"
+        let locationName = world?.player.currentRoom?.name ?? "Unknown"
         statusLineHandler(locationName, score, moveCount)
     }
 
@@ -108,17 +137,13 @@ import Foundation
     /// - Parameter command: The command to execute
     public func executeCommand(_ command: Command) throws {
         // Don't process commands if game is over
-        if isGameOver {
-            return
-        }
+        if isGameOver { return }
 
         // Store the command for potential "again" (g) command
-        if getVerbForCommand(command) != "again" {
-            lastCommand = command
-        }
+        if getVerbForCommand(command) != "again" { lastCommand = command }
 
         // If we're in a dark room, only allow certain commands
-        guard let currentRoom = world.player.currentRoom else {
+        guard let currentRoom = world?.player.currentRoom else {
             output("Error: Player has no current room!")
             return
         }
@@ -482,7 +507,7 @@ import Foundation
         }
 
         // After executing any command, update the status line
-        let locationName = world.player.currentRoom?.name ?? "Unknown"
+        let locationName = world?.player.currentRoom?.name ?? "Unknown"
 
         updateStatusLine()
     }
@@ -581,7 +606,7 @@ import Foundation
         try executeCommand(.look)
 
         // Update status line with initial information
-        let locationName = world.player.currentRoom?.name ?? "Unknown"
+        let locationName = world?.player.currentRoom?.name ?? "Unknown"
 
         updateStatusLine()
 
@@ -637,7 +662,7 @@ import Foundation
     /// This processes scheduled events and updates game state
     private func advanceTime() {
         // Process one turn of game actions and events
-        let _ = world.waitTurns(1)
+        let _ = world?.waitTurns(1)
 
         // Increment move count
         moveCount += 1
@@ -740,7 +765,7 @@ import Foundation
         }
 
         // Update last mentioned object
-        world.lastMentionedObject = obj
+        world?.lastMentionedObject = obj
     }
 
     /// Handle the BURN command
@@ -773,7 +798,8 @@ import Foundation
 
             // Check if player has a light source if no tool is provided
             let hasLightSource = tool?.hasFlag(.isFlammable) ??
-                world.player.inventory.contains { $0.hasFlags(.isLightSource, .isFlammable) }
+                world?.player.inventory.contains { $0.hasFlags(.isLightSource, .isFlammable) } ??
+                false
 
             if hasValidTool || hasLightSource {
                 if let tool = tool {
@@ -790,7 +816,7 @@ import Foundation
         }
 
         // Update last mentioned object
-        world.lastMentionedObject = obj
+        world?.lastMentionedObject = obj
     }
 
     /// Handle the CLIMB command
@@ -815,7 +841,7 @@ import Foundation
         }
 
         // Update last mentioned object
-        world.lastMentionedObject = obj
+        world?.lastMentionedObject = obj
     }
 
     /// Handle the CLOSE command
@@ -852,7 +878,7 @@ import Foundation
         output("Closed.")
 
         // Update last mentioned object
-        world.lastMentionedObject = obj
+        world?.lastMentionedObject = obj
     }
 
     /// Handle custom commands that aren't covered by other methods
@@ -875,13 +901,13 @@ import Foundation
     private func handleDescriptionMode(_ command: Command) {
         switch command {
         case .brief:
-            world.setBriefMode()
+            world?.setBriefMode()
             output("Brief descriptions.")
         case .verbose:
-            world.setVerboseMode()
+            world?.setVerboseMode()
             output("Verbose descriptions.")
         case .superbrief:
-            world.useBriefDescriptions = true
+            world?.useBriefDescriptions = true
             // Typically superbrief shows even less than brief
             output("Superbrief descriptions.")
         default:
@@ -912,7 +938,7 @@ import Foundation
         }
 
         // Update last mentioned object
-        world.lastMentionedObject = obj
+        world?.lastMentionedObject = obj
     }
 
     /// Handle the DROP command
@@ -927,18 +953,18 @@ import Foundation
 
         // Default behavior
         // Check if player has the object
-        if obj.location !== world.player {
+        if obj.location !== world?.player {
             output("You're not carrying that.")
             return
         }
 
         // Drop the object in the current room
-        if let room = world.player.currentRoom {
+        if let room = world?.player.currentRoom {
             obj.moveTo(room)
             output("Dropped.")
 
             // Update last mentioned object
-            world.lastMentionedObject = obj
+            world?.lastMentionedObject = obj
         } else {
             output("You have nowhere to drop that.")
         }
@@ -968,7 +994,7 @@ import Foundation
         }
 
         // Update last mentioned object
-        world.lastMentionedObject = obj
+        world?.lastMentionedObject = obj
     }
 
     /// Handle the EMPTY command
@@ -991,7 +1017,7 @@ import Foundation
                 output("The \(obj.name) is already empty.")
             } else {
                 // Move all contents to the current room
-                if let room = world.player.currentRoom {
+                if let room = world?.player.currentRoom {
                     for item in obj.contents {
                         item.moveTo(room)
                     }
@@ -1005,7 +1031,7 @@ import Foundation
         }
 
         // Update last mentioned object
-        world.lastMentionedObject = obj
+        world?.lastMentionedObject = obj
     }
 
     /// Handle the EXAMINE command
@@ -1066,7 +1092,7 @@ import Foundation
         }
 
         // Update last mentioned object
-        world.lastMentionedObject = obj
+        world?.lastMentionedObject = obj
     }
 
     /// Handle the FILL command
@@ -1087,7 +1113,7 @@ import Foundation
         output("You can't fill that here.")
 
         // Update last mentioned object
-        world.lastMentionedObject = obj
+        world?.lastMentionedObject = obj
     }
 
     /// Handle FLIP command
@@ -1121,7 +1147,7 @@ import Foundation
         }
 
         // Update last mentioned object
-        world.lastMentionedObject = obj
+        world?.lastMentionedObject = obj
     }
 
     /// Handle game meta-commands (save, restore, etc.)
@@ -1160,7 +1186,7 @@ import Foundation
     /// Handle GIVE command
     private func handleGive(_ item: GameObject, to recipient: GameObject) {
         // Check if player has the item
-        if item.location !== world.player {
+        if item.location !== world?.player {
             output("You're not carrying that.")
             return
         }
@@ -1186,13 +1212,13 @@ import Foundation
         }
 
         // Update last mentioned object
-        world.lastMentionedObject = item
+        world?.lastMentionedObject = item
     }
 
     /// Handle the INVENTORY command
     /// Displays a list of items the player is carrying
     private func handleInventory() {
-        let items = world.player.inventory
+        guard let items = world?.player.inventory else { return }
 
         if items.isEmpty {
             output("You're not carrying anything.")
@@ -1238,7 +1264,7 @@ import Foundation
         // Check if we have a tool
         if let tool = tool {
             // Check if player has the tool
-            if tool.location !== world.player {
+            if tool.location !== world?.player {
                 output("You don't have the \(tool.name).")
                 return
             }
@@ -1255,19 +1281,19 @@ import Foundation
         }
 
         // Update last mentioned object
-        world.lastMentionedObject = obj
+        world?.lastMentionedObject = obj
     }
 
     /// Handle the LOOK command
     /// Shows the description of the player's current location
     private func handleLook() {
-        if let room = world.player.currentRoom {
-            // Check if the room's look action handles the description
-            if !room.executeLookAction() {
-                // If not, show the full room description using our special text properties
-                let roomDescription = room.getFullRoomDescription(in: world)
-                output(roomDescription)
-            }
+        guard let world, let room = world.player.currentRoom else { return }
+
+        // Check if the room's look action handles the description
+        if !room.executeLookAction() {
+            // If not, show the full room description using our special text properties
+            let roomDescription = room.getFullRoomDescription(in: world)
+            output(roomDescription)
         }
     }
 
@@ -1289,14 +1315,16 @@ import Foundation
         output("You find nothing interesting under the \(obj.name).")
 
         // Update last mentioned object
-        world.lastMentionedObject = obj
+        world?.lastMentionedObject = obj
     }
 
     /// Handle the MOVE command
     ///
     /// - Parameter direction: The direction to move in
     private func handleMove(direction: Direction) {
-        let player = world.player
+        guard let player = world?.player else {
+            return
+        }
 
         // Check if the current room has a custom handler for this direction
         if let currentRoom = player.location as? Room,
@@ -1401,12 +1429,12 @@ import Foundation
         }
 
         // Update last mentioned object
-        world.lastMentionedObject = obj
+        world?.lastMentionedObject = obj
     }
 
     /// Handle the PRONOUNS command
     private func handlePronouns() {
-        if let lastObj = world.lastMentionedObject {
+        if let lastObj = world?.lastMentionedObject {
             output("It: \(lastObj.name)")
         } else {
             output("No pronouns are defined yet.")
@@ -1431,7 +1459,7 @@ import Foundation
         output("Nothing happens when you pull the \(obj.name).")
 
         // Update last mentioned object
-        world.lastMentionedObject = obj
+        world?.lastMentionedObject = obj
     }
 
     /// Handle the PUSH command
@@ -1452,7 +1480,7 @@ import Foundation
         output("Nothing happens when you push the \(obj.name).")
 
         // Update last mentioned object
-        world.lastMentionedObject = obj
+        world?.lastMentionedObject = obj
     }
 
     /// Handle custom command: PUT IN (place something in a container)
@@ -1462,7 +1490,7 @@ import Foundation
     ///   - container: The container to put the object in
     private func handlePutIn(_ obj: GameObject, container: GameObject) {
         // Check if player has the object
-        if obj.location !== world.player {
+        if obj.location !== world?.player {
             output("You're not carrying that.")
             return
         }
@@ -1497,7 +1525,7 @@ import Foundation
         output("You put the \(obj.name) in the \(container.name).")
 
         // Update last mentioned object
-        world.lastMentionedObject = obj
+        world?.lastMentionedObject = obj
     }
 
     /// Handle custom command: PUT ON (place something on a surface)
@@ -1507,7 +1535,7 @@ import Foundation
     ///   - surface: The surface to place the object on
     private func handlePutOn(_ obj: GameObject, surface: GameObject) {
         // Check if player has the object
-        if obj.location !== world.player {
+        if obj.location !== world?.player {
             output("You're not carrying that.")
             return
         }
@@ -1536,7 +1564,7 @@ import Foundation
         output("You put the \(obj.name) on the \(surface.name).")
 
         // Update last mentioned object
-        world.lastMentionedObject = obj
+        world?.lastMentionedObject = obj
     }
 
     /// Handle the QUIT command
@@ -1595,30 +1623,13 @@ import Foundation
         }
 
         // Update last mentioned object
-        world.lastMentionedObject = obj
+        world?.lastMentionedObject = obj
     }
 
     /// Handle the REMOVE command
     private func handleRemove(_ obj: GameObject) {
         // For most games, REMOVE is an alias for UNWEAR
         handleUnwear(obj)
-    }
-
-    /// Handle restarting the game
-    /// Resets the game world and starts a new game
-    private func handleRestart() throws {
-        isGameOver = false
-        gameOverMessage = nil
-
-        // Reset the game world
-        let newWorld = try recreateWorld()
-        world = newWorld
-        parser = CommandParser(world: world)
-
-        output("\n--- Game Restarted ---\n")
-
-        // Start with a look at the current room
-        try executeCommand(.look)
     }
 
     /// Handle the RUB command
@@ -1653,7 +1664,7 @@ import Foundation
         }
 
         // Update last mentioned object
-        world.lastMentionedObject = obj
+        world?.lastMentionedObject = obj
     }
 
     /// Handle the SEARCH command
@@ -1691,7 +1702,7 @@ import Foundation
         }
 
         // Update last mentioned object
-        world.lastMentionedObject = obj
+        world?.lastMentionedObject = obj
     }
 
     /// Handle the SING command
@@ -1717,13 +1728,13 @@ import Foundation
         output("The \(obj.name) smells normal.")
 
         // Update last mentioned object
-        world.lastMentionedObject = obj
+        world?.lastMentionedObject = obj
     }
 
     /// Handle the SWIM command
     private func handleSwim() {
         // Check if current location is water
-        if let room = world.player.currentRoom {
+        if let room = world?.player.currentRoom {
             if room.hasFlag(.isWaterLocation) {
                 output("You swim around for a while.")
             } else {
@@ -1750,7 +1761,7 @@ import Foundation
 
         // Default behavior
         // Check if object is already in inventory
-        if obj.location === world.player {
+        if obj.location === world?.player {
             output("You're already carrying that.")
             return
         }
@@ -1762,11 +1773,11 @@ import Foundation
         }
 
         // Take the object
-        obj.moveTo(world.player)
+        obj.moveTo(world?.player)
         output("Taken.")
 
         // Update last mentioned object
-        world.lastMentionedObject = obj
+        world?.lastMentionedObject = obj
     }
 
     /// Handle the TELL command
@@ -1791,7 +1802,7 @@ import Foundation
         }
 
         // Update last mentioned object
-        world.lastMentionedObject = person
+        world?.lastMentionedObject = person
     }
 
     /// Handle the THINK ABOUT command
@@ -1812,13 +1823,13 @@ import Foundation
         output("You think about the \(obj.name), but don't come to any conclusions.")
 
         // Update last mentioned object
-        world.lastMentionedObject = obj
+        world?.lastMentionedObject = obj
     }
 
     /// Handle the THROW AT command
     private func handleThrowAt(_ item: GameObject, target: GameObject) {
         // Check if player has the item
-        if item.location !== world.player {
+        if item.location !== world?.player {
             output("You're not carrying that.")
             return
         }
@@ -1839,12 +1850,12 @@ import Foundation
         output("You throw the \(item.name) at the \(target.name), but nothing interesting happens.")
 
         // Drop the item in the current room
-        if let room = world.player.currentRoom {
+        if let room = world?.player.currentRoom {
             item.moveTo(room)
         }
 
         // Update last mentioned object
-        world.lastMentionedObject = item
+        world?.lastMentionedObject = item
     }
 
     /// Handle TURN OFF command
@@ -1878,7 +1889,7 @@ import Foundation
         output("You turn off \(obj.name).")
 
         // Update last mentioned object
-        world.lastMentionedObject = obj
+        world?.lastMentionedObject = obj
     }
 
     /// Handle TURN ON command
@@ -1912,7 +1923,7 @@ import Foundation
         output("You turn on \(obj.name).")
 
         // Update last mentioned object
-        world.lastMentionedObject = obj
+        world?.lastMentionedObject = obj
     }
 
     /// Handle the UNLOCK command
@@ -1943,7 +1954,7 @@ import Foundation
         // Check if we have a tool
         if let tool = tool {
             // Check if player has the tool
-            if tool.location !== world.player {
+            if tool.location !== world?.player {
                 output("You don't have the \(tool.name).")
                 return
             }
@@ -1959,7 +1970,7 @@ import Foundation
         }
 
         // Update last mentioned object
-        world.lastMentionedObject = obj
+        world?.lastMentionedObject = obj
     }
 
     /// Handle UNWEAR command
@@ -1967,7 +1978,7 @@ import Foundation
     /// - Parameter obj: The object to be removed (unworn)
     private func handleUnwear(_ obj: GameObject) {
         // Check if the object is in the player's inventory
-        if !obj.isIn(world.player) {
+        if let player = world?.player, !obj.isIn(player) {
             output("You're not wearing \(obj.name).")
             return
         }
@@ -1989,7 +2000,7 @@ import Foundation
         output("You take off \(obj.name).")
 
         // Update last mentioned object
-        world.lastMentionedObject = obj
+        world?.lastMentionedObject = obj
     }
 
     /// Handle WAIT command
@@ -2019,13 +2030,13 @@ import Foundation
         }
 
         // Update last mentioned object
-        world.lastMentionedObject = obj
+        world?.lastMentionedObject = obj
     }
 
     /// Handle the WAVE command
     private func handleWave(_ obj: GameObject) {
         // Check if the object is accessible (needs to be in inventory to wave)
-        if obj.location !== world.player {
+        if obj.location !== world?.player {
             output("You need to be holding that to wave it.")
             return
         }
@@ -2040,7 +2051,7 @@ import Foundation
         output("You wave the \(obj.name) around, but nothing happens.")
 
         // Update last mentioned object
-        world.lastMentionedObject = obj
+        world?.lastMentionedObject = obj
     }
 
     /// Handle the WAVE HANDS command
@@ -2053,7 +2064,7 @@ import Foundation
     /// - Parameter obj: The object to be worn
     private func handleWear(_ obj: GameObject) {
         // Check if the object is in the player's inventory
-        if !obj.isIn(world.player) {
+        if let player = world?.player, !obj.isIn(player) {
             output("You need to be holding \(obj.name) first.")
             return
         }
@@ -2081,7 +2092,7 @@ import Foundation
         output("You put on \(obj.name).")
 
         // Update last mentioned object
-        world.lastMentionedObject = obj
+        world?.lastMentionedObject = obj
     }
 
     /// Handle the YES command
@@ -2096,12 +2107,12 @@ import Foundation
     /// - Returns: True if the object can be examined
     private func isObjectAccessibleForExamine(_ obj: GameObject) -> Bool {
         // Object is in player's inventory
-        if obj.isIn(world.player) {
+        if let player = world?.player, obj.isIn(player) {
             return true
         }
 
         // Object is in current room
-        if let room = world.player.currentRoom, obj.isIn(room) {
+        if let room = world?.player.currentRoom, obj.isIn(room) {
             return true
         }
 
@@ -2116,8 +2127,12 @@ import Foundation
     /// - Returns: True if the object is visible to the player
     private func isObjectVisible(_ obj: GameObject) -> Bool {
         // Check if object is in the current room or player's inventory
-        if let room = world.player.currentRoom {
-            if obj.isIn(room) || obj.isIn(world.player) {
+        if let room = world?.player.currentRoom {
+            if obj.isIn(room) {
+                return true
+            }
+
+            if let player = world?.player, obj.isIn(player) {
                 return true
             }
 
@@ -2125,9 +2140,9 @@ import Foundation
             let containersInRoom = room.contents.filter {
                 $0.hasFlags(.isContainer, .isOpen) || $0.hasFlag(.isTransparent)
             }
-            let containersInInventory = world.player.inventory.filter {
+            let containersInInventory = world?.player.inventory.filter {
                 $0.hasFlags(.isContainer, .isOpen) || $0.hasFlag(.isTransparent)
-            }
+            } ?? []
 
             let allContainers = containersInRoom + containersInInventory
 
@@ -2138,7 +2153,7 @@ import Foundation
             }
 
             // Check if this is a global object accessible from the current room
-            if obj.isGlobalObject() && world.isGlobalObjectAccessible(obj, in: room) {
+            if obj.isGlobalObject() && world?.isGlobalObjectAccessible(obj, in: room) ?? false {
                 return true
             }
         }

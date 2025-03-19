@@ -33,7 +33,7 @@ public class HelloWorldGame: Game {
     }
 
     /// Creates the game world
-    override public class func create() throws -> GameWorld {
+    override public class func create() -> GameWorld {
         // Create rooms
         let entrance = Room(
             name: "Entrance",

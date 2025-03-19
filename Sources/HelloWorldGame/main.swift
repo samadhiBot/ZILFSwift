@@ -1,6 +1,17 @@
 import Foundation
 import ZILFCore
 
-let world = HelloWorldGame.create()
-let engine = GameEngine(world: world, worldCreator: HelloWorldGame.create)
-try engine.start()
+struct HelloWorldGameApp {
+    static func main() async throws {
+        // Create the game
+        let game = await HelloWorldGame()
+
+        // Set up terminal resize handling (if in terminal mode)
+        #if os(macOS) || os(Linux)
+        await setupSignalHandler(game: game)
+        #endif
+
+        // Start the game
+        try await game.start()
+    }
+}
