@@ -2,25 +2,15 @@ import Foundation
 import ZILFCore
 
 /// A simple Hello World game implementing the ZILF framework
-@MainActor
-public class HelloWorldGame: Game {
+@MainActor final class HelloWorldGame: Game {
     /// Creates a new Hello World game instance
     /// - Parameter outputMode: The output mode to use (standard, terminal, or mock)
-    public init(outputMode: OutputMode = .standard) {
-        // Create the world
-        let world: GameWorld
-        do {
-            world = try Self.create()
-        } catch {
-            fatalError("Failed to create game world: \(error)")
-        }
-
+    init(outputMode: OutputMode = .standard) {
         // Create the output manager
         let outputManager = OutputManagerFactory.create(mode: outputMode)
 
         // Initialize with the base game
         super.init(
-            world: world,
             outputManager: outputManager,
             welcomeText: """
             ===================================
@@ -33,7 +23,7 @@ public class HelloWorldGame: Game {
     }
 
     /// Creates the game world
-    override public class func create() -> GameWorld {
+    override class func create() -> GameWorld {
         // Create rooms
         let entrance = Room(
             name: "Entrance",

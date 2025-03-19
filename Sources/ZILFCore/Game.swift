@@ -41,12 +41,25 @@ import Foundation
             }
         )
 
-        // Set the world creator function
+        // Set the world creator function (non-throwing)
         engine.setWorldCreator { [weak self] in
-            try type(of: self!).create()
+            guard let self = self else {
+                // If self is nil, return a minimal fallback world
+                let fallbackRoom = Room(name: "Error", description: "Game instance was deallocated.")
+                let player = Player(startingRoom: fallbackRoom)
+                return GameWorld(player: player)
+            }
+
+            // Call the static create method which handles errors internally
+            return type(of: self).safeCreate()
         }
     }
 
+    /// Possible game errors
+    enum GameError: Error {
+        case gameInstanceDeallocated
+    }
+    
     /// Outputs a message to the game's display mechanism
     public func output(_ message: String) {
         outputManager.output(message)
@@ -55,6 +68,21 @@ import Foundation
     /// Gets input from the player with an optional prompt
     public func getInput(prompt: String = "> ") -> String? {
         return outputManager.getInput(prompt: prompt)
+    }
+
+    open class func safeCreate() -> GameWorld {
+        do {
+            // Implementation that might throw
+            return try create()
+        } catch {
+            // Log the error
+            print("Error creating world: \(error)")
+
+            // Return a minimal fallback world
+            let fallbackRoom = Room(name: "Error", description: "There was an error creating the game world.")
+            let player = Player(startingRoom: fallbackRoom)
+            return GameWorld(player: player)
+        }
     }
 
     /// Creates the game world - must be implemented by subclasses
