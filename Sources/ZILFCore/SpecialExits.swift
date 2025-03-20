@@ -239,10 +239,7 @@ extension Room {
 
             // Get the game engine from the player
             if let world, let engine = world.player.engine {
-                // Trigger game over
-                Task { @MainActor in
-                    engine.playerDied(message: deathMessage)
-                }
+                engine.gameOver(with: .defeat(deathMessage))
             } else {
                 // If no engine is available, just show the message
                 print(deathMessage)
@@ -283,10 +280,7 @@ extension Room {
 
             // Get the game engine from the player
             if let world, let engine = world.player.engine {
-                // Trigger victory
-                Task { @MainActor in
-                    engine.playerWon(message: victoryMessage)
-                }
+                engine.gameOver(with: .victory(victoryMessage))
             } else {
                 // If no engine is available, just show the message
                 print(victoryMessage)

@@ -967,7 +967,7 @@ struct CommandParserTests {
         )
         world.register(coin)
 
-        let parser = CommandParser(world: world)
+        let parser = CommandParser(for: world)
 
         return (world, parser, startRoom, northRoom, coin)
     }

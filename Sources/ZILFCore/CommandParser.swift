@@ -16,7 +16,7 @@ public class CommandParser {
     /// Initializes a new command parser with a reference to the game world
     ///
     /// - Parameter world: The game world that contains objects to be referenced in commands
-    public init(world: GameWorld) {
+    public init(for world: GameWorld) {
         self.world = world
     }
 

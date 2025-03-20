@@ -77,7 +77,7 @@ struct GameModelTests {
 
         world.lastMentionedObject = obj1
 
-        let parser = CommandParser(world: world)
+        let parser = CommandParser(for: world)
 
         // Test examining "it"
         if case let .examine(obj, _) = parser.parse("examine it") {
@@ -161,7 +161,7 @@ struct GameModelTests {
         let player = Player(startingRoom: room)
         let world = GameWorld(player: player)
 
-        let parser = CommandParser(world: world)
+        let parser = CommandParser(for: world)
 
         // Test finding the coin in the box
         if case let .take(obj) = parser.parse("take coin") {

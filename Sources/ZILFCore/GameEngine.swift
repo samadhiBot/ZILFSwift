@@ -3,134 +3,266 @@ import Foundation
 /// The main game engine for ZILF games.
 ///
 /// Handles command processing, game state management, and core gameplay logic.
-@MainActor public class GameEngine {
-    /// The game world containing rooms, objects, and the player.
-    public private(set) var world: GameWorld!
+public class GameEngine {
+    public enum State: Equatable {
+        case idle
+        case running
+        case victory(String)
+        case defeat(String)
+        case quit
+    }
 
-    /// Command parser used to convert text input to game commands.
-    private var parser: CommandParser!
+    public enum UI: Equatable {
+        case standard
+        case terminal
+        case capture
+    }
 
-    /// Flag indicating if the game engine is currently running.
-    private var isRunning = false
+    /// <#Description#>
+    private let game: ZilfGame
 
-    /// Output handler for the game engine.
-    private var outputHandler: ((String) -> Void)
+    /// <#Description#>
+    private var state = State.idle
 
-    /// Input handler for the game engine.
-    private var inputHandler: ((String) -> String?)
-
-    /// Status line update handler.
-    private var statusLineHandler: ((String, Int, Int) -> Void)
+    /// Count of number made in the game.
+    private var moveCount = 0
 
     /// Player's current score.
-    public private(set) var score: Int = 0
+    private var score = 0
 
-    /// Maximum possible score in the game.
-    public var maximumScore: Int = 0
+    private var outputManager: OutputManager
 
-    /// Count of moves made in the game.
-    public private(set) var moveCount: Int = 0
+    public init(game: ZilfGame, ui: UI = .standard) {
+        self.game = game
+        self.world = game.createWorld()
+        self.parser = CommandParser(for: world)
+        self.outputManager = switch ui {
+        case .standard:
+            StandardOutputManager()
+        case .terminal:
+            TerminalOutputManager()
+        case .capture:
+            TestOutputCapture()
+        }
+    }
 
+    public func start() {
+        output(game.welcomeText)
+        output("\n\(game.versionInfo)\n")
+        output("Type 'help' for a list of commands.\n")
+
+        //        // Create the world
+        //        world = game.createWorld()
+
+        // Show initial location
+        executeCommand(.look)
+
+        // Run the game loop
+        gameLoop()
+    }
+
+    private func gameLoop() {
+        state = .running
+
+        while state == .running {
+            guard let input = getInput() else { continue }
+
+            let command = parser.parse(input)
+            executeCommand(command)
+
+            if !command.isMeta {
+                moveCount += 1
+            }
+        }
+    }
+
+    /// The game world containing rooms, objects, and the player.
+    private var world: GameWorld
+
+    /// Command parser used to convert text input to game commands.
+    private var parser: CommandParser
+    //
+    //
+    //    /// Output handler for the game engine.
+    //    private var outputHandler: ((String) -> Void)
+    //
+    //    /// Input handler for the game engine.
+    //    private var inputHandler: ((String) -> String?)
+    //
+    //    /// Status line update handler.
+    //    private var statusLineHandler: ((String, Int, Int) -> Void)
+    //
+    //    /// Maximum possible score in the game.
+    //    public var maximumScore: Int = 0
+    //
     /// Stores the last command processed by the engine.
     private var lastCommand: Command?
+    //
+    //    /// Public accessor for the current command (the last processed command).
+    //    public var currentCommand: Command? {
+    //        return lastCommand
+    //    }
+    //
+    //    /// Flag indicating if the game has ended.
+    //    private(set) var isGameOver = false
+    //
+    //    /// Message to display when the game ends.
+    //    private var gameOverMessage: String?
+    //
+    //    /// Introductory text to display when the game starts.
+    //    private var welcomeMessage: String?
+    //
+    //    /// Version information to display at startup.
+    //    private var gameVersion: String?
+    //
+    //    /// Function that creates a new game world instance, used for game restarts.
+    //    private var worldCreator: (() -> GameWorld)?
+    //
+    //    /// Initializes a new game engine.
+    //    ///
+    //    /// - Parameters:
+    //    ///   - outputHandler: Handler for outputting text
+    //    ///   - inputHandler: Handler for getting input from the player
+    //    ///   - statusLineHandler: Handler for updating the status line
+    //    public init(
+    //        outputHandler: @escaping (String) -> Void,
+    //        inputHandler: @escaping (String) -> String?,
+    //        statusLineHandler: @escaping (String, Int, Int) -> Void
+    //    ) {
+    //        self.outputHandler = outputHandler
+    //        self.inputHandler = inputHandler
+    //        self.statusLineHandler = statusLineHandler
+    //    }
+    //
+    //    /// Sets the function used to recreate the world and immediately creates the world
+    //    public func setWorldCreator(_ creator: @escaping () -> GameWorld) {
+    //        self.worldCreator = creator
+    //        createWorld()
+    //    }
+    //
+    //    /// Creates the world using the worldCreator
+    //    private func createWorld() {
+    //        guard let worldCreator = worldCreator else {
+    //            output("Error: No world creator function provided")
+    //            return
+    //        }
+    //
+    //        // Create the world (non-throwing)
+    //        self.world = worldCreator()
+    //
+    //        // Initialize the parser with the new world
+    //        self.parser = CommandParser(for: world)
+    //
+    //        // Set engine directly on player
+    //        world.player.setEngine(self)
+    //    }
 
-    /// Public accessor for the current command (the last processed command).
-    public var currentCommand: Command? {
-        return lastCommand
-    }
-
-    /// Flag indicating if the game has ended.
-    private(set) var isGameOver = false
-
-    /// Message to display when the game ends.
-    private var gameOverMessage: String?
-
-    /// Introductory text to display when the game starts.
-    private var welcomeMessage: String?
-
-    /// Version information to display at startup.
-    private var gameVersion: String?
-
-    /// Function that creates a new game world instance, used for game restarts.
-    private var worldCreator: (() -> GameWorld)?
-
-    /// Initializes a new game engine.
-    ///
-    /// - Parameters:
-    ///   - outputHandler: Handler for outputting text
-    ///   - inputHandler: Handler for getting input from the player
-    ///   - statusLineHandler: Handler for updating the status line
-    public init(
-        outputHandler: @escaping (String) -> Void,
-        inputHandler: @escaping (String) -> String?,
-        statusLineHandler: @escaping (String, Int, Int) -> Void
-    ) {
-        self.outputHandler = outputHandler
-        self.inputHandler = inputHandler
-        self.statusLineHandler = statusLineHandler
-    }
-
-    /// Sets the function used to recreate the world and immediately creates the world
-    public func setWorldCreator(_ creator: @escaping () -> GameWorld) {
-        self.worldCreator = creator
-        createWorld()
-    }
-
-    /// Creates the world using the worldCreator
-    private func createWorld() {
-        guard let worldCreator = worldCreator else {
-            output("Error: No world creator function provided")
-            return
-        }
-
-        // Create the world (non-throwing)
-        self.world = worldCreator()
-
-        // Initialize the parser with the new world
-        self.parser = CommandParser(world: world)
-
-        // Set engine directly on player
-        world.player.setEngine(self)
-    }
-
-    /// Handle restarting the game
-    private func handleRestart() throws {
-        isGameOver = false
-        gameOverMessage = nil
-
-        // Reset the game world
-        createWorld()
-
+    /// Handle restarting the game.
+    private func handleRestart() {
+        state = .running
+        world = game.createWorld()
         output("\n--- Game Restarted ---\n")
-
-        // Start with a look at the current room
-        try executeCommand(.look)
+        executeCommand(.look)
     }
 
     /// Outputs a message through the configured output handler
     public func output(_ message: String) {
-        outputHandler(message)
+        outputManager.output(message)
+        //        outputHandler(message)
+    }
+
+    func error(_ message: String) {
+        outputManager.output("💥 Error: \(message)")
     }
 
     /// Gets input from the player
     public func getInput(prompt: String = "> ") -> String? {
-        return inputHandler(prompt)
+        //        return inputHandler(prompt)
+        outputManager.getInput(prompt: prompt)
     }
 
     /// Updates the status line with current game information
     private func updateStatusLine() {
-        let locationName = world.player.currentRoom?.name ?? "Unknown"
-        statusLineHandler(locationName, score, moveCount)
+        let location = world.player.currentRoom?.name ?? "Unknown"
+        outputManager.updateStatusLine(
+            location: location,
+            score: score,
+            moves: moveCount
+        )
+    }
+}
+
+extension GameEngine {
+    /// Execute a single command and get the output
+    /// - Parameter input: The text input to process
+    /// - Returns: The output generated by the command
+    public func executeInput(_ input: String) -> [String] {
+        // Create a test output capture
+        let outputCapture = TestOutputCapture()
+        let originalOutput = outputManager
+
+        // Temporarily redirect output to our capture
+        outputManager = outputCapture
+
+        // Parse and execute the command
+        let command = parser.parse(input)
+        executeCommand(command)
+
+        // Restore original output
+        outputManager = originalOutput
+
+        // Return captured output
+        return outputCapture.captured
     }
 
+    /// A non-blocking version of start that doesn't run the game loop
+    public func initialize() {
+        // Show welcome text and initial room description
+        output(game.welcomeText)
+        output("\n\(game.versionInfo)\n")
+        output("Type 'help' for a list of commands.\n")
+
+        // Show initial location
+        executeCommand(.look)
+    }
+}
+
+/// Test output capture for executing single commands
+private class TestOutputCapture: OutputManager {
+    var captured: [String] = []
+    var capturedOutput: [String] { captured }
+
+    func output(_ message: String) {
+        captured.append(message)
+    }
+
+    func clearCapturedOutput() {
+        captured.removeAll()
+    }
+
+    func updateStatusLine(location: String, score: Int, moves: Int) {
+        // No implementation needed for tests
+    }
+
+    func getInput(prompt: String) -> String? {
+        // Should never be called in programmatic execution
+        return nil
+    }
+
+    func shutdown() {
+        // No implementation needed
+    }
+}
+
+extension GameEngine {
     // MARK: - Public Methods
 
     /// Executes a single game command
     ///
     /// - Parameter command: The command to execute
-    public func executeCommand(_ command: Command) throws {
+    public func executeCommand(_ command: Command) {
         // Don't process commands if game is over
-        if isGameOver { return }
+//        if isGameOver { return }
 
         // Store the command for potential "again" (g) command
         if getVerbForCommand(command) != "again" { lastCommand = command }
@@ -238,7 +370,8 @@ import Foundation
             }
 
         case .quit:
-            handleQuit()
+            output("Thanks for playing!")
+            state = .quit
 
         case .unknown(let message):
             output(message)
@@ -296,7 +429,7 @@ import Foundation
             handleWait()
 
         case .again:
-            try handleAgain()
+            handleAgain()
 
         case .read(let obj, let tool):
             if let obj {
@@ -487,7 +620,7 @@ import Foundation
             handleDescriptionMode(command)
 
         case .save, .restore, .restart, .undo, .version, .help, .script, .unscript:
-            try handleGameCommand(command)
+            handleGameCommand(command)
 
         case .custom(let words):
             handleCustomCommand(words)
@@ -510,42 +643,51 @@ import Foundation
     /// - Parameter input: The command input string
     ///
     /// - Returns: True if the game is still running, false if it ended
-    public func executeGameLoop(input: String) throws -> Bool {
-        if !isRunning || isGameOver {
-            return false
-        }
-
-        if input.lowercased() == "help" {
-            printHelp()
-        } else {
-            let command = parser.parse(input)
-            try executeCommand(command)
-
-            // Check for game over after command execution
-            if isGameOver {
-                return false
-            }
-        }
-
-        return isRunning && !isGameOver
-    }
+//    public func executeGameLoop(input: String) -> Bool {
+//        if !isRunning || isGameOver {
+//            return false
+//        }
+//
+//        if input.lowercased() == "help" {
+//            printHelp()
+//        } else {
+//            let command = parser.parse(input)
+//            executeCommand(command)
+//
+//            // Check for game over after command execution
+//            if isGameOver {
+//                return false
+//            }
+//        }
+//
+//        return isRunning && !isGameOver
+//    }
 
     /// Handle Game Over - called when the game ends
     ///
-    /// - Parameters:
-    ///   - message: Message to display to the player
-    ///   - isVictory: Whether this is a victory (win) or defeat (lose)
-    public func gameOver(message: String, isVictory: Bool = false) {
-        if isGameOver {
-            return  // Don't trigger game over more than once
+    public func gameOver(with endState: State) {
+        guard state == .running else { return }
+
+        switch endState {
+        case .idle:
+            error("gameOver called requesting .idle state")
+
+        case .running:
+            error("gameOver called requesting .running state")
+
+        case .victory(let message):
+            output("\n*** VICTORY ***")
+            output(message)
+
+        case .defeat(let message):
+            output("\n*** GAME OVER ***")
+            output(message)
+
+        case .quit:
+            output("Thanks for playing!")
         }
 
-        isGameOver = true
-        gameOverMessage = message
-
-        // Display the game over message with appropriate formatting
-        output("\n*** \(isVictory ? "VICTORY" : "GAME OVER") ***")
-        output(message)
+        state = endState
 
         // Prompt for restart or quit
         output("\nWould you like to RESTART or QUIT?")
@@ -562,76 +704,76 @@ import Foundation
         return false
     }
 
-    /// Kill the player, triggering game over
-    ///
-    /// - Parameter message: The death message to display
-    public func playerDied(message: String) {
-        gameOver(message: message, isVictory: false)
-    }
-
-    /// Player has won the game
-    ///
-    /// - Parameter message: The victory message to display
-    public func playerWon(message: String) {
-        gameOver(message: message, isVictory: true)
-    }
+//    /// Kill the player, triggering game over
+//    ///
+//    /// - Parameter message: The death message to display
+//    public func playerDied(message: String) {
+//        gameOver(message: message, isVictory: false)
+//    }
+//
+//    /// Player has won the game
+//    ///
+//    /// - Parameter message: The victory message to display
+//    public func playerWon(message: String) {
+//        gameOver(message: message, isVictory: true)
+//    }
 
     /// Starts the game and runs the main game loop
-    public func start() throws {
-        isRunning = true
-        isGameOver = false
-
-        // Display welcome message if provided
-        if let welcomeMessage = welcomeMessage {
-            output(welcomeMessage)
-        } else {
-            output("Welcome to the Text Adventure!")
-        }
-
-        // Display version information if provided
-        if let gameVersion = gameVersion {
-            output(gameVersion)
-        }
-
-        output("Type 'help' for a list of commands.\n")
-
-        // Start with a look at the current room
-        try executeCommand(.look)
-
-        // Update status line with initial information
-        let locationName = world.player.currentRoom?.name ?? "Unknown"
-
-        updateStatusLine()
-
-        // Main game loop
-        while isRunning {
-            if isGameOver {
-                // If game is over, only accept restart or quit commands
-                guard let input = getInput()?.lowercased() else { continue }
-
-                switch input {
-                case "restart":
-                    try handleRestart()
-                case "quit":
-                    handleQuit()
-                    break
-                default:
-                    output("Please type RESTART or QUIT.")
-                }
-                continue
-            }
-
-            guard let input = getInput() else { continue }
-
-            if input.lowercased() == "help" {
-                printHelp()
-                continue
-            }
-
-            let command = parser.parse(input)
-            try executeCommand(command)
-        }
-    }
+//    public func start() {
+//        isRunning = true
+//        isGameOver = false
+//
+//        // Display welcome message if provided
+//        if let welcomeMessage = welcomeMessage {
+//            output(welcomeMessage)
+//        } else {
+//            output("Welcome to the Text Adventure!")
+//        }
+//
+//        // Display version information if provided
+//        if let gameVersion = gameVersion {
+//            output(gameVersion)
+//        }
+//
+//        output("Type 'help' for a list of commands.\n")
+//
+//        // Start with a look at the current room
+//        executeCommand(.look)
+//
+//        // Update status line with initial information
+//        let locationName = world.player.currentRoom?.name ?? "Unknown"
+//
+//        updateStatusLine()
+//
+//        // Main game loop
+//        while isRunning {
+//            if isGameOver {
+//                // If game is over, only accept restart or quit commands
+//                guard let input = getInput()?.lowercased() else { continue }
+//
+//                switch input {
+//                case "restart":
+//                    handleRestart()
+//                case "quit":
+//                    handleQuit()
+//                    break
+//                default:
+//                    output("Please type RESTART or QUIT.")
+//                }
+//                continue
+//            }
+//
+//            guard let input = getInput() else { continue }
+//
+//            if input.lowercased() == "help" {
+//                printHelp()
+//                continue
+//            }
+//
+//            let command = parser.parse(input)
+//            executeCommand(command)
+//        }
+//    }
 
     /// Updates the player's score
     ///
@@ -709,10 +851,10 @@ import Foundation
     }
 
     /// Handle AGAIN command (repeat last command)
-    private func handleAgain() throws {
+    private func handleAgain() {
         if let lastCommand {
             output("(repeating the last command)")
-            try executeCommand(lastCommand)
+            executeCommand(lastCommand)
         } else {
             output("There's no command to repeat.")
         }
@@ -1143,7 +1285,7 @@ import Foundation
     }
 
     /// Handle game meta-commands (save, restore, etc.)
-    private func handleGameCommand(_ command: Command) throws {
+    private func handleGameCommand(_ command: Command) {
         switch command {
         case .save:
             output("Game saved.")
@@ -1152,16 +1294,12 @@ import Foundation
             output("Game restored.")
             // Implement restore functionality
         case .restart:
-            try handleRestart()
+            handleRestart()
         case .undo:
             output("You can't change the past.")
             // Implement undo functionality
         case .version:
-            if let gameVersion = gameVersion {
-                output(gameVersion)
-            } else {
-                output("ZILF Game Engine v1.0")
-            }
+            output(game.versionInfo)
         case .help:
             printHelp()
         case .script:
@@ -1279,7 +1417,7 @@ import Foundation
     /// Handle the LOOK command
     /// Shows the description of the player's current location
     private func handleLook() {
-        guard let world, let room = world.player.currentRoom else { return }
+        guard let room = world.player.currentRoom else { return }
 
         // Check if the room's look action handles the description
         if !room.executeLookAction() {
@@ -1557,12 +1695,12 @@ import Foundation
         world.lastMentionedObject = obj
     }
 
-    /// Handle the QUIT command
-    /// Ends the game
-    private func handleQuit() {
-        output("Thanks for playing!")
-        isRunning = false
-    }
+//    /// Handle the QUIT command
+//    /// Ends the game
+//    private func handleQuit() {
+//        output("Thanks for playing!")
+//        isRunning = false
+//    }
 
     /// Handle READ command
     ///
@@ -2183,26 +2321,26 @@ import Foundation
             """)
     }
 
-    /// Recreate the game world for restart
-    ///
-    /// - Returns: A fresh game world
-    private func recreateWorld() throws -> GameWorld {
-        if let worldCreator {
-            let freshWorld = try worldCreator()
-
-            // Register the engine in the new world's player
-            freshWorld.player.setEngine(self)
-
-            return freshWorld
-        } else {
-            // Fall back to a simple new world if no creator function was provided
-            let freshWorld = GameWorld(
-                player: Player(startingRoom: Room(name: "Default", description: "Default room")))
-
-            // Register the engine in the new world's player
-            freshWorld.player.setEngine(self)
-
-            return freshWorld
-        }
-    }
+//    /// Recreate the game world for restart
+//    ///
+//    /// - Returns: A fresh game world
+//    private func recreateWorld() -> GameWorld {
+//        if let worldCreator {
+//            let freshWorld = worldCreator()
+//
+//            // Register the engine in the new world's player
+//            freshWorld.player.setEngine(self)
+//
+//            return freshWorld
+//        } else {
+//            // Fall back to a simple new world if no creator function was provided
+//            let freshWorld = GameWorld(
+//                player: Player(startingRoom: Room(name: "Default", description: "Default room")))
+//
+//            // Register the engine in the new world's player
+//            freshWorld.player.setEngine(self)
+//
+//            return freshWorld
+//        }
+//    }
 }

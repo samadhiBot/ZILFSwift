@@ -198,6 +198,15 @@ public enum Command {
 // MARK: - Synonyms
 
 extension Command {
+    /// <#Description#>
+    public var isMeta: Bool {
+        switch self {
+        case .brief, .help, .quit, .restart, .restore, .save, .script,
+             .superbrief, .undo, .unscript, .verbose, .version: true
+        default: false
+        }
+    }
+
     /// Alternative string representations that resolve to this command.
     public var synonyms: [String] {
         switch self {
