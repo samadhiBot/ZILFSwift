@@ -12,41 +12,42 @@ public class GameEngine {
         case quit
     }
 
-    /// <#Description#>
+    /// The game that the engine is running.
     let game: ZilfGame
 
     /// The game world containing rooms, objects, and the player.
     private(set) var world: GameWorld
 
-    /// Command parser used to convert text input to game commands.
+    /// The command parser used to convert text input to game commands.
     public let parser: CommandParser
 
-    /// <#Description#>
+    /// The current game state.
     private(set) var state = State.idle
 
-    /// Count of number made in the game.
+    /// The number of moves the player has made in the game.
     private(set) var moveCount = 0
 
-    /// Player's current score.
+    /// The player's current score.
     private(set) var score = 0
-
-    private var outputManager: OutputManager
+    
+    /// <#Description#>
+    private var console: GameConsole
 
     public init(
         game: ZilfGame,
-        outputManager: OutputManager
+        console: GameConsole
     ) {
         self.game = game
         self.world = game.createWorld()
         self.parser = CommandParser(for: world)
-        self.outputManager = outputManager
+        self.console = console
     }
 
     public func start() {
         output(game.welcomeText)
         output("\n\(game.versionInfo)\n")
         output("Type 'help' for a list of commands.\n")
-        
+
         // Create the world
         world = game.createWorld()
 
@@ -158,24 +159,24 @@ public class GameEngine {
 
     /// Outputs a message through the configured output handler
     public func output(_ message: String) {
-        outputManager.output(message)
+        console.output(message)
         //        outputHandler(message)
     }
 
     func error(_ message: String) {
-        outputManager.output("💥 Error: \(message)")
+        console.output("💥 Error: \(message)")
     }
 
     /// Gets input from the player
     public func getInput(prompt: String = "> ") -> String? {
         //        return inputHandler(prompt)
-        outputManager.getInput(prompt: prompt)
+        console.getInput(prompt: prompt)
     }
 
     /// Updates the status line with current game information
     private func updateStatusLine() {
         let location = world.player.currentRoom?.name ?? "Unknown"
-        outputManager.updateStatusLine(
+        console.updateStatusLine(
             location: location,
             score: score,
             moves: moveCount
@@ -190,17 +191,17 @@ extension GameEngine {
     public func executeInput(_ input: String) -> [String] {
         // Create a test output capture
         let outputCapture = TestOutputCapture()
-        let originalOutput = outputManager
+        let originalOutput = console
 
         // Temporarily redirect output to our capture
-        outputManager = outputCapture
+        console = outputCapture
 
         // Parse and execute the command
         let command = parser.parse(input)
         executeCommand(command)
 
         // Restore original output
-        outputManager = originalOutput
+        console = originalOutput
 
         // Return captured output
         return outputCapture.captured
@@ -219,7 +220,7 @@ extension GameEngine {
 }
 
 /// Test output capture for executing single commands
-private class TestOutputCapture: OutputManager {
+private class TestOutputCapture: GameConsole {
     var captured: [String] = []
     var capturedOutput: [String] { captured }
 

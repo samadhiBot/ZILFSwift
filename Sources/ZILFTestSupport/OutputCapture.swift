@@ -2,7 +2,7 @@ import Foundation
 @testable import ZILFCore
 
 /// Test output handler that stores output for verification
-public class OutputCapture: OutputManager {
+public class OutputCapture: GameConsole {
     public private(set) var capturedOutput: [String] = []
     private var inputResponses: [String] = []
     private var currentResponseIndex = 0

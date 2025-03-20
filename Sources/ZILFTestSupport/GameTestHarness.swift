@@ -19,7 +19,7 @@ public class GameTestHarness<T: ZilfGame> {
         self.game = game
         self.engine = GameEngine(
             game: game,
-            outputManager: outputCapture
+            console: outputCapture
         )
     }
 

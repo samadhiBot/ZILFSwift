@@ -39,7 +39,7 @@
 //
 //    @Test
 //    func testStandardOutputManager() {
-//        let outputManager = StandardOutputManager()
+//        let outputManager = StandardConsole()
 //
 //        // Test output capture
 //        outputManager.output("Testing standard output manager")

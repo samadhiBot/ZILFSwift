@@ -4,10 +4,10 @@ import ZILFCore
 /// A simple Hello World game implementing the ZILF framework
 struct HelloWorldGame: ZilfGame {
     let welcomeText = """
-        ===================================
+        ====================================
         Welcome to Hello World Adventure!
         A tiny demonstration game using ZILF
-        ===================================
+        ====================================
         """
 
     let versionInfo = "Hello World Game v1.0"

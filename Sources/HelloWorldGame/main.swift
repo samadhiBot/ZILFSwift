@@ -1,15 +1,11 @@
 import ZILFCore
 
-struct HelloWorldGameApp {
-    static func main() async throws {
-        let outputManager = StandardOutputManager()
+let outputManager = StandardConsole()
 
-        let helloWorld = HelloWorldGame(output: outputManager.output)
+let helloWorld = HelloWorldGame(output: outputManager.output)
 
-        let engine = GameEngine(
-            game: helloWorld,
-            outputManager: outputManager
-        )
-        engine.start()
-    }
-}
+let engine = GameEngine(
+    game: helloWorld,
+    console: outputManager
+)
+engine.start()

@@ -40,7 +40,7 @@
 //
 //    override public func setupGame() {
 //        // Setup signal handler for terminal resize if using terminal mode
-//        if outputManager is TerminalOutputManager {
+//        if outputManager is TerminalConsole {
 //            setupSignalHandler(game: self)
 //        }
 //    }

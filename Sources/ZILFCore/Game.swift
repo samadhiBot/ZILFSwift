@@ -20,7 +20,7 @@
 //    ///   - welcomeText: Welcome message to display at game start
 //    ///   - versionInfo: Version information to display
 //    public init(
-//        outputManager: OutputManager = StandardOutputManager(),
+//        outputManager: OutputManager = StandardConsole(),
 //        welcomeText: String,
 //        versionInfo: String
 //    ) {
@@ -142,7 +142,7 @@
 //
 //    /// Handles terminal resize events
 //    public func handleTerminalResize() {
-//        if let termManager = outputManager as? TerminalOutputManager {
+//        if let termManager = outputManager as? TerminalConsole {
 //            termManager.handleResize()
 //
 //            // Update status line

@@ -2,7 +2,7 @@ import Foundation
 import SwiftCursesTerm
 
 /// Protocol defining the interface for game output management
-public protocol OutputManager: AnyObject {
+public protocol GameConsole: AnyObject {
     /// Outputs a message to the appropriate destination
     func output(_ message: String)
 
@@ -23,7 +23,7 @@ public protocol OutputManager: AnyObject {
 }
 
 /// Standard output manager that uses print() for output
-public class StandardOutputManager: OutputManager {
+public class StandardConsole: GameConsole {
     private(set) public var capturedOutput: [String] = []
 
     public init() {}
@@ -52,7 +52,7 @@ public class StandardOutputManager: OutputManager {
 }
 
 /// Terminal UI output manager that uses SwiftCursesTerm
-public class TerminalOutputManager: OutputManager {
+public class TerminalConsole: GameConsole {
     private var term: SwiftCursesTerm
     private var statusWindow: SCTWindowId?
     private var mainWindow: SCTWindowId?
@@ -226,7 +226,7 @@ public class TerminalOutputManager: OutputManager {
 }
 
 /// Mock output manager for testing
-public class MockOutputManager: OutputManager {
+public class MockOutputManager: GameConsole {
     private(set) public var capturedOutput: [String] = []
     public var inputResponses: [String] = []
     private var inputIndex = 0
