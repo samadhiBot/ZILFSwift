@@ -127,50 +127,50 @@ extension GameWorld {
     /// Determines if a room is currently lit by any light source.
     /// - Parameter room: The room to check.
     /// - Returns: `true` if the room has any source of light.
-    public func isRoomLit(_ room: Room) -> Bool {
-        // 1. If the room is naturally lit, it's always lit
-        if room.hasFlag(.isNaturallyLit) {
-            return true
-        }
-
-        // 2. If the room itself is a light source and is lit, it's lit
-        if room.hasFlag(.isLightSource) && room.hasFlag(.isOn) {
-            return true
-        }
-
-        // 3. Check for light sources in the room
-        let lightSources = room.contents.filter { obj in
-            return obj.hasFlag(.isLightSource) && obj.hasFlag(.isOn)
-        }
-
-        if !lightSources.isEmpty {
-            return true
-        }
-
-        // 4. Check if the player is in the room and has a light source
-        if player.currentRoom === room {
-            let playerLightSources = player.inventory.filter { obj in
-                return obj.hasFlag(.isLightSource) && obj.hasFlag(.isOn)
-            }
-
-            if !playerLightSources.isEmpty {
-                return true
-            }
-        }
-
-        // 5. Check transparent containers in the room for light sources
-        for container in room.contents where container.hasFlag(.isContainer) {
-            // Light can pass through if container is transparent or open
-            if container.hasFlags(.isTransparent, .isOpen, matching: .any) {
-                if container.contents.contains(where: { obj in
-                    obj.hasFlags(.isLightSource, .isOn)
-                }) {
-                    return true
-                }
-            }
-        }
-
-        // No light sources found
-        return false
-    }
+//    public func isRoomLit(_ room: Room) -> Bool {
+//        // 1. If the room is naturally lit, it's always lit
+//        if room.hasFlag(.isNaturallyLit) {
+//            return true
+//        }
+//
+//        // 2. If the room itself is a light source and is lit, it's lit
+//        if room.hasFlag(.isLightSource) && room.hasFlag(.isOn) {
+//            return true
+//        }
+//
+//        // 3. Check for light sources in the room
+//        let lightSources = room.contents.filter { obj in
+//            return obj.hasFlag(.isLightSource) && obj.hasFlag(.isOn)
+//        }
+//
+//        if !lightSources.isEmpty {
+//            return true
+//        }
+//
+//        // 4. Check if the player is in the room and has a light source
+//        if player.currentRoom === room {
+//            let playerLightSources = player.inventory.filter { obj in
+//                return obj.hasFlag(.isLightSource) && obj.hasFlag(.isOn)
+//            }
+//
+//            if !playerLightSources.isEmpty {
+//                return true
+//            }
+//        }
+//
+//        // 5. Check transparent containers in the room for light sources
+//        for container in room.contents where container.hasFlag(.isContainer) {
+//            // Light can pass through if container is transparent or open
+//            if container.hasFlags(.isTransparent, .isOpen, matching: .any) {
+//                if container.contents.contains(where: { obj in
+//                    obj.hasFlags(.isLightSource, .isOn)
+//                }) {
+//                    return true
+//                }
+//            }
+//        }
+//
+//        // No light sources found
+//        return false
+//    }
 }

@@ -46,9 +46,9 @@ public class GameEngine {
         output(game.welcomeText)
         output("\n\(game.versionInfo)\n")
         output("Type 'help' for a list of commands.\n")
-
-        //        // Create the world
-        //        world = game.createWorld()
+        
+        // Create the world
+        world = game.createWorld()
 
         // Show initial location
         executeCommand(.look)
