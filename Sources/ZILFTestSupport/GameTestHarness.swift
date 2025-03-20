@@ -16,7 +16,10 @@ public class GameTestHarness<T: ZilfGame> {
     /// - Parameter game: The game to test
     public init(game: T) {
         self.game = game
-        self.engine = GameEngine(game: game, outputManager: outputCapture)
+        self.engine = GameEngine(
+            game: game,
+            outputManager: outputCapture
+        )
     }
 
     /// Execute a command and return the output
@@ -31,6 +34,13 @@ public class GameTestHarness<T: ZilfGame> {
         engine.executeCommand(cmd)
 
         return outputCapture.capturedOutput
+    }
+    
+    /// <#Description#>
+    /// - Returns: <#description#>
+    @discardableResult
+    public func flush() -> String {
+        outputCapture.flush()
     }
 
     /// Initialize the game (show welcome text, etc.)

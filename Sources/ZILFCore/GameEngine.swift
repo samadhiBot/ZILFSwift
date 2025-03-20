@@ -19,7 +19,7 @@ public class GameEngine {
     private(set) var world: GameWorld
 
     /// Command parser used to convert text input to game commands.
-    let parser: CommandParser
+    public let parser: CommandParser
 
     /// <#Description#>
     private(set) var state = State.idle
@@ -32,7 +32,10 @@ public class GameEngine {
 
     private var outputManager: OutputManager
 
-    public init(game: ZilfGame, outputManager: OutputManager) {
+    public init(
+        game: ZilfGame,
+        outputManager: OutputManager
+    ) {
         self.game = game
         self.world = game.createWorld()
         self.parser = CommandParser(for: world)
