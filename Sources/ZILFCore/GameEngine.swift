@@ -12,38 +12,31 @@ public class GameEngine {
         case quit
     }
 
-    public enum UI: Equatable {
-        case standard
-        case terminal
-        case capture
-    }
+    /// <#Description#>
+    let game: ZilfGame
+
+    /// The game world containing rooms, objects, and the player.
+    private(set) var world: GameWorld
+
+    /// Command parser used to convert text input to game commands.
+    let parser: CommandParser
 
     /// <#Description#>
-    private let game: ZilfGame
-
-    /// <#Description#>
-    private var state = State.idle
+    private(set) var state = State.idle
 
     /// Count of number made in the game.
-    private var moveCount = 0
+    private(set) var moveCount = 0
 
     /// Player's current score.
-    private var score = 0
+    private(set) var score = 0
 
     private var outputManager: OutputManager
 
-    public init(game: ZilfGame, ui: UI = .standard) {
+    public init(game: ZilfGame, outputManager: OutputManager) {
         self.game = game
         self.world = game.createWorld()
         self.parser = CommandParser(for: world)
-        self.outputManager = switch ui {
-        case .standard:
-            StandardOutputManager()
-        case .terminal:
-            TerminalOutputManager()
-        case .capture:
-            TestOutputCapture()
-        }
+        self.outputManager = outputManager
     }
 
     public func start() {
@@ -76,11 +69,6 @@ public class GameEngine {
         }
     }
 
-    /// The game world containing rooms, objects, and the player.
-    private var world: GameWorld
-
-    /// Command parser used to convert text input to game commands.
-    private var parser: CommandParser
     //
     //
     //    /// Output handler for the game engine.

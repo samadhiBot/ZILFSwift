@@ -4,23 +4,59 @@ import ZILFCore
 import ZILFTestSupport
 
 struct ToyGameTests {
-    let game: ToyGame
-    let engine: GameEngine
-    let outputCapture = OutputCapture()
-    var outputs: [String] = []
+    let harness: GameTestHarness<ToyGame>
 
     init() {
-        game = ToyGame(output: outputCapture.output)
-        engine = GameEngine(game: game)
-        engine.start()
+        let game = ToyGame { _ in /* Output is handled by harness */ }
+        harness = GameTestHarness(game: game)
+        harness.initialize()
     }
 
     @Test
-    func example() {
-        #expect(outputs.isEmpty)
+    func testInitialRoomDescription() throws {
+        let outputs = harness.outputCapture.capturedOutput
+
+        // Check for welcome message
+        #expect(outputs.contains(where: { $0.contains("Welcome to the Toy Game") }))
+
+        // Check for initial room description
+        #expect(outputs.contains(where: { $0.contains("A cozy kitchen") }))
+    }
+
+    @Test
+    func testMoveBetweenRooms() throws {
+        // Move to living room
+        let moveOutput = harness.execute("south")
+        #expect(moveOutput.contains(where: { $0.contains("Living Room") }))
+        #expect(moveOutput.contains(where: { $0.contains("fireplace") }))
+
+        // Move back to kitchen
+        let moveBackOutput = harness.execute("north")
+        #expect(moveBackOutput.contains(where: { $0.contains("Kitchen") }))
+        #expect(moveBackOutput.contains(where: { $0.contains("appliances") }))
+    }
+
+    @Test
+    func testTakeAndDropObject() throws {
+        // Take the apple
+        let takeOutput = harness.execute("take apple")
+        #expect(takeOutput.contains("Taken."))
+
+        // Check inventory
+        let invOutput = harness.execute("inventory")
+        #expect(invOutput.contains(where: { $0.contains("apple") }))
+
+        // Drop the apple
+        let dropOutput = harness.execute("drop apple")
+        #expect(dropOutput.contains("Dropped."))
+
+        // Verify apple is no longer in inventory
+        let invOutput2 = harness.execute("inventory")
+        #expect(invOutput2.contains("You're not carrying anything."))
     }
 }
 
+// Updated ToyGame to match the new ZilfGame protocol
 struct ToyGame: ZilfGame {
     let output: (String) -> Void
     let versionInfo: String = "Version 0.1"
@@ -30,7 +66,6 @@ struct ToyGame: ZilfGame {
         self.output = output
     }
 
-    // Core game implementation methods
     func createWorld() -> GameWorld {
         // Create rooms
         let kitchen = Room(

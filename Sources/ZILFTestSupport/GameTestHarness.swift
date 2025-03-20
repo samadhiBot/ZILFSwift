@@ -16,10 +16,7 @@ public class GameTestHarness<T: ZilfGame> {
     /// - Parameter game: The game to test
     public init(game: T) {
         self.game = game
-        self.engine = GameEngine(game: game, ui: .standard)
-
-        // Replace the engine's output manager
-        self.engine.outputManager = outputCapture
+        self.engine = GameEngine(game: game, outputManager: outputCapture)
     }
 
     /// Execute a command and return the output
@@ -43,29 +40,29 @@ public class GameTestHarness<T: ZilfGame> {
 }
 
 /// Output capture for testing
-public class OutputCapture: OutputManager {
-    private(set) public var capturedOutput: [String] = []
-
-    public init() {}
-
-    public func output(_ message: String) {
-        capturedOutput.append(message)
-    }
-
-    public func clearCapturedOutput() {
-        capturedOutput.removeAll()
-    }
-
-    public func updateStatusLine(location: String, score: Int, moves: Int) {
-        // Not needed for testing
-    }
-
-    public func getInput(prompt: String) -> String? {
-        // This should never be called during testing
-        return nil
-    }
-
-    public func shutdown() {
-        // Not needed for testing
-    }
-}
+//public class OutputCapture: OutputManager {
+//    private(set) public var capturedOutput: [String] = []
+//
+//    public init() {}
+//
+//    public func output(_ message: String) {
+//        capturedOutput.append(message)
+//    }
+//
+//    public func clearCapturedOutput() {
+//        capturedOutput.removeAll()
+//    }
+//
+//    public func updateStatusLine(location: String, score: Int, moves: Int) {
+//        // Not needed for testing
+//    }
+//
+//    public func getInput(prompt: String) -> String? {
+//        // This should never be called during testing
+//        return nil
+//    }
+//
+//    public func shutdown() {
+//        // Not needed for testing
+//    }
+//}
