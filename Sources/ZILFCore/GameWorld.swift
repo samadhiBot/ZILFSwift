@@ -5,16 +5,16 @@ import Foundation
 /// for game events and state changes.
 public class GameWorld {
     /// All rooms available in the game world.
-    public var rooms: [Room] = []
+    public private(set) var rooms = [Room]()
 
     /// Objects that exist in specific locations within the game world.
-    public var objects: [GameObject] = []
+    public private(set) var objects = [GameObject]()
 
     /// Objects that are accessible from anywhere in the game world.
-    public var globalObjects: [GameObject] = []
+    public var globalObjects = [GameObject]()
 
     /// The player character and its state.
-    public var player: Player
+    public let player: Player
 
     /// Tracks the most recently referenced object in player commands.
     public var lastMentionedObject: GameObject?
@@ -23,24 +23,23 @@ public class GameWorld {
     public let eventManager = EventManager()
 
     /// Creates a new game world with the specified player.
+    ///
     /// - Parameter player: The player character for this game world.
     public init(player: Player) {
         self.player = player
-        // Set the player's world reference directly
-        player.setWorld(self)
+        player.setWorld(to: self)
     }
 
     /// Adds an object to the game world.
+    ///
     /// - Parameter object: The object to register.
     public func register(_ object: GameObject) {
-        objects.append(object)
-    }
-
-    /// Adds a room to the game world.
-    /// - Parameter room: The room to register.
-    public func register(room: Room) {
-        rooms.append(room)
-        room.setWorld(self)
+        if let room = object as? Room {
+            rooms.append(room)
+        } else {
+            objects.append(object)
+        }
+        object.setWorld(to: self)
     }
 
     /// Schedules an event to run after a specified number of turns.

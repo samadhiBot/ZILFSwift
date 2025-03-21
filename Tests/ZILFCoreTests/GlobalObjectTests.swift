@@ -25,8 +25,8 @@
 //        let world = GameWorld(player: player)
 //
 //        // Register rooms
-//        world.register(room: hall)
-//        world.register(room: kitchen)
+//        world.register(hall)
+//        world.register(kitchen)
 //
 //        // Set the world reference in rooms for local-global lookup
 //        hall.setState(world, forKey: "world")
@@ -89,8 +89,8 @@
 //        let world = GameWorld(player: player)
 //
 //        // Register rooms
-//        world.register(room: hall)
-//        world.register(room: kitchen)
+//        world.register(hall)
+//        world.register(kitchen)
 //
 //        // Set the world reference in rooms for local-global lookup
 //        hall.setState(world, forKey: "world")

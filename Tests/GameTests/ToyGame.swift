@@ -31,8 +31,8 @@ struct ToyGame: ZilfGame {
         livingRoom.exits[.north] = kitchen
 
         // Register rooms
-        gameWorld.register(room: kitchen)
-        gameWorld.register(room: livingRoom)
+        gameWorld.register(kitchen)
+        gameWorld.register(livingRoom)
 
         // Add objects
         let apple = GameObject(

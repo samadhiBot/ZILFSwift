@@ -9,9 +9,6 @@ public class Player: GameObject {
     /// The game engine instance managing this player.
     public private(set) var engine: GameEngine!
 
-    /// The game world instance containing this player.
-    public private(set) var world: GameWorld!
-
     /// Creates a new player instance starting in the specified room.
     /// - Parameter startingRoom: The room where the player begins the game.
     public init(startingRoom: Room) {
@@ -44,14 +41,14 @@ public class Player: GameObject {
         // First check if there's a special exit in this direction
         if let specialExit = currentRoom.find(specialExit: direction) {
             // Check if the exit condition passes
-            if specialExit.checkCondition() {
+            if specialExit.checkCondition(in: world) {
                 // Display success message if there is one
                 if let successMessage = specialExit.successMessage {
                     print(successMessage)
                 }
 
                 // Execute onTraverse action if there is one
-                specialExit.executeTraverse()
+                specialExit.executeTraverse(in: world)
 
                 // Move the player to the destination
                 let destination = specialExit.destination
@@ -98,11 +95,5 @@ public class Player: GameObject {
     /// - Parameter engine: The game engine to associate with this player.
     func setEngine(_ engine: GameEngine) {
         self.engine = engine
-    }
-
-    /// Sets the game world for this player.
-    /// - Parameter world: The game world to associate with this player.
-    func setWorld(_ world: GameWorld) {
-        self.world = world
     }
 }

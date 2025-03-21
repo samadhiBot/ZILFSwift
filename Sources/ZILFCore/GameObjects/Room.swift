@@ -54,21 +54,6 @@ public class Room: GameObject {
     /// - Returns: `true` if the action produced a description (prevents default description).
     public var lookAction: ((Room) -> Bool)?
 
-    /// Direct reference to the game world
-    private weak var gameWorld: GameWorld?
-
-    /// Sets the game world reference for this room
-    /// - Parameter world: The game world
-    public func setWorld(_ world: GameWorld) {
-        gameWorld = world
-    }
-
-    /// Finds the game world by first checking the direct reference, then falling back to the object graph
-    /// - Returns: The game world, or nil if not found
-    override public func findWorld() -> GameWorld? {
-        gameWorld ?? super.findWorld()
-    }
-
     /// Executes the begin-command action for this room.
     /// - Parameter command: The command to process.
     /// - Returns: `true` if the action handled the command.
@@ -121,18 +106,26 @@ public class Room: GameObject {
     /// Executes the flash action for this room (important details even in brief mode).
     /// - Returns: `true` if the action produced output.
     public func executeFlashAction() -> Bool {
-        guard let action = flashAction else { return false }
-        return action(self)
+        if let action = flashAction {
+            action(self)
+        } else {
+            false
+        }
     }
 
     /// Executes the look action for this room.
+    ///
     /// - Returns: `true` if the action provided a description.
     public func executeLookAction() -> Bool {
-        guard let action = lookAction else { return false }
-        return action(self)
+        if let action = lookAction {
+            action(self)
+        } else {
+            false
+        }
     }
 
     /// Finds the room connected to this room in the specified direction.
+    ///
     /// - Parameter direction: The direction to check.
     /// - Returns: The connected room, or `nil` if no exit exists in that direction.
     public func find(exit direction: Direction) -> Room? {
@@ -140,6 +133,7 @@ public class Room: GameObject {
     }
 
     /// Creates an exit from this room to another room in the specified direction.
+    ///
     /// - Parameters:
     ///   - direction: The direction of the exit.
     ///   - room: The destination room.
@@ -147,12 +141,14 @@ public class Room: GameObject {
         exits[direction] = room
     }
 
-    /// Checks if this room is currently lit
-    /// - Returns: true if the room is lit, false otherwise
+    /// Checks if this room is currently lit.
+    ///
+    /// - Returns: true if the room is lit, false otherwise.
     override public func isLit() -> Bool {
-        if let world = findWorld() {
-            return world.isRoomLit(self)
-        }
-        return super.isLit()
+        world?.isRoomLit(self) ?? super.isLit()
+//        if let world {
+//            world.isRoomLit(self)
+//        }
+//        return super.isLit()
     }
 }

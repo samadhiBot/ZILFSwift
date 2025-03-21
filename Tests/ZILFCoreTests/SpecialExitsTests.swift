@@ -21,26 +21,28 @@ import Testing
         // Create a player and world
         let player = Player(startingRoom: room1)
         let world = GameWorld(player: player)
-        world.register(room: room1)
-        world.register(room: room2)
+        world.register(room1)
+        world.register(room2)
 
         // Create a special exit
         let specialExit = SpecialExit(
             destination: room2,
-            world: world,
             condition: { _ in true },  // Always available
             successMessage: "You successfully used the special exit!",
             failureMessage: "You can't use this exit now."
         )
 
         // Add the special exit to room1
-        room1.setSpecialExit(direction: .north, specialExit: specialExit, world: world)
+        room1.setSpecialExit(
+            direction: .north,
+            specialExit: specialExit
+        )
 
         // Test that the exit exists
         #expect(room1.find(specialExit: .north) != nil)
 
         // Test that the exit condition passes
-        #expect(room1.find(specialExit: .north)?.checkCondition() == true)
+        #expect(room1.find(specialExit: .north)?.checkCondition(in: world) == true)
 
         // Test player movement through the special exit
         #expect(player.move(direction: .north))
@@ -57,8 +59,8 @@ import Testing
         // Create a player and world
         let player = Player(startingRoom: room1)
         let world = GameWorld(player: player)
-        world.register(room: room1)
-        world.register(room: room2)
+        world.register(room1)
+        world.register(room2)
 
         // Create a variable to control exit visibility
         var exitRevealed = false
@@ -67,7 +69,6 @@ import Testing
         room1.setHiddenExit(
             direction: .east,
             destination: room2,
-            world: world,
             condition: { _ in exitRevealed },
             revealMessage: "You discovered a hidden passage to the east!"
         )
@@ -101,8 +102,8 @@ import Testing
         // Create a player and world
         let player = Player(startingRoom: room1)
         let world = GameWorld(player: player)
-        world.register(room: room1)
-        world.register(room: room2)
+        world.register(room1)
+        world.register(room2)
 
         // Create a key
         let key = GameObject(name: "brass key", description: "A shiny brass key")
@@ -113,7 +114,6 @@ import Testing
         room1.setLockedExit(
             direction: .west,
             destination: room2,
-            world: world,
             key: key,
             lockedMessage: "The door is locked. You need a key.",
             unlockedMessage: "You unlock the door with the brass key."
@@ -148,14 +148,13 @@ import Testing
         // Create a player and world
         let player = Player(startingRoom: room1)
         let world = GameWorld(player: player)
-        world.register(room: room1)
-        world.register(room: room2)
+        world.register(room1)
+        world.register(room2)
 
         // Create a one-way exit from room1 to room2
         room1.setOneWayExit(
             direction: .down,
             destination: room2,
-            world: world,
             message: "You slide down a chute!"
         )
 
@@ -184,8 +183,8 @@ import Testing
         // Create a player and world
         let player = Player(startingRoom: room1)
         let world = GameWorld(player: player)
-        world.register(room: room1)
-        world.register(room: room2)
+        world.register(room1)
+        world.register(room2)
 
         // Create a variable to track script execution
         var scriptExecuted = false
@@ -194,7 +193,6 @@ import Testing
         room1.setScriptedExit(
             direction: .south,
             destination: room2,
-            world: world,
             script: { _ in
                 scriptExecuted = true
             }
@@ -221,8 +219,8 @@ import Testing
         // Create a player and world
         let player = Player(startingRoom: room1)
         let world = GameWorld(player: player)
-        world.register(room: room1)
-        world.register(room: room2)
+        world.register(room1)
+        world.register(room2)
 
         // Create a variable to control the condition
         var isConditionMet = false
@@ -231,7 +229,6 @@ import Testing
         room1.setConditionalExit(
             direction: .north,
             destination: room2,
-            world: world,
             condition: { _ in isConditionMet },
             failureMessage: "You can't go that way yet."
         )

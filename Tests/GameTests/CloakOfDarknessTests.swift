@@ -63,7 +63,7 @@
 //
 //        // 1. Starting Location: Foyer of the Opera House
 //        #expect(world.player.currentRoom === foyer)
-//        expectNoDifference(outputHandler.flush(), """
+//        expectNoDifference(harness.flush(), """
 //            The walls of this small room were clearly once lined with hooks, though now only \
 //            one remains. The exit is a door to the east, but there is also a cramped opening \
 //            to the west.

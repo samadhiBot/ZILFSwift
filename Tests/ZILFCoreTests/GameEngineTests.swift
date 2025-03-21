@@ -46,7 +46,7 @@
 //        // Test movement after engine creates the exit
 //        let eastRoom = Room(name: "East Room", description: "Room to the east")
 //        eastRoom.setFlag(.isNaturallyLit)
-//        world.register(room: eastRoom)
+//        world.register(eastRoom)
 //        startRoom.setExit(.east, to: eastRoom)
 //
 //        try engine.executeCommand(.move(.east))
@@ -487,8 +487,8 @@
 //
 //        let player = Player(startingRoom: startRoom)
 //        let world = GameWorld(player: player)
-//        world.register(room: startRoom)
-//        world.register(room: northRoom)
+//        world.register(startRoom)
+//        world.register(northRoom)
 //
 //        // Add a takeable object
 //        let coin = GameObject(name: "gold coin", description: "A shiny gold coin", location: startRoom)

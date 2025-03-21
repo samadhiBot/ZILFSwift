@@ -78,11 +78,11 @@ struct HelloWorldGame: ZilfGame {
 
         // Create game world
         let world = GameWorld(player: player)
-        world.register(room: entrance)
-        world.register(room: mainCavern)
-        world.register(room: treasureRoom)
-        world.register(room: secretRoom)
-        world.register(room: vaultRoom)
+        world.register(entrance)
+        world.register(mainCavern)
+        world.register(treasureRoom)
+        world.register(secretRoom)
+        world.register(vaultRoom)
 
         // Create objects
         let lantern = GameObject(
@@ -172,7 +172,6 @@ struct HelloWorldGame: ZilfGame {
         treasureRoom.setHiddenExit(
             direction: .down,
             destination: secretRoom,
-            world: world,
             condition: { _ in treasureExamined },
             revealMessage:
                 "As you move around the room, you discover a hidden trapdoor in the floor!"
@@ -192,7 +191,6 @@ struct HelloWorldGame: ZilfGame {
         secretRoom.setLockedExit(
             direction: .north,
             destination: vaultRoom,
-            world: world,
             key: ancientKey,
             lockedMessage:
                 "A heavy stone door blocks the way north. There appears to be a keyhole.",
@@ -204,7 +202,6 @@ struct HelloWorldGame: ZilfGame {
         vaultRoom.setOneWayExit(
             direction: .down,
             destination: mainCavern,
-            world: world,
             message: "You slide down a smooth stone chute and land back in the main cavern!"
         )
 
@@ -224,8 +221,7 @@ struct HelloWorldGame: ZilfGame {
         pitRoom.setDeadlyExit(
             direction: .down,
             deathMessage:
-                "You step forward and the ledge gives way beneath you. You fall into darkness, tumbling endlessly into the abyss...",
-            world: world
+                "You step forward and the ledge gives way beneath you. You fall into darkness, tumbling endlessly into the abyss..."
         )
 
         // Add a victory exit that requires the golden amulet
@@ -233,7 +229,6 @@ struct HelloWorldGame: ZilfGame {
             direction: .west,
             victoryMessage:
                 "As you move west with the golden amulet in your possession, it begins to glow brightly. The cave wall shimmers and dissolves, revealing a hidden passage. You step through and find yourself in a magical realm beyond the cave. Congratulations, you've completed the adventure!",
-            world: world,
             condition: { room in
                 // Check if the player has the golden amulet
                 return world.player.inventory.contains { $0.name == "golden amulet" }
@@ -241,7 +236,7 @@ struct HelloWorldGame: ZilfGame {
         )
 
         // Register the new room
-        world.register(room: pitRoom)
+        world.register(pitRoom)
 
         // Create a magnifying glass for examining small details
         let magnifyingGlass = GameObject(

@@ -1,6 +1,7 @@
 import Foundation
 
 /// Represents any object in the game world including rooms, items, and characters.
+///
 /// Provides functionality for object relationships, state management, and interactions.
 @dynamicMemberLookup
 public class GameObject {
@@ -27,6 +28,9 @@ public class GameObject {
 
     /// A dictionary storing dynamic state values.
     var stateValues = [String: Any]()
+    
+    /// The world in which the object exists.
+    public private(set) weak var world: GameWorld?
 
     // MARK: - Initialization
 
@@ -54,6 +58,11 @@ public class GameObject {
         if let location {
             moveTo(location)
         }
+    }
+
+    /// Sets the world in which the object exists.
+    public func setWorld(to world: GameWorld) {
+        self.world = world
     }
 
     // MARK: - Core Functions
@@ -243,12 +252,12 @@ public class GameObject {
         return nil
     }
 
-    /// Find the game world by traversing up the object graph.
-    ///
-    /// - Returns: The game world, or nil if not found.
-    public func findWorld() -> GameWorld? {
-        findPlayer()?.world
-    }
+//    /// Find the game world by traversing up the object graph.
+//    ///
+//    /// - Returns: The game world, or nil if not found.
+//    public func findWorld() -> GameWorld? {
+//        findPlayer()?.world
+//    }
 
     // MARK: - State Management
 
@@ -546,7 +555,7 @@ public extension GameWorld {
     /// - Parameter localGlobal: Whether to get local-globals (nil = all global types).
     /// - Returns: Array of global objects of the specified type.
     func getGlobalObjects(localGlobal: Bool? = nil) -> [GameObject] {
-        return globalObjects.filter { object in
+        globalObjects.filter { object in
             let objectType: String? = object.getState(forKey: .globalObjectType)
             if let objectType {
                 if let isLocalGlobal = localGlobal {

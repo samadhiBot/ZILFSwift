@@ -64,12 +64,12 @@
 //        let world = GameWorld(player: player)
 //
 //        // Register rooms with the world
-//        world.register(room: foyer)
-//        world.register(room: bar)
-//        world.register(room: cloakroom)
-//        world.register(room: hallToStudy)
-//        world.register(room: study)
-//        world.register(room: closet)
+//        world.register(foyer)
+//        world.register(bar)
+//        world.register(cloakroom)
+//        world.register(hallToStudy)
+//        world.register(study)
+//        world.register(closet)
 //
 //        // Set up exits
 //        foyer.exits[.south] = bar

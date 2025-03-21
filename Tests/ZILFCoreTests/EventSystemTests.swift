@@ -295,8 +295,8 @@ struct EventSystemTests {
 
         // Create the game world with the player
         let world = GameWorld(player: player)
-        world.register(room: kitchen)
-        world.register(room: garden)
+        world.register(kitchen)
+        world.register(garden)
 
         var kettle: GameObject?
 

@@ -92,7 +92,7 @@ struct SpecialTextPropertiesTests {
 
         let player = Player(startingRoom: room)
         let world = GameWorld(player: player)
-        world.register(room: room)
+        world.register(room)
 
         // Make the room naturally lit
         room.setFlag(.isNaturallyLit)
@@ -126,7 +126,7 @@ struct SpecialTextPropertiesTests {
 
         let player = Player(startingRoom: darkRoom)
         let world = GameWorld(player: player)
-        world.register(room: darkRoom)
+        world.register(darkRoom)
 
         // Without a light source, should be dark
         #expect(darkRoom.getRoomDescription(in: world) == "You can't see anything in the pitch darkness.")

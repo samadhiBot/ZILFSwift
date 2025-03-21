@@ -20,7 +20,7 @@
 //
 //        let player = Player(startingRoom: room)
 //        let world = GameWorld(player: player)
-//        world.register(room: room)
+//        world.register(room)
 //
 //        // Create a room with a deadly exit
 //        let deadlyRoom = Room(name: "Deadly Room", description: "A dangerous room")
@@ -30,7 +30,7 @@
 //        room.setExit(.north, to: deadlyRoom)
 //        deadlyRoom.setExit(.south, to: room)
 //
-//        world.register(room: deadlyRoom)
+//        world.register(deadlyRoom)
 //
 //        // Setup output capture
 //        let outputHandler = OutputCapture()
@@ -60,7 +60,7 @@
 //
 //        let player = Player(startingRoom: room)
 //        let world = GameWorld(player: player)
-//        world.register(room: room)
+//        world.register(room)
 //
 //        // Setup output capture
 //        let outputHandler = OutputCapture()
@@ -90,7 +90,7 @@
 //
 //        let player = Player(startingRoom: room)
 //        let world = GameWorld(player: player)
-//        world.register(room: room)
+//        world.register(room)
 //
 //        // Create a room with a deadly exit
 //        let deadlyRoom = Room(name: "Deadly Room", description: "A dangerous room")
@@ -107,7 +107,7 @@
 //            world: world
 //        )
 //
-//        world.register(room: deadlyRoom)
+//        world.register(deadlyRoom)
 //
 //        // Setup output capture
 //        let outputHandler = OutputCapture()
@@ -135,7 +135,7 @@
 //
 //        let player = Player(startingRoom: room)
 //        let world = GameWorld(player: player)
-//        world.register(room: room)
+//        world.register(room)
 //
 //        // Add a victory condition
 //        let amulet = GameObject(name: "amulet", description: "A magical amulet.")

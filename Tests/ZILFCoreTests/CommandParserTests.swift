@@ -955,8 +955,8 @@ struct CommandParserTests {
         let world = GameWorld(player: player)
 
         // Register rooms with the world
-        world.register(room: startRoom)
-        world.register(room: northRoom)
+        world.register(startRoom)
+        world.register(northRoom)
 
         // Add a takeable object
         let coin = GameObject(

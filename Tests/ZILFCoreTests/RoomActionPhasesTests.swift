@@ -96,7 +96,7 @@
 //        // Create a game world to track lighting
 //        let player = Player(startingRoom: room)
 //        let world = GameWorld(player: player)
-//        world.register(room: room)
+//        world.register(room)
 //
 //        // Initialize the room's lighting state
 //        room.setState(false, forKey: "wasLit")
@@ -421,9 +421,9 @@
 //        // Create a player and world
 //        let player = Player(startingRoom: foyer)
 //        let world = GameWorld(player: player)
-//        world.register(room: foyer)
-//        world.register(room: bar)
-//        world.register(room: kitchen)
+//        world.register(foyer)
+//        world.register(bar)
+//        world.register(kitchen)
 //
 //        // No need to set player's starting room as it's already set through the constructor
 //

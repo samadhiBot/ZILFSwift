@@ -74,7 +74,7 @@
 //        let world = GameWorld(player: player)
 //
 //        // Register the room with the world
-//        world.register(room: startRoom)
+//        world.register(startRoom)
 //
 //        // Create the game engine with mock output
 //        let engine = GameEngine(
