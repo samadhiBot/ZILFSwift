@@ -50,31 +50,3 @@ public class GameTestHarness<T: ZilfGame> {
         engine.initialize()
     }
 }
-
-/// Output capture for testing.
-//public class OutputCapture: OutputManager {
-//    private(set) public var capturedOutput: [String] = []
-//
-//    public init() {}
-//
-//    public func output(_ message: String) {
-//        capturedOutput.append(message)
-//    }
-//
-//    public func clearCapturedOutput() {
-//        capturedOutput.removeAll()
-//    }
-//
-//    public func updateStatusLine(location: String, score: Int, moves: Int) {
-//        // Not needed for testing
-//    }
-//
-//    public func getInput(prompt: String) -> String? {
-//        // This should never be called during testing
-//        return nil
-//    }
-//
-//    public func shutdown() {
-//        // Not needed for testing
-//    }
-//}

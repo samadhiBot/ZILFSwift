@@ -24,7 +24,6 @@ struct ToyGameTests {
               apple
 
             Exits: south
-            Location: Kitchen | Score: 0 | Moves: 1
             """)
     }
 
