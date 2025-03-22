@@ -54,8 +54,10 @@ struct WorldBuilder {
     // Dangerous room
     let pitRoom = Room(
         name: "Unstable Ledge",
-        description:
-            "You stand at the edge of a crumbling ledge above a bottomless pit. The ground feels very unstable."
+        description: """
+            You stand at the edge of a crumbling ledge above a bottomless pit. \
+            The ground feels very unstable.
+            """
     )
 
     // MARK: - Objects
@@ -326,8 +328,10 @@ struct WorldBuilder {
         // Add the deadly pit exit
         pitRoom.setDeadlyExit(
             direction: .down,
-            deathMessage:
-                "You step forward and the ledge gives way beneath you. You fall into darkness, tumbling endlessly into the abyss..."
+            deathMessage: """
+                You step forward and the ledge gives way beneath you. You fall into darkness, \
+                tumbling endlessly into the abyss...
+                """
         )
     }
 }

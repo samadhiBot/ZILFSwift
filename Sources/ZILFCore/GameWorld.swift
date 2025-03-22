@@ -78,9 +78,9 @@ public class GameWorld {
     /// - Parameter message: The message to output.
     public func output(_ message: String) {
         if let engine = player.engine {
-            engine.output(message)
+            engine.output("\(message)\n")
         } else {
-            print("❗ \(message)")
+            print("❗ \(message)\n")
         }
     }
 

@@ -156,6 +156,8 @@ struct HelloWorldGameTests {
         engine.executeCommand(.move(.east))
         #expect(player.currentRoom?.name == "Treasure Room")
         expectNoDifference(harness.flush(), """
+            You feel a sense of awe as you enter this ancient chamber.
+
             This small chamber is filled with a soft, magical light. The walls are adorned with \
             ancient markings.
 
@@ -264,6 +266,8 @@ struct HelloWorldGameTests {
         engine.executeCommand(.move(.east)) // Move to Treasure Room
         #expect(player.currentRoom?.name == "Treasure Room")
         expectNoDifference(harness.flush(), """
+            You feel a sense of awe as you enter this ancient chamber.
+            
             This small chamber is filled with a soft, magical light. The walls are adorned with \
             ancient markings.
 
@@ -297,6 +301,8 @@ struct HelloWorldGameTests {
         engine.executeCommand(.move(.north))
         #expect(player.currentRoom?.name == "Treasure Room")
         expectNoDifference(harness.flush(), """
+            You feel a sense of awe as you enter this ancient chamber.
+            
             This small chamber is filled with a soft, magical light. The walls are adorned with \
             ancient markings.
 
@@ -319,14 +325,18 @@ struct HelloWorldGameTests {
         // Test falling into the pit (deadly exit)
         engine.executeCommand(.move(.down))
         expectNoDifference(harness.flush(), """
+            
+            *** GAME OVER ***
+            You step forward and the ledge gives way beneath you. You fall into darkness, tumbling endlessly into the abyss...
+            
+            Would you like to RESTART or QUIT?
             It's too dark to see.
             """)
 
-        // Even if it doesn't throw, it should mark the game as over
-        // Give it a moment to process
-//        try await Task.sleep(for: .seconds(0.1))
-
-        #expect(engine.state == .defeat(""))
+        #expect(engine.state == .defeat("""
+            You step forward and the ledge gives way beneath you. You fall into darkness, \
+            tumbling endlessly into the abyss...
+            """))
     }
 
 //    @Test func testVictoryCondition() async throws {

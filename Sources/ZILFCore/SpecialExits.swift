@@ -227,7 +227,7 @@ extension Room {
     ) {
         let exitAction: (GameWorld?) -> Void = { world in
             if let condition, !condition(self) {
-                return // If condition is false, it's not deadly right now.
+                return // If condition exists and is false, it's not deadly right now.
             }
 
             if let engine = world?.player.engine {

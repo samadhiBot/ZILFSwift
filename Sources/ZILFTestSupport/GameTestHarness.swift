@@ -22,6 +22,7 @@ public class GameTestHarness<T: ZilfGame> {
             game: game,
             console: outputCapture
         )
+        engine.updateState(to: .running)
     }
 
     /// Execute a command and return the output.

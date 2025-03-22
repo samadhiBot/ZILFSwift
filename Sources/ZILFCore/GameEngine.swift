@@ -40,6 +40,8 @@ public class GameEngine {
         self.game = game
         self.world = game.createWorld()
         self.console = console
+
+        world.player.setEngine(self)
     }
 
     public func start() {
@@ -48,7 +50,7 @@ public class GameEngine {
         output("Type 'help' for a list of commands.\n")
 
         // Create the world
-        world = game.createWorld()
+//        world = game.createWorld() that's already done
 
         // Show initial location
         executeCommand(.look)
@@ -206,6 +208,10 @@ extension GameEngine {
 
         // Return captured output
         return outputCapture.captured
+    }
+
+    func updateState(to newState: State) {
+        state = newState
     }
 
     /// A non-blocking version of start that doesn't run the game loop
