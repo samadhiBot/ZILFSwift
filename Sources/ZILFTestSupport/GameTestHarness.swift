@@ -1,5 +1,6 @@
 import Foundation
-import ZILFCore
+
+@testable import ZILFCore
 
 /// A test harness that allows running games without blocking for input.
 public class GameTestHarness<T: ZilfGame> {
@@ -32,7 +33,7 @@ public class GameTestHarness<T: ZilfGame> {
         outputCapture.clearCapturedOutput()
 
         // Parse and execute
-        let cmd = engine.parser.parse(command)
+        let cmd = engine.parser.parse(command, in: engine.world)
         engine.executeCommand(cmd)
 
         return outputCapture.capturedOutput

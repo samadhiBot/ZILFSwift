@@ -200,45 +200,45 @@ struct HelloWorldGameTests {
         let parser = engine.parser
 
         // Test direction commands
-        if case let .move(direction) = parser.parse("north") {
+        if case let .move(direction) = parser.parse("north", in: world) {
             #expect(direction == .north)
         } else {
             throw TestFailure("Expected move command")
         }
 
-        if case let .move(direction) = parser.parse("n") {
+        if case let .move(direction) = parser.parse("n", in: world) {
             #expect(direction == .north)
         } else {
             throw TestFailure("Expected move command")
         }
 
         // Test look command
-        guard case .look = parser.parse("look") else {
+        guard case .look = parser.parse("look", in: world) else {
             throw TestFailure("Expected look command")
         }
 
         // Test examine command
-        let lantern = try world.find(object: "lantern" )
-        if case let .examine(obj, _) = parser.parse("examine lantern") {
+        let lantern = try world.find(object: "lantern")
+        if case let .examine(obj, _) = parser.parse("examine lantern", in: world) {
             #expect(obj === lantern)
         } else {
             throw TestFailure("Expected examine command")
         }
 
         // Test take command
-        if case let .take(obj) = parser.parse("take lantern") {
+        if case let .take(obj) = parser.parse("take lantern", in: world) {
             #expect(obj === lantern)
         } else {
             throw TestFailure("Expected take command")
         }
 
         // Test inventory command
-        guard case .inventory = parser.parse("inventory") else {
+        guard case .inventory = parser.parse("inventory", in: world) else {
             throw TestFailure("Expected inventory command")
         }
 
         // Test quit command
-        guard case .quit = parser.parse("quit") else {
+        guard case .quit = parser.parse("quit", in: world) else {
             throw TestFailure("Expected quit command")
         }
     }

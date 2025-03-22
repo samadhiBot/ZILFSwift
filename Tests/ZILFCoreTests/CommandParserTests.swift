@@ -17,85 +17,85 @@ struct CommandParserTests {
         ) // Start opened
 
         // Test basic close command
-        if case let .close(obj) = parser.parse("close box") {
+        if case let .close(obj) = parser.parse("close box", in: world) {
             #expect(obj === box)
         } else {
             throw TestFailure("Expected close command")
         }
 
         // Test with article
-        if case let .close(obj) = parser.parse("close the box") {
+        if case let .close(obj) = parser.parse("close the box", in: world) {
             #expect(obj === box)
         } else {
             throw TestFailure("Expected close command")
         }
 
         // Test no object specified
-        guard case .close(nil) = parser.parse("close") else {
+        guard case .close(nil) = parser.parse("close", in: world) else {
             throw TestFailure("Expected close(nil) command")
         }
 
         // Test non-existent object
-        guard case .close(nil) = parser.parse("close unicorn") else {
+        guard case .close(nil) = parser.parse("close unicorn", in: world) else {
             throw TestFailure("Expected close(nil) command for non-existent object")
         }
     }
 
     @Test func directionCommands() throws {
-        let (_, parser, _, _, _) = try setupTestWorld()
+        let (world, parser, _, _, _) = try setupTestWorld()
 
         // Test full direction names
-        if case let .move(direction) = parser.parse("north") {
+        if case let .move(direction) = parser.parse("north", in: world) {
             #expect(direction == .north)
         } else {
             throw TestFailure("Expected move command")
         }
 
         // Test abbreviated directions
-        if case let .move(direction) = parser.parse("s") {
+        if case let .move(direction) = parser.parse("s", in: world) {
             #expect(direction == .south)
         } else {
             throw TestFailure("Expected move command")
         }
 
-        if case let .move(direction) = parser.parse("e") {
+        if case let .move(direction) = parser.parse("e", in: world) {
             #expect(direction == .east)
         } else {
             throw TestFailure("Expected move command")
         }
 
-        if case let .move(direction) = parser.parse("w") {
+        if case let .move(direction) = parser.parse("w", in: world) {
             #expect(direction == .west)
         } else {
             throw TestFailure("Expected move command")
         }
 
-        if case let .move(direction) = parser.parse("u") {
+        if case let .move(direction) = parser.parse("u", in: world) {
             #expect(direction == .up)
         } else {
             throw TestFailure("Expected move command")
         }
 
-        if case let .move(direction) = parser.parse("d") {
+        if case let .move(direction) = parser.parse("d", in: world) {
             #expect(direction == .down)
         } else {
             throw TestFailure("Expected move command")
         }
 
         // Test 'go' command
-        if case let .move(direction) = parser.parse("go east") {
+        if case let .move(direction) = parser.parse("go east", in: world) {
             #expect(direction == .east)
         } else {
             throw TestFailure("Expected move command")
         }
 
         // Test invalid direction
-        guard case .move(nil) = parser.parse("go nowhere") else {
+        guard case .move(nil) = parser.parse("go nowhere", in: world) else {
             throw TestFailure("Expected go command without direction")
         }
 
         // Test go with no direction
-        guard case .move(nil) = parser.parse("go") else {
+        guard case .move(nil) = parser.parse("go", in: world) else {
             throw TestFailure("Expected go command without direction")
         }
     }
@@ -107,21 +107,21 @@ struct CommandParserTests {
         coin.moveTo(world.player)
 
         // Test drop object
-        if case let .drop(obj) = parser.parse("drop coin") {
+        if case let .drop(obj) = parser.parse("drop coin", in: world) {
             #expect(obj === coin)
         } else {
             throw TestFailure("Expected drop command")
         }
 
         // Test drop with full name
-        if case let .drop(obj) = parser.parse("drop gold coin") {
+        if case let .drop(obj) = parser.parse("drop gold coin", in: world) {
             #expect(obj === coin)
         } else {
             throw TestFailure("Expected drop command")
         }
 
         // Test drop with article
-        if case let .drop(obj) = parser.parse("drop the gold coin") {
+        if case let .drop(obj) = parser.parse("drop the gold coin", in: world) {
             #expect(obj === coin)
         } else {
             throw TestFailure("Expected drop command")
@@ -132,61 +132,61 @@ struct CommandParserTests {
         coin.moveTo(world.player.currentRoom)
 
         // Test drop non-carried object - parser still finds the object
-        if case let .drop(obj) = parser.parse("drop coin") {
+        if case let .drop(obj) = parser.parse("drop coin", in: world) {
             #expect(obj === coin)
         } else {
             throw TestFailure("Expected drop command even when not in inventory")
         }
 
         // Test dropping with no object specified
-        guard case .drop(nil) = parser.parse("drop") else {
+        guard case .drop(nil) = parser.parse("drop", in: world) else {
             throw TestFailure("Expected drop(nil) command")
         }
     }
 
     @Test func examineCommands() throws {
-        let (_, parser, _, _, coin) = try setupTestWorld()
+        let (world, parser, _, _, coin) = try setupTestWorld()
 
         // Test examine with object
-        if case let .examine(obj, _) = parser.parse("examine gold coin") {
+        if case let .examine(obj, _) = parser.parse("examine gold coin", in: world) {
             #expect(obj === coin)
         } else {
             throw TestFailure("Expected examine command")
         }
 
         // Test examine with abbreviated syntax
-        if case let .examine(obj, _) = parser.parse("x coin") {
+        if case let .examine(obj, _) = parser.parse("x coin", in: world) {
             #expect(obj === coin)
         } else {
             throw TestFailure("Expected examine command")
         }
 
         // Test look at syntax
-        if case let .examine(obj, _) = parser.parse("look at gold coin") {
+        if case let .examine(obj, _) = parser.parse("look at gold coin", in: world) {
             #expect(obj === coin)
         } else {
             throw TestFailure("Expected examine command")
         }
 
         // Test with article
-        if case let .examine(obj, _) = parser.parse("examine the gold coin") {
+        if case let .examine(obj, _) = parser.parse("examine the gold coin", in: world) {
             #expect(obj === coin)
         } else {
             throw TestFailure("Expected examine command")
         }
 
         // Test with non-existent object
-        guard case .examine(nil, with: nil) = parser.parse("examine unicorn") else {
+        guard case .examine(nil, with: nil) = parser.parse("examine unicorn", in: world) else {
             throw TestFailure("Expected examine(nil) command for non-existent object")
         }
 
         // Test examine with no object
-        guard case .examine(nil, with: nil) = parser.parse("examine") else {
+        guard case .examine(nil, with: nil) = parser.parse("examine", in: world) else {
             throw TestFailure("Expected examine(nil) command for no object")
         }
 
         // Test x with no object
-        guard case .examine(nil, with: nil) = parser.parse("x") else {
+        guard case .examine(nil, with: nil) = parser.parse("x", in: world) else {
             throw TestFailure("Expected examine(nil) command for no object")
         }
     }
@@ -203,21 +203,21 @@ struct CommandParserTests {
         )
 
         // Test flip command
-        if case let .flip(parsedLamp) = parser.parse("flip lamp") {
+        if case let .flip(parsedLamp) = parser.parse("flip lamp", in: world) {
             #expect(parsedLamp === lamp)
         } else {
             throw TestFailure("Expected flip command")
         }
 
         // Test switch command
-        if case let .flip(parsedLamp) = parser.parse("switch lamp") {
+        if case let .flip(parsedLamp) = parser.parse("switch lamp", in: world) {
             #expect(parsedLamp === lamp)
         } else {
             throw TestFailure("Expected flip command")
         }
 
         // Test toggle command
-        if case let .flip(parsedLamp) = parser.parse("toggle lamp") {
+        if case let .flip(parsedLamp) = parser.parse("toggle lamp", in: world) {
             #expect(parsedLamp === lamp)
         } else {
             throw TestFailure("Expected flip command")
@@ -230,31 +230,31 @@ struct CommandParserTests {
             location: world.player.currentRoom
         )
 
-        if case let .flip(obj) = parser.parse("flip book") {
+        if case let .flip(obj) = parser.parse("flip book", in: world) {
             #expect(obj === book)
         } else {
             throw TestFailure("Expected flip command even with non-device")
         }
 
         // Test with no object
-        guard case .flip(nil) = parser.parse("flip") else {
+        guard case .flip(nil) = parser.parse("flip", in: world) else {
             throw TestFailure("Expected flip(nil) command")
         }
     }
 
     @Test func inventoryCommand() throws {
-        let (_, parser, _, _, _) = try setupTestWorld()
+        let (world, parser, _, _, _) = try setupTestWorld()
 
-        guard case .inventory = parser.parse("inventory") else {
+        guard case .inventory = parser.parse("inventory", in: world) else {
             throw TestFailure("Expected inventory command")
         }
 
-        guard case .inventory = parser.parse("i") else {
+        guard case .inventory = parser.parse("i", in: world) else {
             throw TestFailure("Expected inventory command")
         }
 
         // Test "inv" variant
-        guard case .inventory = parser.parse("inv") else {
+        guard case .inventory = parser.parse("inv", in: world) else {
             throw TestFailure("Expected inventory command for 'inv'")
         }
     }
@@ -266,14 +266,14 @@ struct CommandParserTests {
         world.lastMentionedObject = coin
 
         // Test examine it
-        if case let .examine(obj, _) = parser.parse("examine it") {
+        if case let .examine(obj, _) = parser.parse("examine it", in: world) {
             #expect(obj === coin)
         } else {
             throw TestFailure("Expected examine command with 'it' reference")
         }
 
         // Test take it
-        if case let .take(obj) = parser.parse("take it") {
+        if case let .take(obj) = parser.parse("take it", in: world) {
             #expect(obj === coin)
         } else {
             throw TestFailure("Expected take command with 'it' reference")
@@ -281,7 +281,7 @@ struct CommandParserTests {
 
         // Test with no last mentioned object
         world.lastMentionedObject = nil
-        if case .examine(nil, with: nil) = parser.parse("examine it") {
+        if case .examine(nil, with: nil) = parser.parse("examine it", in: world) {
             // When no 'it' reference exists, the parser returns the command with nil objects
         } else {
             throw TestFailure("Expected examine command with nil object when 'it' has no reference")
@@ -289,102 +289,102 @@ struct CommandParserTests {
     }
 
     @Test func lookCommand() throws {
-        let (_, parser, _, _, _) = try setupTestWorld()
+        let (world, parser, _, _, _) = try setupTestWorld()
 
-        let command = parser.parse("look")
+        let command = parser.parse("look", in: world)
         guard case .look = command else {
             throw TestFailure("Expected look command")
         }
 
         // Test 'l' abbreviation
-        let lCommand = parser.parse("l")
+        let lCommand = parser.parse("l", in: world)
         guard case .look = lCommand else {
             throw TestFailure("Expected look command for 'l'")
         }
     }
 
     @Test func metaAgainCommandsSyntax() throws {
-        let (_, parser, _, _, _) = try setupTestWorld()
+        let (world, parser, _, _, _) = try setupTestWorld()
 
-        guard case .again = parser.parse("again") else {
+        guard case .again = parser.parse("again", in: world) else {
             throw TestFailure("Failed to parse `again`")
         }
-        guard case .again = parser.parse("g") else {
+        guard case .again = parser.parse("g", in: world) else {
             throw TestFailure("Failed to parse `again` from `g`")
         }
     }
 
     @Test func metaBriefCommandsSyntax() throws {
-        let (_, parser, _, _, _) = try setupTestWorld()
+        let (world, parser, _, _, _) = try setupTestWorld()
 
-        guard case .brief = parser.parse("brief") else {
+        guard case .brief = parser.parse("brief", in: world) else {
             throw TestFailure("Failed to parse `brief`")
         }
     }
 
     @Test func metaRestartCommandsSyntax() throws {
-        let (_, parser, _, _, _) = try setupTestWorld()
+        let (world, parser, _, _, _) = try setupTestWorld()
 
-        guard case .restart = parser.parse("restart") else {
+        guard case .restart = parser.parse("restart", in: world) else {
             throw TestFailure("Failed to parse `restart`")
         }
     }
 
     @Test func metaRestoreCommandsSyntax() throws {
-        let (_, parser, _, _, _) = try setupTestWorld()
+        let (world, parser, _, _, _) = try setupTestWorld()
 
-        guard case .restore = parser.parse("restore") else {
+        guard case .restore = parser.parse("restore", in: world) else {
             throw TestFailure("Failed to parse `restore`")
         }
     }
 
     @Test func metaSaveCommandsSyntax() throws {
-        let (_, parser, _, _, _) = try setupTestWorld()
+        let (world, parser, _, _, _) = try setupTestWorld()
 
-        guard case .save = parser.parse("save") else {
+        guard case .save = parser.parse("save", in: world) else {
             throw TestFailure("Failed to parse `save`")
         }
     }
 
     @Test func metaSuperbriefCommandsSyntax() throws {
-        let (_, parser, _, _, _) = try setupTestWorld()
+        let (world, parser, _, _, _) = try setupTestWorld()
 
-        guard case .superbrief = parser.parse("superbrief") else {
+        guard case .superbrief = parser.parse("superbrief", in: world) else {
             throw TestFailure("Failed to parse `superbrief`")
         }
     }
 
     @Test func metaUndoCommandsSyntax() throws {
-        let (_, parser, _, _, _) = try setupTestWorld()
+        let (world, parser, _, _, _) = try setupTestWorld()
 
-        guard case .undo = parser.parse("undo") else {
+        guard case .undo = parser.parse("undo", in: world) else {
             throw TestFailure("Failed to parse `undo`")
         }
     }
 
     @Test func metaVerboseCommandsSyntax() throws {
-        let (_, parser, _, _, _) = try setupTestWorld()
+        let (world, parser, _, _, _) = try setupTestWorld()
 
-        guard case .verbose = parser.parse("verbose") else {
+        guard case .verbose = parser.parse("verbose", in: world) else {
             throw TestFailure("Failed to parse `verbose`")
         }
     }
 
     @Test func metaVersionCommandsSyntax() throws {
-        let (_, parser, _, _, _) = try setupTestWorld()
+        let (world, parser, _, _, _) = try setupTestWorld()
 
-        guard case .version = parser.parse("version") else {
+        guard case .version = parser.parse("version", in: world) else {
             throw TestFailure("Failed to parse `version`")
         }
     }
 
     @Test func metaWaitCommandsSyntax() throws {
-        let (_, parser, _, _, _) = try setupTestWorld()
+        let (world, parser, _, _, _) = try setupTestWorld()
 
-        guard case .wait = parser.parse("wait") else {
+        guard case .wait = parser.parse("wait", in: world) else {
             throw TestFailure("Failed to parse `wait`")
         }
-        guard case .wait = parser.parse("z") else {
+        guard case .wait = parser.parse("z", in: world) else {
             throw TestFailure("Failed to parse `z`")
         }
     }
@@ -401,26 +401,26 @@ struct CommandParserTests {
         )
 
         // Test basic open command
-        if case let .open(obj, _) = parser.parse("open box") {
+        if case let .open(obj, _) = parser.parse("open box", in: world) {
             #expect(obj === box)
         } else {
             throw TestFailure("Expected open command")
         }
 
         // Test with article
-        if case let .open(obj, _) = parser.parse("open the box") {
+        if case let .open(obj, _) = parser.parse("open the box", in: world) {
             #expect(obj === box)
         } else {
             throw TestFailure("Expected open command")
         }
 
         // Test no object specified
-        guard case .open(nil, with: nil) = parser.parse("open") else {
+        guard case .open(nil, with: nil) = parser.parse("open", in: world) else {
             throw TestFailure("Expected open(nil) command")
         }
 
         // Test non-existent object
-        guard case .open(nil, with: nil) = parser.parse("open unicorn") else {
+        guard case .open(nil, with: nil) = parser.parse("open unicorn", in: world) else {
             throw TestFailure("Expected open(nil) command for non-existent object")
         }
     }
@@ -450,7 +450,7 @@ struct CommandParserTests {
         )
 
         // Test "put X in Y" - natural language command
-        if case let .putIn(parsedApple, container: parsedBox) = parser.parse("put apple in box") {
+        if case let .putIn(parsedApple, container: parsedBox) = parser.parse("put apple in box", in: world) {
             #expect(parsedApple === apple)
             #expect(parsedBox === box)
         } else {
@@ -458,7 +458,7 @@ struct CommandParserTests {
         }
 
         // Test "put X on Y" - natural language command
-        if case let .putOn(parsedApple, surface: parsedTable) = parser.parse("put apple on table") {
+        if case let .putOn(parsedApple, surface: parsedTable) = parser.parse("put apple on table", in: world) {
             #expect(parsedApple === apple)
             #expect(parsedTable === table)
         } else {
@@ -466,7 +466,7 @@ struct CommandParserTests {
         }
 
         // Test with articles
-        if case let .putIn(parsedApple, container: parsedBox) = parser.parse("put the apple in the box") {
+        if case let .putIn(parsedApple, container: parsedBox) = parser.parse("put the apple in the box", in: world) {
             #expect(parsedApple === apple)
             #expect(parsedBox === box)
         } else {
@@ -474,7 +474,7 @@ struct CommandParserTests {
         }
 
         // Test with "into" preposition
-        if case let .putIn(parsedApple, container: parsedBox) = parser.parse("put apple into box") {
+        if case let .putIn(parsedApple, container: parsedBox) = parser.parse("put apple into box", in: world) {
             #expect(parsedApple === apple)
             #expect(parsedBox === box)
         } else {
@@ -482,14 +482,14 @@ struct CommandParserTests {
         }
 
         // Test "put X" (incomplete)
-        if case let .custom(words) = parser.parse("put apple") {
+        if case let .custom(words) = parser.parse("put apple", in: world) {
             #expect(words.count > 0)
         } else {
             throw TestFailure("Expected custom command for incomplete put")
         }
 
         // Test "put" (incomplete)
-        if case let .custom(words) = parser.parse("put") {
+        if case let .custom(words) = parser.parse("put", in: world) {
             #expect(words.count > 0)
         } else {
             throw TestFailure("Expected custom command for just put")
@@ -497,13 +497,13 @@ struct CommandParserTests {
     }
 
     @Test func quitCommand() throws {
-        let (_, parser, _, _, _) = try setupTestWorld()
+        let (world, parser, _, _, _) = try setupTestWorld()
 
-        guard case .quit = parser.parse("quit") else {
+        guard case .quit = parser.parse("quit", in: world) else {
             throw TestFailure("Expected quit command")
         }
 
-        guard case .quit = parser.parse("q") else {
+        guard case .quit = parser.parse("q", in: world) else {
             throw TestFailure("Expected quit command")
         }
     }
@@ -520,14 +520,14 @@ struct CommandParserTests {
         )
 
         // Test read command
-        if case let .read(parsedBook, with: _) = parser.parse("read book") {
+        if case let .read(parsedBook, with: _) = parser.parse("read book", in: world) {
             #expect(parsedBook === book)
         } else {
             throw TestFailure("Expected read command")
         }
 
         // Test peruse command
-        if case let .read(parsedBook, with: _) = parser.parse("peruse book") {
+        if case let .read(parsedBook, with: _) = parser.parse("peruse book", in: world) {
             #expect(parsedBook === book)
         } else {
             throw TestFailure("Expected read command")
@@ -541,14 +541,14 @@ struct CommandParserTests {
         )
 
         // The parser doesn't check readability, that's for the command execution
-        if case let .read(parsedRock, with: _) = parser.parse("read rock") {
+        if case let .read(parsedRock, with: _) = parser.parse("read rock", in: world) {
             #expect(parsedRock === rock)
         } else {
             throw TestFailure("Expected read command even with non-readable item")
         }
 
         // Test with no object
-        guard case .read(nil, with: nil) = parser.parse("read") else {
+        guard case .read(nil, with: nil) = parser.parse("read", in: world) else {
             throw TestFailure("Expected read(nil) command")
         }
     }
@@ -565,21 +565,21 @@ struct CommandParserTests {
         )
 
         // Test "remove hat" command
-        if case let .unwear(parsedHat) = parser.parse("remove hat") {
+        if case let .unwear(parsedHat) = parser.parse("remove hat", in: world) {
             #expect(parsedHat === hat)
         } else {
             throw TestFailure("Expected unwear command")
         }
 
         // Test "doff hat" command
-        if case let .unwear(parsedHat) = parser.parse("doff hat") {
+        if case let .unwear(parsedHat) = parser.parse("doff hat", in: world) {
             #expect(parsedHat === hat)
         } else {
             throw TestFailure("Expected unwear command")
         }
 
         // Test with article
-        if case let .unwear(parsedHat) = parser.parse("remove the hat") {
+        if case let .unwear(parsedHat) = parser.parse("remove the hat", in: world) {
             #expect(parsedHat === hat)
         } else {
             throw TestFailure("Expected unwear command")
@@ -587,7 +587,7 @@ struct CommandParserTests {
 
         // Test when not wearing the item - parser doesn't check this
         hat.clearFlag(.isBeingWorn)
-        if case let .unwear(parsedHat) = parser.parse("remove hat") {
+        if case let .unwear(parsedHat) = parser.parse("remove hat", in: world) {
             #expect(parsedHat === hat)
             // The command validation happens in command execution, not parsing
         } else {
@@ -596,7 +596,7 @@ struct CommandParserTests {
 
         // Test when item not in inventory - parser doesn't check this
         hat.moveTo(world.player.currentRoom)
-        if case let .unwear(parsedHat) = parser.parse("remove hat") {
+        if case let .unwear(parsedHat) = parser.parse("remove hat", in: world) {
             #expect(parsedHat === hat)
             // The command validation happens in command execution, not parsing
         } else {
@@ -604,42 +604,42 @@ struct CommandParserTests {
         }
 
         // Test with no object specified
-        guard case .unwear(nil) = parser.parse("remove") else {
+        guard case .unwear(nil) = parser.parse("remove", in: world) else {
             throw TestFailure("Expected unwear(nil) command")
         }
     }
 
     @Test func takeCommands() throws {
-        let (_, parser, _, _, coin) = try setupTestWorld()
+        let (world, parser, _, _, coin) = try setupTestWorld()
 
         // Test take object
-        if case let .take(obj) = parser.parse("take gold coin") {
+        if case let .take(obj) = parser.parse("take gold coin", in: world) {
             #expect(obj === coin)
         } else {
             throw TestFailure("Expected take command")
         }
 
         // Test take with article
-        if case let .take(obj) = parser.parse("take the gold coin") {
+        if case let .take(obj) = parser.parse("take the gold coin", in: world) {
             #expect(obj === coin)
         } else {
             throw TestFailure("Expected take command")
         }
 
         // Test get synonym
-        if case let .take(obj) = parser.parse("get coin") {
+        if case let .take(obj) = parser.parse("get coin", in: world) {
             #expect(obj === coin)
         } else {
             throw TestFailure("Expected take command")
         }
 
         // Test with no object specified
-        guard case .take(nil) = parser.parse("take") else {
+        guard case .take(nil) = parser.parse("take", in: world) else {
             throw TestFailure("Expected take(nil) command")
         }
 
         // Test with non-existent object
-        guard case .take(nil) = parser.parse("take unicorn") else {
+        guard case .take(nil) = parser.parse("take unicorn", in: world) else {
             throw TestFailure("Expected take(nil) command for non-existent object")
         }
     }
@@ -656,7 +656,7 @@ struct CommandParserTests {
         )
 
         // Check if take-off (hyphenated) is recognized - it should be an unwear command
-        if case let .unwear(parsedHat) = parser.parse("take-off hat") {
+        if case let .unwear(parsedHat) = parser.parse("take-off hat", in: world) {
             #expect(parsedHat === hat)
         } else {
             // Alternative: this might be handled as separate words "take", "-", "off", "hat"
@@ -665,7 +665,7 @@ struct CommandParserTests {
 
         // Test "take off hat" command (non-hyphenated)
         // In the actual implementation, this is handled as a take command for an object named "off hat"
-        let takeOffResult = parser.parse("take off hat")
+        let takeOffResult = parser.parse("take off hat", in: world)
 
         // Accept any valid parsing, whether it's a custom or take command
         if case .take = takeOffResult {
@@ -679,7 +679,7 @@ struct CommandParserTests {
         }
 
         // Test with more natural phrasing
-        let takeHatOffResult = parser.parse("take the hat off")
+        let takeHatOffResult = parser.parse("take the hat off", in: world)
 
         // Accept any valid parsing, whether it's custom or take command
         if case .take = takeHatOffResult {
@@ -694,11 +694,11 @@ struct CommandParserTests {
 
         // Test when not wearing the item - parser doesn't check this
         hat.clearFlag(.isBeingWorn)
-        if case let .unwear(parsedHat) = parser.parse("take-off hat") {
+        if case let .unwear(parsedHat) = parser.parse("take-off hat", in: world) {
             #expect(parsedHat === hat)
         } else {
             // For this test, accept take or custom command as well
-            let result = parser.parse("take-off hat")
+            let result = parser.parse("take-off hat", in: world)
             if case .take = result {
                 // This is acceptable - take command
             } else if case .custom = result {
@@ -711,7 +711,7 @@ struct CommandParserTests {
         // Test when item not in inventory - parser doesn't check this
         world.player.removeAll()
         hat.moveTo(world.player.currentRoom)
-        let takeOffHatResult = parser.parse("take-off hat")
+        let takeOffHatResult = parser.parse("take-off hat", in: world)
 
         // Accept any reasonable interpretation of this command
         if case .unwear = takeOffHatResult {
@@ -737,7 +737,7 @@ struct CommandParserTests {
         )
 
         // Test "take off hat" command - check what the actual implementation does
-        let takeOffResult = parser.parse("take off hat")
+        let takeOffResult = parser.parse("take off hat", in: world)
 
         // Accept any valid parsing
         if case .take = takeOffResult {
@@ -751,7 +751,7 @@ struct CommandParserTests {
         }
 
         // Test with more natural phrasing
-        let takeHatOffResult = parser.parse("take the hat off")
+        let takeHatOffResult = parser.parse("take the hat off", in: world)
 
         // Accept any valid parsing
         if case .take = takeHatOffResult {
@@ -773,7 +773,7 @@ struct CommandParserTests {
         )
 
         // Verify regular take still works
-        if case let .take(obj) = parser.parse("take ball") {
+        if case let .take(obj) = parser.parse("take ball", in: world) {
             #expect(obj === ball)
         } else {
             throw TestFailure("Expected take command")
@@ -792,27 +792,27 @@ struct CommandParserTests {
         )
 
         // Test "turn on lamp" (natural language command)
-        if case let .turnOn(parsedLamp) = parser.parse("turn on lamp") {
+        if case let .turnOn(parsedLamp) = parser.parse("turn on lamp", in: world) {
             #expect(parsedLamp === lamp)
         } else {
             throw TestFailure("Expected turnOn command for 'turn on lamp'")
         }
 
         // Test "turn off lamp" (natural language command)
-        if case let .turnOff(parsedLamp) = parser.parse("turn off lamp") {
+        if case let .turnOff(parsedLamp) = parser.parse("turn off lamp", in: world) {
             #expect(parsedLamp === lamp)
         } else {
             throw TestFailure("Expected turnOff command for 'turn off lamp'")
         }
 
         // Test activate/deactivate
-        if case let .turnOn(parsedLamp) = parser.parse("activate lamp") {
+        if case let .turnOn(parsedLamp) = parser.parse("activate lamp", in: world) {
             #expect(parsedLamp === lamp)
         } else {
             throw TestFailure("Expected turn_on command")
         }
 
-        if case let .turnOff(parsedLamp) = parser.parse("deactivate lamp") {
+        if case let .turnOff(parsedLamp) = parser.parse("deactivate lamp", in: world) {
             #expect(parsedLamp === lamp)
         } else {
             throw TestFailure("Expected turn_off command")
@@ -825,19 +825,19 @@ struct CommandParserTests {
             location: world.player.currentRoom
         )
 
-        if case let .turnOn(parsedBook) = parser.parse("turn on book") {
+        if case let .turnOn(parsedBook) = parser.parse("turn on book", in: world) {
             #expect(parsedBook === book)
         } else {
             throw TestFailure("Expected turnOn command even with non-device")
         }
 
         // Test with no object
-        guard case .turnOn(nil) = parser.parse("turn on") else {
+        guard case .turnOn(nil) = parser.parse("turn on", in: world) else {
             throw TestFailure("Expected turnOn(nil) command")
         }
 
         // Test with just "turn" - should be custom
-        if case .custom(let words) = parser.parse("turn") {
+        if case .custom(let words) = parser.parse("turn", in: world) {
             #expect(words.count > 0)
             #expect(words[0] == "turn")
         } else {
@@ -846,10 +846,10 @@ struct CommandParserTests {
     }
 
     @Test func unknownCommand() throws {
-        let (_, parser, _, _, _) = try setupTestWorld()
+        let (world, parser, _, _, _) = try setupTestWorld()
 
         // Test truly unknown command
-        let danceResult = parser.parse("dance")
+        let danceResult = parser.parse("dance", in: world)
 
         // Based on the log output, it appears the command might be .dance
         // Check for either .dance or .custom
@@ -862,7 +862,7 @@ struct CommandParserTests {
         }
 
         // Test empty input
-        if case let .unknown(message) = parser.parse("") {
+        if case let .unknown(message) = parser.parse("", in: world) {
             #expect(message == "No command given")
         } else {
             throw TestFailure("Expected unknown command for empty input")
@@ -881,28 +881,28 @@ struct CommandParserTests {
         )
 
         // Test "wear coat" command
-        if case let .wear(parsedCoat) = parser.parse("wear coat") {
+        if case let .wear(parsedCoat) = parser.parse("wear coat", in: world) {
             #expect(parsedCoat === coat)
         } else {
             throw TestFailure("Expected wear command")
         }
 
         // Test "don coat" synonym
-        if case let .wear(parsedCoat) = parser.parse("don coat") {
+        if case let .wear(parsedCoat) = parser.parse("don coat", in: world) {
             #expect(parsedCoat === coat)
         } else {
             throw TestFailure("Expected wear command")
         }
 
         // Test "put on coat" command (natural language)
-        if case let .wear(parsedCoat) = parser.parse("put on coat") {
+        if case let .wear(parsedCoat) = parser.parse("put on coat", in: world) {
             #expect(parsedCoat === coat)
         } else {
             throw TestFailure("Expected wear command for 'put on coat'")
         }
 
         // Test "put coat on" command (natural language)
-        if case let .wear(parsedCoat) = parser.parse("put coat on") {
+        if case let .wear(parsedCoat) = parser.parse("put coat on", in: world) {
             #expect(parsedCoat === coat)
         } else {
             throw TestFailure("Expected wear command for 'put coat on'")
@@ -915,14 +915,14 @@ struct CommandParserTests {
             location: world.player
         )
 
-        if case let .wear(parsedRock) = parser.parse("wear rock") {
+        if case let .wear(parsedRock) = parser.parse("wear rock", in: world) {
             #expect(parsedRock === rock)
         } else {
             throw TestFailure("Expected wear command even with non-wearable item")
         }
 
         // Test with no object specified
-        guard case .wear(nil) = parser.parse("wear") else {
+        guard case .wear(nil) = parser.parse("wear", in: world) else {
             throw TestFailure("Expected wear(nil) command")
         }
 
@@ -934,7 +934,7 @@ struct CommandParserTests {
             flags: .isWearable
         )
 
-        if case let .wear(parsedScarf) = parser.parse("wear scarf") {
+        if case let .wear(parsedScarf) = parser.parse("wear scarf", in: world) {
             #expect(parsedScarf === scarf)
         } else {
             throw TestFailure("Expected wear command even with item not in inventory")
@@ -967,7 +967,7 @@ struct CommandParserTests {
         )
         world.register(coin)
 
-        let parser = CommandParser(for: world)
+        let parser = CommandParser()
 
         return (world, parser, startRoom, northRoom, coin)
     }

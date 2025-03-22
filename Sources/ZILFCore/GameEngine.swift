@@ -19,7 +19,7 @@ public class GameEngine {
     private(set) var world: GameWorld
 
     /// The command parser used to convert text input to game commands.
-    public let parser: CommandParser
+    let parser = CommandParser()
 
     /// The current game state.
     private(set) var state = State.idle
@@ -39,7 +39,6 @@ public class GameEngine {
     ) {
         self.game = game
         self.world = game.createWorld()
-        self.parser = CommandParser(for: world)
         self.console = console
     }
 
@@ -64,7 +63,7 @@ public class GameEngine {
         while state == .running {
             guard let input = getInput() else { continue }
 
-            let command = parser.parse(input)
+            let command = parser.parse(input, in: world)
             executeCommand(command)
 
             if !command.isMeta {
@@ -157,7 +156,9 @@ public class GameEngine {
         executeCommand(.look)
     }
 
-    /// Outputs a message through the configured output handler
+    /// Outputs a message through the configured console.
+    ///
+    /// - Parameter message: The message to output.
     public func output(_ message: String) {
         console.output(message)
         //        outputHandler(message)
@@ -197,7 +198,7 @@ extension GameEngine {
         console = outputCapture
 
         // Parse and execute the command
-        let command = parser.parse(input)
+        let command = parser.parse(input, in: world)
         executeCommand(command)
 
         // Restore original output
@@ -643,7 +644,7 @@ extension GameEngine {
 //        if input.lowercased() == "help" {
 //            printHelp()
 //        } else {
-//            let command = parser.parse(input)
+//            let command = parser.parse(input, in: world)
 //            executeCommand(command)
 //
 //            // Check for game over after command execution
@@ -762,7 +763,7 @@ extension GameEngine {
 //                continue
 //            }
 //
-//            let command = parser.parse(input)
+//            let command = parser.parse(input, in: world)
 //            executeCommand(command)
 //        }
 //    }

@@ -77,17 +77,17 @@ struct GameModelTests {
 
         world.lastMentionedObject = obj1
 
-        let parser = CommandParser(for: world)
+        let parser = CommandParser()
 
         // Test examining "it"
-        if case let .examine(obj, _) = parser.parse("examine it") {
+        if case let .examine(obj, _) = parser.parse("examine it", in: world) {
             #expect(obj === obj1)
         } else {
             throw TestFailure("Expected examine command for 'it'")
         }
 
         // Test taking "it"
-        if case let .take(obj) = parser.parse("take it") {
+        if case let .take(obj) = parser.parse("take it", in: world) {
             #expect(obj === obj1)
         } else {
             throw TestFailure("Expected take command for 'it'")
@@ -97,7 +97,7 @@ struct GameModelTests {
         world.lastMentionedObject = obj2
 
         // Test examining "it" again
-        if case let .examine(obj, _) = parser.parse("examine it") {
+        if case let .examine(obj, _) = parser.parse("examine it", in: world) {
             #expect(obj === obj2)
         } else {
             throw TestFailure("Expected examine command for 'it'")
@@ -106,7 +106,7 @@ struct GameModelTests {
         // Test when "it" refers to nothing
         world.lastMentionedObject = nil
         // When "it" refers to nothing, findObject returns nil, so we get a nil object in the command
-        if case let .examine(obj, _) = parser.parse("examine it") {
+        if case let .examine(obj, _) = parser.parse("examine it", in: world) {
             #expect(obj == nil)
         } else {
             throw TestFailure("Expected examine command with nil object when 'it' has no reference")
@@ -161,10 +161,10 @@ struct GameModelTests {
         let player = Player(startingRoom: room)
         let world = GameWorld(player: player)
 
-        let parser = CommandParser(for: world)
+        let parser = CommandParser()
 
         // Test finding the coin in the box
-        if case let .take(obj) = parser.parse("take coin") {
+        if case let .take(obj) = parser.parse("take coin", in: world) {
             #expect(obj === coin)
         } else {
             throw TestFailure("Expected take command for coin in box")
@@ -175,7 +175,7 @@ struct GameModelTests {
 
         // When the box is closed and not transparent, the object is not in scope
         // so findObject will return nil, resulting in take(nil)
-        if case let .take(obj) = parser.parse("take coin") {
+        if case let .take(obj) = parser.parse("take coin", in: world) {
             #expect(obj == nil)
         } else {
             throw TestFailure("Expected take command with nil object for coin in closed box")

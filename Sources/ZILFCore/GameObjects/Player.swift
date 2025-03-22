@@ -7,7 +7,7 @@ import Foundation
 /// player's current location.
 public class Player: GameObject {
     /// The game engine instance managing this player.
-    public private(set) var engine: GameEngine!
+    public private(set) var engine: GameEngine?
 
     /// Creates a new player instance starting in the specified room.
     /// - Parameter startingRoom: The room where the player begins the game.
