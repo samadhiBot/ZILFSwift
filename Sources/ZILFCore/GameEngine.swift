@@ -4,6 +4,7 @@ import Foundation
 ///
 /// Handles command processing, game state management, and core gameplay logic.
 public class GameEngine {
+    /// The different states that the game can exhibit.
     public enum State: Equatable {
         case idle
         case running
@@ -15,11 +16,11 @@ public class GameEngine {
     /// The game that the engine is running.
     let game: ZilfGame
 
-    /// The game world containing rooms, objects, and the player.
-    private(set) var world: GameWorld
-
     /// The command parser used to convert text input to game commands.
     let parser = CommandParser()
+
+    /// The game world containing rooms, objects, and the player.
+    private(set) var world: GameWorld
 
     /// The current game state.
     private(set) var state = State.idle
@@ -30,7 +31,7 @@ public class GameEngine {
     /// The player's current score.
     private(set) var score = 0
     
-    /// <#Description#>
+    /// The interface for game input and output.
     private var console: GameConsole
 
     public init(
@@ -49,19 +50,12 @@ public class GameEngine {
         output("\n\(game.versionInfo)\n")
         output("Type 'help' for a list of commands.\n")
 
-        // Create the world
-//        world = game.createWorld() that's already done
-
-        // Show initial location
+        state = .running
         executeCommand(.look)
-
-        // Run the game loop
         gameLoop()
     }
 
     private func gameLoop() {
-        state = .running
-
         while state == .running {
             guard let input = getInput() else { continue }
 
@@ -74,20 +68,6 @@ public class GameEngine {
         }
     }
 
-    //
-    //
-    //    /// Output handler for the game engine.
-    //    private var outputHandler: ((String) -> Void)
-    //
-    //    /// Input handler for the game engine.
-    //    private var inputHandler: ((String) -> String?)
-    //
-    //    /// Status line update handler.
-    //    private var statusLineHandler: ((String, Int, Int) -> Void)
-    //
-    //    /// Maximum possible score in the game.
-    //    public var maximumScore: Int = 0
-    //
     /// Stores the last command processed by the engine.
     private var lastCommand: Command?
     //
@@ -253,18 +233,18 @@ private class TestOutputCapture: GameConsole {
     }
 }
 
-extension GameEngine {
-    // MARK: - Public Methods
+// MARK: - Public Methods
 
-    /// Executes a single game command
+extension GameEngine {
+    /// Executes a single game command.
     ///
-    /// - Parameter command: The command to execute
+    /// - Parameter command: The command to execute.
     public func executeCommand(_ command: Command) {
         // Don't process commands if game is over
-//        if isGameOver { return }
+        guard state == .running else { return }
 
         // Store the command for potential "again" (g) command
-        if getVerbForCommand(command) != "again" { lastCommand = command }
+        if case .again = command { } else { lastCommand = command }
 
         // If we're in a dark room, only allow certain commands
         guard let currentRoom = world.player.currentRoom else {
@@ -626,13 +606,12 @@ extension GameEngine {
         }
 
         // Only advance time for non-game verbs
-        let verb = getVerbForCommand(command)
-        if !isGameVerb(verb) {
+        if !command.isMeta {
             advanceTime()
         }
 
         // After executing any command, update the status line
-        let locationName = world.player.currentRoom?.name ?? "Unknown"
+//        let locationName = world.player.currentRoom?.name ?? "Unknown"
 
         updateStatusLine()
     }
@@ -675,12 +654,12 @@ extension GameEngine {
             error("gameOver called requesting .running state")
 
         case .victory(let message):
-            output("\n*** VICTORY ***")
             output(message)
+            output("\n*** VICTORY ***")
 
         case .defeat(let message):
-            output("\n*** GAME OVER ***")
             output(message)
+            output("\n*** GAME OVER ***")
 
         case .quit:
             output("Thanks for playing!")
@@ -694,14 +673,14 @@ extension GameEngine {
         // Handle the player's choice will be managed separately in the game loop
     }
 
-    /// Check if a character is in a dangerous situation that could lead to death
-    ///
-    /// - Returns: True if the player is in danger
-    public func isPlayerInDanger() -> Bool {
-        // Game-specific logic to determine if player is in danger
-        // Example: Checking if player is in a room with an enemy or hazard
-        return false
-    }
+//    /// Check if a character is in a dangerous situation that could lead to death
+//    ///
+//    /// - Returns: True if the player is in danger
+//    public func isPlayerInDanger() -> Bool {
+//        // Game-specific logic to determine if player is in danger
+//        // Example: Checking if player is in a room with an enemy or hazard
+//        return false
+//    }
 
 //    /// Kill the player, triggering game over
 //    ///
@@ -800,53 +779,6 @@ extension GameEngine {
 
         // Increment move count
         moveCount += 1
-    }
-
-    /// Get the verb string for a command
-    ///
-    /// - Parameter command: The command to extract the verb from
-    ///
-    /// - Returns: String representation of the command's verb
-    private func getVerbForCommand(_ command: Command) -> String {
-        switch command {
-        case .look: return "look"
-        case .inventory: return "inventory"
-        case .move: return "move"
-        case .take: return "take"
-        case .drop: return "drop"
-        case .examine: return "examine"
-        case .open: return "open"
-        case .close: return "close"
-        case .quit: return "quit"
-        case .unknown: return "unknown"
-        case .wear: return "wear"
-        case .unwear: return "unwear"
-        case .putIn: return "put_in"
-        case .putOn: return "put_on"
-        case .turnOn: return "turn_on"
-        case .turnOff: return "turn_off"
-        case .wait: return "wait"
-        case .again: return "again"
-        case .read: return "read"
-        case .flip: return "flip"
-        case .save: return "save"
-        case .restore: return "restore"
-        case .restart: return "restart"
-        case .undo: return "undo"
-        case .brief: return "brief"
-        case .verbose: return "verbose"
-        case .superbrief: return "superbrief"
-        case .version: return "version"
-        case .custom(let words) where !words.isEmpty:
-            return words[0]
-        case .custom:
-            return "custom"
-        default:
-            // Extract the verb name from the enum case
-            let mirror = Mirror(reflecting: command)
-            let label = mirror.children.first?.label ?? String(describing: command)
-            return label
-        }
     }
 
     /// Handle AGAIN command (repeat last command)

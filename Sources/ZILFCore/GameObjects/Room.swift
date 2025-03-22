@@ -146,9 +146,5 @@ public class Room: GameObject {
     /// - Returns: true if the room is lit, false otherwise.
     override public func isLit() -> Bool {
         world?.isRoomLit(self) ?? super.isLit()
-//        if let world {
-//            world.isRoomLit(self)
-//        }
-//        return super.isLit()
     }
 }

@@ -1,7 +1,7 @@
 import Foundation
 import SwiftCursesTerm
 
-/// Protocol defining the interface for game output management
+/// Protocol defining the interface for game input and output.
 public protocol GameConsole: AnyObject {
     /// Outputs a message to the appropriate destination
     func output(_ message: String)

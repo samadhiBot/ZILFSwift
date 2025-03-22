@@ -325,12 +325,12 @@ struct HelloWorldGameTests {
         // Test falling into the pit (deadly exit)
         engine.executeCommand(.move(.down))
         expectNoDifference(harness.flush(), """
-            
+            You step forward and the ledge gives way beneath you. You fall into darkness, \
+            tumbling endlessly into the abyss...
+
             *** GAME OVER ***
-            You step forward and the ledge gives way beneath you. You fall into darkness, tumbling endlessly into the abyss...
             
             Would you like to RESTART or QUIT?
-            It's too dark to see.
             """)
 
         #expect(engine.state == .defeat("""
@@ -339,53 +339,59 @@ struct HelloWorldGameTests {
             """))
     }
 
-//    @Test func testVictoryCondition() async throws {
-//        let world = HelloWorldGame.create()
-//        let outputHandler = OutputCapture()
-//        let engine = GameEngine(world: world, outputManager: outputHandler)
-//
-//        // Force the player to the Main Cavern to start fresh
-//        player.moveTo(try world.find(room: "Main Cavern"))
-//
-//        // Refresh the display
-//        engine.executeCommand(.look)
-//        expectNoDifference(harness.flush(), """
-//            This spacious cavern has smooth walls that glisten with moisture. A strange glow emanates from deeper in the cave.
-//
-//            You can see:
-//              gold coin
-//              dagger
-//
-//            Exits: south, east
-//            Location: Main Cavern | Score: 0 | Moves: 1
-//            """)
-//
-//
-//        // Get the amulet directly
-//        let amulet = try world.find(object: "golden amulet")
-//        amulet.moveTo(player)
-//
-//        // Check inventory has the amulet
-//        engine.executeCommand(.inventory)
-//        expectNoDifference(harness.flush(), """
-//            You are carrying:
-//              golden amulet
-//            Location: Main Cavern | Score: 0 | Moves: 2
-//            """)
-//
-//        // Try moving west (this should trigger victory)
-//        engine.executeCommand(.move(.west))
-//        expectNoDifference(harness.flush(), """
-//            Victory room
-//            
-//            There are no obvious exits.
-//            Location: Victory | Score: 0 | Moves: 3
-//            """)
-//
-//        try await Task.sleep(for: .seconds(0.1))
-//        #expect(engine.isGameOver)
-//    }
-//
+    @Test func testVictoryCondition() async throws {
+        // Skip the welcome
+        harness.flush()
+
+        // Force the player to the Main Cavern to start fresh
+        player.moveTo(try world.find(room: "Main Cavern"))
+
+        // Refresh the display
+        engine.executeCommand(.look)
+        expectNoDifference(harness.flush(), """
+            This spacious cavern has smooth walls that glisten with moisture. \
+            A strange glow emanates from deeper in the cave.
+
+            You can see:
+              gold coin
+              dagger
+
+            Exits: south, east
+            """)
+
+
+        // Get the amulet directly
+        let amulet = try world.find(object: "golden amulet")
+        amulet.moveTo(player)
+
+        // Check inventory has the amulet
+        engine.executeCommand(.inventory)
+        expectNoDifference(harness.flush(), """
+            You are carrying:
+              golden amulet
+            """)
+
+        // Try moving west (this should trigger victory)
+        engine.executeCommand(.move(.west))
+        expectNoDifference(harness.flush(), """
+            As you move west with the golden amulet in your possession, it begins to glow \
+            brightly. The cave wall shimmers and dissolves, revealing a hidden passage. \
+            You step through and find yourself in a magical realm beyond the cave. \
+            Congratulations, you've completed the adventure!
+
+            *** VICTORY ***
+            
+            Would you like to RESTART or QUIT?
+            """)
+
+        #expect(engine.state == .victory("""
+            As you move west with the golden amulet in your possession, it begins to glow \
+            brightly. The cave wall shimmers and dissolves, revealing a hidden passage. \
+            You step through and find yourself in a magical realm beyond the cave. \
+            Congratulations, you've completed the adventure!
+            """))
+    }
+
 //    @Test func testSecretChamber() async throws {
 //        let world = HelloWorldGame.create()
 //        let outputHandler = OutputCapture()
@@ -402,7 +408,6 @@ struct HelloWorldGameTests {
 //              dagger
 //            
 //            Exits: south, east
-//            Location: Main Cavern | Score: 0 | Moves: 1
 //            """)
 //
 //        // Get the dagger from the main cavern
@@ -410,7 +415,6 @@ struct HelloWorldGameTests {
 //        engine.executeCommand(.take(dagger))
 //        expectNoDifference(harness.flush(), """
 //            Taken.
-//            Location: Main Cavern | Score: 0 | Moves: 2
 //            """)
 //
 //        // Move to Treasure Room
@@ -425,7 +429,6 @@ struct HelloWorldGameTests {
 //              locked box
 //            
 //            Exits: south, west
-//            Location: Treasure Room | Score: 0 | Moves: 3
 //            """)
 //
 //        // First examine the room to discover the hidden exit
