@@ -108,7 +108,7 @@
 //        hall.addLocalGlobal(rug)
 //
 //        // Create engine to test object interactions
-//        let outputHandler = OutputCapture()
+//        let outputHandler = CaptureConsole()
 //        let engine = GameEngine(world: world, outputManager: outputHandler)
 //
 //        // Test examining global objects

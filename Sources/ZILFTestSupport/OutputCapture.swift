@@ -1,8 +1,8 @@
 import Foundation
 import ZILFCore
 
-/// Output capture console for testing.
-public class OutputCapture: GameConsole {
+/// A console that captures output for use in testing.
+public class CaptureConsole: GameConsole {
     private(set) public var capturedOutput: [String] = []
 
     public init() {}

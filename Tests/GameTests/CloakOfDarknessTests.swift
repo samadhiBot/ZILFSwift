@@ -48,7 +48,7 @@
 //
 //    @Test func testWinGame() throws {
 //        let world = try CloakOfDarkness.create()
-//        let outputHandler = OutputCapture()
+//        let outputHandler = CaptureConsole()
 //        let engine = GameEngine(world: world, outputManager: outputHandler)
 //
 //        // Get objects and rooms we'll need
@@ -138,7 +138,7 @@
 //
 //    @Test func testLoseGame() throws {
 //        let world = try CloakOfDarkness.create()
-//        let outputHandler = OutputCapture()
+//        let outputHandler = CaptureConsole()
 //        let engine = GameEngine(world: world, outputManager: outputHandler)
 //
 //        // Get objects and rooms we'll need
@@ -209,7 +209,7 @@
 //
 //    @Test func testCloak() throws {
 //        let world = try CloakOfDarkness.create()
-//        let outputHandler = OutputCapture()
+//        let outputHandler = CaptureConsole()
 //        let engine = GameEngine(world: world, outputManager: outputHandler)
 //
 //        // Get objects and rooms we'll need
@@ -280,7 +280,7 @@
 //
 //    @Test func testBlockedPath() throws {
 //        let world = try CloakOfDarkness.create()
-//        let outputHandler = OutputCapture()
+//        let outputHandler = CaptureConsole()
 //        let engine = GameEngine(world: world, outputManager: outputHandler)
 //
 //        // Get objects and rooms we'll need

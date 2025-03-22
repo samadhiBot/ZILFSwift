@@ -18,7 +18,7 @@
 //    @Test func testMovementCommands() throws {
 //        let (world, player, startRoom, northRoom, _) = try setupTestWorld()
 //
-//        let outputHandler = OutputCapture()
+//        let outputHandler = CaptureConsole()
 //        let engine = GameEngine(world: world, outputManager: outputHandler)
 //
 //        // Test successful move command
@@ -59,7 +59,7 @@
 //    @Test func testLookCommand() throws {
 //        let (world, _, _, _, _) = try setupTestWorld()
 //
-//        let outputHandler = OutputCapture()
+//        let outputHandler = CaptureConsole()
 //        let engine = GameEngine(world: world, outputManager: outputHandler)
 //
 //        // Test basic look command
@@ -84,7 +84,7 @@
 //        // Make the room dark
 //        startRoom.clearFlag(.isNaturallyLit)
 //
-//        let outputHandler = OutputCapture()
+//        let outputHandler = CaptureConsole()
 //        let engine = GameEngine(world: world, outputManager: outputHandler)
 //
 //        // Test look in darkness
@@ -121,7 +121,7 @@
 //    @Test func testObjectManipulationCommands() throws {
 //        let (world, player, startRoom, _, coin) = try setupTestWorld()
 //
-//        let outputHandler = OutputCapture()
+//        let outputHandler = CaptureConsole()
 //        let engine = GameEngine(world: world, outputManager: outputHandler)
 //
 //        // Test take command
@@ -168,7 +168,7 @@
 //    @Test func testContainerCommands() throws {
 //        let (world, player, startRoom, _, coin) = try setupTestWorld()
 //
-//        let outputHandler = OutputCapture()
+//        let outputHandler = CaptureConsole()
 //        let engine = GameEngine(world: world, outputManager: outputHandler)
 //
 //        // Create a container
@@ -226,7 +226,7 @@
 //    @Test func testSurfaceCommands() throws {
 //        let (world, player, startRoom, _, coin) = try setupTestWorld()
 //
-//        let outputHandler = OutputCapture()
+//        let outputHandler = CaptureConsole()
 //        let engine = GameEngine(world: world, outputManager: outputHandler)
 //
 //        // Create a surface
@@ -259,7 +259,7 @@
 //    @Test func testWearCommands() throws {
 //        let (world, player, _, _, _) = try setupTestWorld()
 //
-//        let outputHandler = OutputCapture()
+//        let outputHandler = CaptureConsole()
 //        let engine = GameEngine(world: world, outputManager: outputHandler)
 //
 //        // Create a wearable item
@@ -307,7 +307,7 @@
 //    @Test func testDeviceCommands() throws {
 //        let (world, player, _, _, _) = try setupTestWorld()
 //
-//        let outputHandler = OutputCapture()
+//        let outputHandler = CaptureConsole()
 //        let engine = GameEngine(world: world, outputManager: outputHandler)
 //
 //        // Create a device
@@ -374,7 +374,7 @@
 //    @Test func testWaitCommand() throws {
 //        let (world, _, _, _, _) = try setupTestWorld()
 //
-//        let outputHandler = OutputCapture()
+//        let outputHandler = CaptureConsole()
 //        let engine = GameEngine(world: world, outputManager: outputHandler)
 //
 //        // Create an event to test with
@@ -392,7 +392,7 @@
 //    @Test func testAgainCommand() throws {
 //        let (world, player, _, _, coin) = try setupTestWorld()
 //
-//        let outputHandler = OutputCapture()
+//        let outputHandler = CaptureConsole()
 //        let engine = GameEngine(world: world, outputManager: outputHandler)
 //
 //        // Execute take command
@@ -414,7 +414,7 @@
 //    @Test func testDescriptionModeCommands() throws {
 //        let (world, _, _, _, _) = try setupTestWorld()
 //
-//        let outputHandler = OutputCapture()
+//        let outputHandler = CaptureConsole()
 //        let engine = GameEngine(world: world, outputManager: outputHandler)
 //
 //        // Test brief mode
@@ -437,7 +437,7 @@
 //    @Test func testGameOverConditions() throws {
 //        let (world, _, _, _, _) = try setupTestWorld()
 //
-//        let outputHandler = OutputCapture()
+//        let outputHandler = CaptureConsole()
 //        let engine = GameEngine(world: world, outputManager: outputHandler)
 //
 //        // Test player died
@@ -459,7 +459,7 @@
 //    @Test func testCustomCommands() throws {
 //        let (world, _, _, _, _) = try setupTestWorld()
 //
-//        let outputHandler = OutputCapture()
+//        let outputHandler = CaptureConsole()
 //        let engine = GameEngine(world: world, outputManager: outputHandler)
 //
 //        // Test unknown command handling

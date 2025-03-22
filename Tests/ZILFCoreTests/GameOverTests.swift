@@ -33,7 +33,7 @@
 //        world.register(deadlyRoom)
 //
 //        // Setup output capture
-//        let outputHandler = OutputCapture()
+//        let outputHandler = CaptureConsole()
 //        let engine = GameEngine(world: world, outputManager: outputHandler)
 //
 //        // Verify game is not over at start
@@ -63,7 +63,7 @@
 //        world.register(room)
 //
 //        // Setup output capture
-//        let outputHandler = OutputCapture()
+//        let outputHandler = CaptureConsole()
 //        let engine = GameEngine(world: world, outputManager: outputHandler)
 //
 //        // Verify game is not over at start
@@ -110,7 +110,7 @@
 //        world.register(deadlyRoom)
 //
 //        // Setup output capture
-//        let outputHandler = OutputCapture()
+//        let outputHandler = CaptureConsole()
 //        let engine = GameEngine(world: world, outputManager: outputHandler)
 //
 //        // Move to deadly room
@@ -155,7 +155,7 @@
 //        )
 //
 //        // Setup output capture
-//        let outputHandler = OutputCapture()
+//        let outputHandler = CaptureConsole()
 //        let engine = GameEngine(world: world, outputManager: outputHandler)
 //
 //        // Try victory exit

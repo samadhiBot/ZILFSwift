@@ -394,7 +394,7 @@ struct HelloWorldGameTests {
 
 //    @Test func testSecretChamber() async throws {
 //        let world = HelloWorldGame.create()
-//        let outputHandler = OutputCapture()
+//        let outputHandler = CaptureConsole()
 //        let engine = GameEngine(world: world, outputManager: outputHandler)
 //
 //        // Move to Main Cavern
