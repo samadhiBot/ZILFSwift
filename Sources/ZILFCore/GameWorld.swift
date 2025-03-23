@@ -11,7 +11,7 @@ public class GameWorld {
     public private(set) var objects = [GameObject]()
 
     /// Objects that are accessible from anywhere in the game world.
-    public var globalObjects = [GameObject]()
+    public private(set) var globalObjects = [GameObject]()
 
     /// The player character and its state.
     public let player: Player
@@ -29,16 +29,39 @@ public class GameWorld {
         self.player = player
         player.setWorld(to: self)
     }
-
+    
+    /// <#Description#>
+    public enum RegistrationType {
+        case object
+        case room
+        case global
+    }
     /// Adds an object to the game world.
     ///
     /// - Parameter object: The object to register.
-    public func register(_ object: GameObject) {
-        if let room = object as? Room {
-            rooms.append(room)
-        } else {
+    public func register(
+        _ object: GameObject,
+        _ type: RegistrationType? = nil
+    ) {
+        switch type {
+        case .object:
             objects.append(object)
+        case .room:
+            guard let room = object as? Room else {
+                assert(false, "Attempted to register non-room as a room")
+                return
+            }
+            rooms.append(room)
+        case .global:
+            globalObjects.append(object)
+        case nil:
+            if let room = object as? Room {
+                rooms.append(room)
+            } else {
+                objects.append(object)
+            }
         }
+
         object.setWorld(to: self)
     }
 
@@ -78,9 +101,20 @@ public class GameWorld {
     /// - Parameter message: The message to output.
     public func output(_ message: String) {
         if let engine = player.engine {
-            engine.output("\(message)\n")
+            engine.output(message)
         } else {
             print("❗ \(message)\n")
+        }
+    }
+
+    /// Outputs an error message through the configured console.
+    ///
+    /// - Parameter message: The error message to output.
+    func error(_ message: String) {
+        if let engine = player.engine {
+            engine.error(message)
+        } else {
+            print("❗💥 \(message)\n")
         }
     }
 
@@ -121,18 +155,18 @@ extension GameWorld {
         case roomNotFound(String)
     }
 
-    public func find(object name: String) throws -> GameObject {
-        guard let object = objects.first(where: { $0.name == name }) else {
-            throw NotFound.objectNotFound(name)
-        }
-        return object
-    }
-
-    /// Helper function to get a room by name from the world
-    public func find(room name: String) throws -> Room {
-        guard let room = rooms.first(where: { $0.name == name }) else {
-            throw NotFound.roomNotFound(name)
-        }
-        return room
-    }
+//    public func find(object name: String) throws -> GameObject {
+//        guard let object = objects.first(where: { $0.name == name }) else {
+//            throw NotFound.objectNotFound(name)
+//        }
+//        return object
+//    }
+//
+//    /// Helper function to get a room by name from the world
+//    public func find(room name: String) throws -> Room {
+//        guard let room = rooms.first(where: { $0.name == name }) else {
+//            throw NotFound.roomNotFound(name)
+//        }
+//        return room
+//    }
 }

@@ -64,15 +64,14 @@ extension GameEngine {
     ///
     /// - Parameter message: The message to output.
     public func output(_ message: String) {
-        console.output(message)
-        //        outputHandler(message)
+        console.output("\(message)\n")
     }
     
     /// Outputs an error message through the configured console.
     ///
     /// - Parameter message: The error message to output.
     public func error(_ message: String) {
-        console.output("💥 Error: \(message)")
+        console.output("💥 Error: \(message)\n")
     }
 
     /// Gets input from the player
