@@ -543,7 +543,7 @@ public extension GameWorld {
         }
 
         // Add to global objects list
-        register(object, globally: true)
+        register(object, .global)
 
         // Mark the object with its global type
         let typeValue = isLocalGlobal ? String.localGlobalObject : String.globalObject

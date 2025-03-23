@@ -48,7 +48,7 @@ public class GameWorld {
             objects.append(object)
         case .room:
             guard let room = object as? Room else {
-                assert(false, "Attempted to register non-room as a room")
+                assert(false, "Attempted to register \(object) as a room")
                 return
             }
             rooms.append(room)
@@ -101,7 +101,7 @@ public class GameWorld {
     /// - Parameter message: The message to output.
     public func output(_ message: String) {
         if let engine = player.engine {
-            engine.output(message)
+            engine.output("\(message)\n")
         } else {
             print("❗ \(message)\n")
         }
@@ -112,7 +112,7 @@ public class GameWorld {
     /// - Parameter message: The error message to output.
     func error(_ message: String) {
         if let engine = player.engine {
-            engine.error(message)
+            engine.error("\(message)\n")
         } else {
             print("❗💥 \(message)\n")
         }
@@ -155,18 +155,18 @@ extension GameWorld {
         case roomNotFound(String)
     }
 
-//    public func find(object name: String) throws -> GameObject {
-//        guard let object = objects.first(where: { $0.name == name }) else {
-//            throw NotFound.objectNotFound(name)
-//        }
-//        return object
-//    }
-//
-//    /// Helper function to get a room by name from the world
-//    public func find(room name: String) throws -> Room {
-//        guard let room = rooms.first(where: { $0.name == name }) else {
-//            throw NotFound.roomNotFound(name)
-//        }
-//        return room
-//    }
+    public func find(object: String) throws -> GameObject {
+        guard let object = objects.first(where: { $0.name == object }) else {
+            throw NotFound.objectNotFound(object)
+        }
+        return object
+    }
+
+    /// Helper function to get a room by name from the world
+    public func find(room: String) throws -> Room {
+        guard let room = rooms.first(where: { $0.name == room }) else {
+            throw NotFound.roomNotFound(room)
+        }
+        return room
+    }
 }
