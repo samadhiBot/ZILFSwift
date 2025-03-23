@@ -88,7 +88,7 @@ extension GameWorld {
         }
 
         // 2. If the room itself is a light source and is lit, it's lit
-        if room.hasFlag(.isLightSource) && room.hasFlag(.isOn) {
+        if room.hasFlags(.isLightSource, .isOn) {
             return true
         }
 

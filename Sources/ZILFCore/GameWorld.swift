@@ -30,21 +30,14 @@ public class GameWorld {
         player.setWorld(to: self)
     }
     
-    /// <#Description#>
-    public enum RegistrationType {
-        case global
-        case localGlobal
-        case object
-        case room
-    }
     /// Adds an object to the game world.
     ///
     /// - Parameter object: The object to register.
-    public func register(
-        _ object: GameObject,
-        _ type: RegistrationType? = nil
-    ) {
-        switch type {
+    public func register(_ object: GameObject) {
+        if object.type == .room {
+
+        }
+        switch object.type {
         case .global:
             globalObjects.append(object)
             object.setState(String.globalObject, forKey: .globalObject)
@@ -53,6 +46,8 @@ public class GameWorld {
             object.setState(String.localGlobalObject, forKey: .globalObject)
         case .object:
             objects.append(object)
+        case .player:
+            break
         case .room:
             guard let room = object as? Room else {
                 assert(false, "Attempted to register \(object) as a room")

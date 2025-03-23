@@ -6,27 +6,6 @@ import Foundation
 /// via exits in different directions. Rooms can have various action handlers that
 /// trigger at specific phases during gameplay.
 public class Room: GameObject {
-    /// Defines the possible action phases for room-specific behavior.
-    public enum ActionPhase {
-        /// Beginning of turn, before command processing (M-BEG in ZIL).
-        case beginTurn
-
-        /// End of turn (M-END in ZIL).
-        case endTurn
-
-        /// When a player enters this room (M-ENTER in ZIL).
-        case enter
-
-        /// When important room details should be shown even in brief mode (M-FLASH in ZIL).
-        case flash
-
-        /// When looking at the room (M-LOOK in ZIL).
-        case look
-
-        /// When a specific command is being processed.
-        case command(Command)
-    }
-
     /// Called at the beginning of processing a command while in this room.
     /// - Returns: `true` if the action handled the command (prevents further processing).
     public var beginCommandAction: ((Room, Command) -> Bool)?
@@ -53,6 +32,31 @@ public class Room: GameObject {
     /// Called when the room is being looked at (M-LOOK in ZIL).
     /// - Returns: `true` if the action produced a description (prevents default description).
     public var lookAction: ((Room) -> Bool)?
+
+    /// Creates a new game object with name, description and optional location.
+    ///
+    /// - Parameters:
+    ///   - name: The name of the object.
+    ///   - description: The description of the object.
+    ///   - location: The location of the object (optional).
+    ///   - flags: Variadic list of flags to set on the object.
+    ///   - synonyms: Variadic list of synonyms for the object.
+    public init(
+        name: String,
+        description: String,
+        location: GameObject? = nil,
+        flags: Flag...,
+        synonyms: String...
+    ) {
+        super.init(
+            name: name,
+            description: description,
+            location: location,
+            type: .room,
+            flags: flags,
+            synonyms: synonyms
+        )
+    }
 
     /// Executes the begin-command action for this room.
     /// - Parameter command: The command to process.
@@ -144,8 +148,33 @@ public class Room: GameObject {
     /// Checks if this room is currently lit.
     ///
     /// - Returns: true if the room is lit, false otherwise.
-    override public func isLit() -> Bool {
-        world?.isRoomLit(self) ?? super.isLit()
+    public func isLit() -> Bool {
+        world?.isRoomLit(self) ?? super.isLightSource()
+    }
+}
+
+// MARK: - ActionPhase
+
+extension Room {
+    /// Defines the possible action phases for room-specific behavior.
+    public enum ActionPhase {
+        /// Beginning of turn, before command processing (M-BEG in ZIL).
+        case beginTurn
+
+        /// End of turn (M-END in ZIL).
+        case endTurn
+
+        /// When a player enters this room (M-ENTER in ZIL).
+        case enter
+
+        /// When important room details should be shown even in brief mode (M-FLASH in ZIL).
+        case flash
+
+        /// When looking at the room (M-LOOK in ZIL).
+        case look
+
+        /// When a specific command is being processed.
+        case command(Command)
     }
 }
 

@@ -23,16 +23,17 @@ public class GameObject {
     /// Alternative words that can be used to refer to this object.
     public private(set) var synonyms: Set<String>
 
+    /// The game object type.
+    public private(set) var type: GameObjectType
+
     /// The maximum number of objects this object can contain.
     public private(set) var capacity: Int?
 
     /// A dictionary storing dynamic state values.
     var stateValues = [String: Any]()
-    
+
     /// The world in which the object exists.
     public private(set) weak var world: GameWorld?
-
-    // MARK: - Initialization
 
     /// Creates a new game object with name, description and optional location.
     ///
@@ -40,12 +41,14 @@ public class GameObject {
     ///   - name: The name of the object.
     ///   - description: The description of the object.
     ///   - location: The location of the object (optional).
+    ///   - type: The object's type.
     ///   - flags: Variadic list of flags to set on the object.
     ///   - synonyms: Variadic list of synonyms for the object.
     public init(
         name: String,
         description: String,
         location: GameObject? = nil,
+        type: GameObjectType = .object,
         flags: Flag...,
         synonyms: String...
     ) {
@@ -54,6 +57,28 @@ public class GameObject {
         self.location = nil
         self.flags = Set(flags)
         self.synonyms = Set(synonyms)
+        self.type = type
+
+        if let location {
+            moveTo(location)
+        }
+    }
+
+    /// An internal `GameObject` initializer used by subclasses.
+    init(
+        name: String,
+        description: String,
+        location: GameObject? = nil,
+        type: GameObjectType,
+        flags: [Flag],
+        synonyms: [String]
+    ) {
+        self.name = name
+        self.description = description
+        self.location = nil
+        self.flags = Set(flags)
+        self.synonyms = Set(synonyms)
+        self.type = type
 
         if let location {
             moveTo(location)
@@ -61,12 +86,16 @@ public class GameObject {
     }
 
     /// Sets the world in which the object exists.
-    public func setWorld(to world: GameWorld) {
+    ///
+    /// - Parameter world: The world in which the object exists.
+    func setWorld(to world: GameWorld) {
         self.world = world
     }
+}
 
-    // MARK: - Core Functions
+// MARK: - Core Functions
 
+extension GameObject {
     /// Attempts to add an object to this container.
     ///
     /// - Parameter obj: The object to add to this container.
@@ -101,10 +130,10 @@ public class GameObject {
         return false
     }
 
-    /// Checks whether the room is currently lit.
+    /// Checks whether the object is providing light.
     ///
-    /// - Returns: Whether the room is currently lit.
-    public func isLit() -> Bool {
+    /// - Returns: Whether the object is providing light.
+    public func isLightSource() -> Bool {
         hasFlags(.isLightSource, .isOn) || hasFlag(.isNaturallyLit)
     }
 
@@ -146,13 +175,25 @@ public class GameObject {
     public func removeAll() {
         contents.removeAll()
     }
-
+    
+    /// Sets the object's capacity.
+    ///
+    /// - Parameter capacity: The object's capacity.
     public func setCapacity(to capacity: Int?) {
         self.capacity = capacity
     }
 
-    // MARK: - Flag Operations
+    /// Sets the object's type.
+    ///
+    /// - Parameter type: The object's type.
+    func setType(to type: GameObjectType) {
+        self.type = type
+    }
+}
 
+// MARK: - Flag Operations
+
+extension GameObject {
     /// Checks whether the object has a specific flag.
     ///
     /// - Parameter flag: The flag to check for.
@@ -200,9 +241,11 @@ public class GameObject {
     public func clearFlag(_ flag: Flag) {
         flags.remove(flag)
     }
+}
 
-    // MARK: - Global Object Operations
+// MARK: - Global Object Operations
 
+extension GameObject {
     /// Checks if this object is a global object.
     ///
     /// - Returns: True if this is a global object.
@@ -258,9 +301,11 @@ public class GameObject {
 //    public func findWorld() -> GameWorld? {
 //        findPlayer()?.world
 //    }
+}
 
-    // MARK: - State Management
+// MARK: - State Management
 
+extension GameObject {
     /// Set a state value for this object.
     ///
     /// - Parameters:
@@ -301,9 +346,11 @@ public class GameObject {
     public func hasProperty(_ propertyName: String) -> Bool {
         stateValues[propertyName] != nil
     }
+}
 
-    // MARK: - Command Handling
+// MARK: - Command Handling
 
+extension GameObject {
     /// Process a command against this game object, using its command handler if available.
     ///
     /// - Parameter command: The command to process.
@@ -420,9 +467,11 @@ public class GameObject {
 
         setCommandHandler(compositHandler)
     }
+}
 
-    // MARK: - Dynamic Member Lookup
+// MARK: - Dynamic Member Lookup
 
+extension GameObject {
     /// Dynamic member lookup subscript for getting and setting state values with nice syntax.
     /// Always returns an optional value for safety.
     ///
@@ -451,9 +500,11 @@ public class GameObject {
     public subscript(dynamicMember key: String) -> PropertyExistenceChecker {
         PropertyExistenceChecker(object: self, key: key)
     }
+}
 
-    // MARK: - Synonym Management
+// MARK: - Synonym Management
 
+extension GameObject {
     /// Adds a new synonym for this object.
     /// - Parameter synonym: The synonym to add.
     public func addSynonym(_ synonym: String) {
@@ -516,10 +567,6 @@ public struct PropertyExistenceChecker {
         object.stateValues[key] != nil
     }
 }
-
-// MARK: - String Constants
-
-
 
 // MARK: - CustomDebugStringConvertible
 
