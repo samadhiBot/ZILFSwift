@@ -82,13 +82,14 @@ struct WorldBuilder {
         closet.exits[.south] = study
 
         // Place objects in their initial locations
-        createFoyerObjects(in: world)
         createBarObjects(in: world)
         createCloakroomObjects(in: world)
-        createHallwayObjects(in: world)
-        createStudyObjects(in: world)
         createClosetObjects(in: world)
+        createFoyerObjects(in: world)
         createGlobalObjects(in: world)
+        createHallwayObjects(in: world)
+        createPlayerInventory(in: world)
+        createStudyObjects(in: world)
     }
 }
 
@@ -666,7 +667,7 @@ extension WorldBuilder {
     /// Creates the player's initial inventory.
     ///
     /// - Parameter world: The game world.
-    private func configurePlayerInventory(in world: GameWorld) {
+    private func createPlayerInventory(in world: GameWorld) {
         // Cloak
         let cloak = GameObject(
             name: "cloak",

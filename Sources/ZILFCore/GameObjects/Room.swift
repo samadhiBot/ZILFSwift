@@ -148,3 +148,56 @@ public class Room: GameObject {
         world?.isRoomLit(self) ?? super.isLit()
     }
 }
+
+// MARK: Local-global objects
+
+public extension Room {
+    /// Make a local-global object accessible from this room.
+    ///
+    /// - Parameter object: The local-global object.
+    func addLocalGlobal(_ object: GameObject) {
+        // Make sure the object is registered as a local-global
+        let objectType: String? = object.getState(forKey: .globalObjectType)
+
+        if objectType == nil {
+            // Register it as a local-global if not already registered
+            let world: GameWorld? = getState(forKey: "world")
+            if let world {
+                world.registerGlobalObject(object, isLocalGlobal: true)
+            }
+        } else if objectType != String.localGlobalObject {
+            // Cannot add a global object as a local-global
+            return
+        }
+
+        // Add this room to the object's accessible rooms
+        var accessibleRooms: [Room] = object.getState(forKey: "accessibleRooms") ?? []
+
+        // Check if this room is already in the list
+        if !accessibleRooms.contains(where: { $0 === self }) {
+            accessibleRooms.append(self)
+            object.setState(accessibleRooms, forKey: "accessibleRooms")
+        }
+    }
+
+    /// Remove a local-global object's accessibility from this room.
+    ///
+    /// - Parameter object: The local-global object.
+    func removeLocalGlobal(_ object: GameObject) {
+        var accessibleRooms: [Room] = object.getState(forKey: "accessibleRooms") ?? []
+
+        // Filter out this room
+        accessibleRooms = accessibleRooms.filter { $0 !== self }
+        object.setState(accessibleRooms, forKey: "accessibleRooms")
+    }
+
+    /// Get all local-global objects accessible from this room.
+    ///
+    /// - Returns: Array of local-global objects accessible from this room.
+    func getAccessibleLocalGlobals() -> [GameObject] {
+        world?.getGlobalObjects(localGlobal: true).filter { object in
+            let accessibleRooms: [Room]? = object.getState(forKey: "accessibleRooms")
+            return accessibleRooms?.contains(self) ?? false
+        } ?? []
+    }
+}

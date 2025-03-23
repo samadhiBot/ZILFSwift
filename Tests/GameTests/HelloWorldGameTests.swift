@@ -47,11 +47,11 @@ struct HelloWorldGameTests {
         #expect(vaultRoom.find(specialExit: .down)?.destination === mainCavern)
 
         // Verify objects
-        let lantern = try world.find(object: "lantern")
-        let coin = try world.find(object: "gold coin")
-        let chest = try world.find(object: "treasure chest")
-        let amulet = try world.find(object: "golden amulet")
-        let ancientKey = try world.find(object: "ancient key")
+        let lantern = try world.find("lantern")
+        let coin = try world.find("gold coin")
+        let chest = try world.find("treasure chest")
+        let amulet = try world.find("golden amulet")
+        let ancientKey = try world.find("ancient key")
 
         // Verify object locations
         #expect(lantern.location === entrance)
@@ -115,7 +115,7 @@ struct HelloWorldGameTests {
             """)
 
         // Test taking the lantern
-        let lantern = try world.find(object: "lantern" )
+        let lantern = try world.find("lantern" )
         engine.executeCommand(.take(lantern))
         expectNoDifference(harness.flush(), "Taken.")
         #expect(player.inventory.contains(lantern))
@@ -139,7 +139,7 @@ struct HelloWorldGameTests {
             """)
 
         // Test taking the coin
-        let coin = try world.find(object: "gold coin" )
+        let coin = try world.find("gold coin" )
         engine.executeCommand(.take(coin))
         #expect(player.inventory.contains { $0.name == "gold coin" })
         expectNoDifference(harness.flush(), "Taken.")
@@ -169,7 +169,7 @@ struct HelloWorldGameTests {
             """)
 
         // Test examining the chest
-        let chest = try world.find(object: "treasure chest" )
+        let chest = try world.find("treasure chest" )
         engine.executeCommand(.examine(chest))
         expectNoDifference(harness.flush(), "An ornate wooden chest with intricate carvings.")
 
@@ -220,7 +220,7 @@ struct HelloWorldGameTests {
         }
 
         // Test examine command
-        let lantern = try world.find(object: "lantern")
+        let lantern = try world.find("lantern")
         if case let .examine(obj, _) = parser.parse("examine lantern", in: world) {
             #expect(obj === lantern)
         } else {
@@ -361,7 +361,7 @@ struct HelloWorldGameTests {
 
 
         // Get the amulet directly
-        let amulet = try world.find(object: "golden amulet")
+        let amulet = try world.find("golden amulet")
         amulet.moveTo(player)
 
         // Check inventory has the amulet
@@ -411,7 +411,7 @@ struct HelloWorldGameTests {
 //            """)
 //
 //        // Get the dagger from the main cavern
-//        let dagger = try world.find(object: "dagger")
+//        let dagger = try world.find("dagger")
 //        engine.executeCommand(.take(dagger))
 //        expectNoDifference(harness.flush(), """
 //            Taken.
@@ -442,7 +442,7 @@ struct HelloWorldGameTests {
 //        // So let's move on to the next steps
 //
 //        // Break open the locked box using the dagger
-//        let lockedBox = try world.find(object: "locked box")
+//        let lockedBox = try world.find("locked box")
 //        engine.executeCommand(.attack(lockedBox, with: dagger))
 //        let _ = harness.flush() // The output is capture by the handler already
 //
@@ -467,7 +467,7 @@ struct HelloWorldGameTests {
 //        #expect(lookOutput.contains("symbols") || lookOutput.contains("chamber"))
 //
 //        // Test leaving the secret chamber (north exit is locked, needs the ancient key)
-//        let ancientKey = try world.find(object: "ancient key")
+//        let ancientKey = try world.find("ancient key")
 //        ancientKey.moveTo(player)
 //
 //        // This should take us to the Ancient Vault or back to Main Cavern via a chute

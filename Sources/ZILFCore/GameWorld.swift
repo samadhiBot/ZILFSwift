@@ -155,11 +155,14 @@ extension GameWorld {
         case roomNotFound(String)
     }
 
-    public func find(object: String) throws -> GameObject {
-        guard let object = objects.first(where: { $0.name == object }) else {
-            throw NotFound.objectNotFound(object)
+    public func find(_ object: String) throws -> GameObject {
+        if let object = objects.first(where: { $0.name == object }) {
+            return object
         }
-        return object
+        if let globalObject = globalObjects.first(where: { $0.name == object }) {
+            return globalObject
+        }
+        throw NotFound.objectNotFound(object)
     }
 
     /// Helper function to get a room by name from the world
@@ -168,5 +171,71 @@ extension GameWorld {
             throw NotFound.roomNotFound(room)
         }
         return room
+    }
+}
+
+// MARK: - Global objects
+
+public extension GameWorld {
+    /// Register an object as a global object.
+    ///
+    /// - Parameters:
+    ///   - object: The object to register as global.
+    ///   - isLocalGlobal: Whether this is a local-global (false = global).
+    func registerGlobalObject(_ object: GameObject, isLocalGlobal: Bool = false) {
+        // First make sure it's not already registered
+        guard !globalObjects.contains(where: { $0 === object }) else {
+            return
+        }
+
+        // Add to global objects list
+        register(object, .global)
+
+        // Mark the object with its global type
+        let typeValue = isLocalGlobal ? String.localGlobalObject : String.globalObject
+        object.setState(typeValue, forKey: String.globalObjectType)
+    }
+
+    /// Get all global objects of a specific type.
+    ///
+    /// - Parameter localGlobal: Whether to get local-globals (nil = all global types).
+    /// - Returns: Array of global objects of the specified type.
+    func getGlobalObjects(localGlobal: Bool? = nil) -> [GameObject] {
+        globalObjects.filter { object in
+            let objectType: String? = object.getState(forKey: .globalObjectType)
+            if let objectType {
+                if let isLocalGlobal = localGlobal {
+                    let targetType = isLocalGlobal ? String.localGlobalObject : String.globalObject
+                    return objectType == targetType
+                }
+                return true
+            }
+            return false
+        }
+    }
+
+    /// Check if a global object is accessible in a specific room.
+    ///
+    /// - Parameters:
+    ///   - object: The object to check.
+    ///   - room: The room to check.
+    /// - Returns: True if the object is accessible in this room.
+    func isGlobalObjectAccessible(_ object: GameObject, in room: Room) -> Bool {
+        // Get the object's global type
+        let objectType: String? = object.getState(forKey: .globalObjectType)
+        guard let objectType = objectType else {
+            return false
+        }
+
+        if objectType == String.globalObject {
+            // Global objects are accessible from anywhere
+            return true
+        } else if objectType == String.localGlobalObject {
+            // Local-global objects are only accessible from rooms that list them
+            let accessibleRooms: [Room]? = object.getState(forKey: "accessibleRooms")
+            return accessibleRooms?.contains(room) ?? false
+        }
+
+        return false
     }
 }

@@ -267,6 +267,7 @@ public class GameObject {
     ///   - value: Value to store.
     ///   - key: Key to store it under.
     func setState<T>(_ value: T, forKey key: String) {
+        print("🎾 setState \(key): \(value)")
         stateValues[key] = value
     }
 
@@ -442,6 +443,7 @@ public class GameObject {
     }
 
     /// Provides access to a property existence check with the .isSet suffix.
+    ///
     /// Example: object.someProperty.isSet will return true if someProperty exists.
     ///
     /// - Parameter key: The property name to check.
@@ -479,6 +481,8 @@ public class GameObject {
                synonyms.contains { $0.lowercased() == word.lowercased() }
     }
 }
+
+// MARK: - PropertyExistenceChecker
 
 /// Helper class to check if a property exists through the .isSet property.
 ///
@@ -527,137 +531,11 @@ public extension String {
     static let localGlobalObject = "local-global"
 }
 
-// MARK: - GameWorld Extensions
-
-/// Global objects extension for GameWorld.
-public extension GameWorld {
-    /// Register an object as a global object.
-    ///
-    /// - Parameters:
-    ///   - object: The object to register as global.
-    ///   - isLocalGlobal: Whether this is a local-global (false = global).
-    func registerGlobalObject(_ object: GameObject, isLocalGlobal: Bool = false) {
-        // First make sure it's not already registered
-        guard !globalObjects.contains(where: { $0 === object }) else {
-            return
-        }
-
-        // Add to global objects list
-        register(object, .global)
-
-        // Mark the object with its global type
-        let typeValue = isLocalGlobal ? String.localGlobalObject : String.globalObject
-        object.setState(typeValue, forKey: String.globalObjectType)
-    }
-
-    /// Get all global objects of a specific type.
-    ///
-    /// - Parameter localGlobal: Whether to get local-globals (nil = all global types).
-    /// - Returns: Array of global objects of the specified type.
-    func getGlobalObjects(localGlobal: Bool? = nil) -> [GameObject] {
-        globalObjects.filter { object in
-            let objectType: String? = object.getState(forKey: .globalObjectType)
-            if let objectType {
-                if let isLocalGlobal = localGlobal {
-                    let targetType = isLocalGlobal ? String.localGlobalObject : String.globalObject
-                    return objectType == targetType
-                }
-                return true
-            }
-            return false
-        }
-    }
-
-    /// Check if a global object is accessible in a specific room.
-    ///
-    /// - Parameters:
-    ///   - object: The object to check.
-    ///   - room: The room to check.
-    /// - Returns: True if the object is accessible in this room.
-    func isGlobalObjectAccessible(_ object: GameObject, in room: Room) -> Bool {
-        // Get the object's global type
-        let objectType: String? = object.getState(forKey: .globalObjectType)
-        guard let objectType = objectType else {
-            return false
-        }
-
-        if objectType == String.globalObject {
-            // Global objects are accessible from anywhere
-            return true
-        } else if objectType == String.localGlobalObject {
-            // Local-global objects are only accessible from rooms that list them
-            let accessibleRooms: [Room]? = object.getState(forKey: "accessibleRooms")
-            return accessibleRooms?.contains(room) ?? false
-        }
-
-        return false
-    }
-}
-
-// MARK: - Room Extensions
-
-/// Room extension for managing local-global objects.
-public extension Room {
-    /// Make a local-global object accessible from this room.
-    ///
-    /// - Parameter object: The local-global object.
-    func addLocalGlobal(_ object: GameObject) {
-        // Make sure the object is registered as a local-global
-        let objectType: String? = object.getState(forKey: .globalObjectType)
-
-        if objectType == nil {
-            // Register it as a local-global if not already registered
-            let world: GameWorld? = getState(forKey: "world")
-            if let world {
-                world.registerGlobalObject(object, isLocalGlobal: true)
-            }
-        } else if objectType != String.localGlobalObject {
-            // Cannot add a global object as a local-global
-            return
-        }
-
-        // Add this room to the object's accessible rooms
-        var accessibleRooms: [Room] = object.getState(forKey: "accessibleRooms") ?? []
-
-        // Check if this room is already in the list
-        if !accessibleRooms.contains(where: { $0 === self }) {
-            accessibleRooms.append(self)
-            object.setState(accessibleRooms, forKey: "accessibleRooms")
-        }
-    }
-
-    /// Remove a local-global object's accessibility from this room.
-    ///
-    /// - Parameter object: The local-global object.
-    func removeLocalGlobal(_ object: GameObject) {
-        var accessibleRooms: [Room] = object.getState(forKey: "accessibleRooms") ?? []
-
-        // Filter out this room
-        accessibleRooms = accessibleRooms.filter { $0 !== self }
-        object.setState(accessibleRooms, forKey: "accessibleRooms")
-    }
-
-    /// Get all local-global objects accessible from this room.
-    ///
-    /// - Returns: Array of local-global objects accessible from this room.
-    func getAccessibleLocalGlobals() -> [GameObject] {
-        let world: GameWorld? = getState(forKey: "world")
-        guard let world = world else {
-            return []
-        }
-
-        return world.getGlobalObjects(localGlobal: true).filter { object in
-            let accessibleRooms: [Room]? = object.getState(forKey: "accessibleRooms")
-            return accessibleRooms?.contains(self) ?? false
-        }
-    }
-}
-
 // MARK: - CustomDebugStringConvertible
 
 extension GameObject: CustomDebugStringConvertible {
     public var debugDescription: String {
-        name
+        name.capitalized
     }
 }
 
