@@ -40,64 +40,64 @@ struct CloakOfDarknessTests {
         #expect(!closet.hasFlag(.isNaturallyLit), "Closet should not be naturally lit")
 
         // Verify player's starting location
-        #expect(world.player.currentRoom === foyer, "Player should start in the foyer")
+        #expect(world.player.currentRoom == foyer, "Player should start in the foyer")
 
         // Verify room connections
-        #expect(foyer.find(exit: .south) === bar, "Foyer south exit should lead to bar")
-        #expect(foyer.find(exit: .west) === cloakroom, "Foyer west exit should lead to cloakroom")
-        #expect(bar.find(exit: .north) === foyer, "Bar north exit should lead to foyer")
-        #expect(cloakroom.find(exit: .east) === foyer, "Cloakroom east exit should lead to foyer")
-        #expect(hallway.find(exit: .east) === study, "Hallway east exit should lead to study")
-        #expect(study.find(exit: .west) === hallway, "Study west exit should lead to hallway")
-        #expect(study.find(exit: .north) === closet, "Study north exit should lead to closet")
-        #expect(closet.find(exit: .south) === study, "Closet south exit should lead to study")
+        #expect(foyer.find(exit: .south) == bar, "Foyer south exit should lead to bar")
+        #expect(foyer.find(exit: .west) == cloakroom, "Foyer west exit should lead to cloakroom")
+        #expect(bar.find(exit: .north) == foyer, "Bar north exit should lead to foyer")
+        #expect(cloakroom.find(exit: .east) == foyer, "Cloakroom east exit should lead to foyer")
+        #expect(hallway.find(exit: .east) == study, "Hallway east exit should lead to study")
+        #expect(study.find(exit: .west) == hallway, "Study west exit should lead to hallway")
+        #expect(study.find(exit: .north) == closet, "Study north exit should lead to closet")
+        #expect(closet.find(exit: .south) == study, "Closet south exit should lead to study")
 
         // Verify special exits
         // For the hallway to study path
         let westExitFromCloakroom = cloakroom.find(specialExit: .west)
         #expect(westExitFromCloakroom != nil, "There should be a special exit west from the cloakroom")
-        #expect(westExitFromCloakroom?.destination === hallway, "The special exit should lead to the hallway")
+        #expect(westExitFromCloakroom?.destination == hallway, "The special exit should lead to the hallway")
 
         // Verify objects in each location
 
         // Foyer objects
         let apple = try world.find("apple")
-        #expect(apple.location === foyer, "Apple should be in the foyer")
+        #expect(apple.location == foyer, "Apple should be in the foyer")
         #expect(apple.hasFlag(.isEdible), "Apple should be edible")
 
         let table = try world.find("table")
-        #expect(table.location === foyer, "Table should be in the foyer")
+        #expect(table.location == foyer, "Table should be in the foyer")
         #expect(table.hasFlag(.isContainer), "Table should be a container")
         #expect(table.hasFlag(.isSurface), "Table should be a surface")
 
         // Bar objects
         let message = try world.find("message")
-        #expect(message.location === bar, "Message should be in the bar")
+        #expect(message.location == bar, "Message should be in the bar")
 
         // Cloakroom objects
         let hook = try world.find("small brass hook")
-        #expect(hook.location === cloakroom, "Hook should be in the cloakroom")
+        #expect(hook.location == cloakroom, "Hook should be in the cloakroom")
         #expect(hook.hasFlag(.isContainer), "Hook should be a container")
         #expect(hook.hasFlag(.isSurface), "Hook should be a surface")
 
         // Study objects
         let lightSwitch = try world.find("light switch")
-        #expect(lightSwitch.location === study, "Light switch should be in the study")
+        #expect(lightSwitch.location == study, "Light switch should be in the study")
         #expect(lightSwitch.hasFlag(.isDevice), "Light switch should be a device")
 
         let flashlight = try world.find("flashlight")
-        #expect(flashlight.location === study, "Flashlight should be in the study")
+        #expect(flashlight.location == study, "Flashlight should be in the study")
         #expect(flashlight.hasFlag(.isLightSource), "Flashlight should be a light source")
         #expect(flashlight.hasFlag(.isTakable), "Flashlight should be takable")
 
         // Closet objects
         let broom = try world.find("broom")
-        #expect(broom.location === closet, "Broom should be in the closet")
+        #expect(broom.location == closet, "Broom should be in the closet")
         #expect(broom.hasFlag(.isTakable), "Broom should be takable")
 
         // Player inventory
         let cloak = try world.find("cloak")
-        #expect(cloak.location === world.player, "Cloak should be in player's inventory")
+        #expect(cloak.location == world.player, "Cloak should be in player's inventory")
         #expect(cloak.hasFlag(.isWearable), "Cloak should be wearable")
         #expect(cloak.hasFlag(.isBeingWorn), "Cloak should be worn initially")
         #expect(cloak.hasFlag(.isTakable), "Cloak should be takable")
@@ -128,7 +128,7 @@ struct CloakOfDarknessTests {
         // Verify complex objects with specialized behavior
         // Study furniture
         let stand = try world.find("stand")
-        #expect(stand.location === study, "Stand should be in the study")
+        #expect(stand.location == study, "Stand should be in the study")
         #expect(stand.capacity != nil, "Stand should have a capacity")
         #expect(stand.capacity == 15, "Stand should have capacity of 15")
 
@@ -162,7 +162,7 @@ struct CloakOfDarknessTests {
         #expect(cloakroom.hasFlag(.isNaturallyLit))
 
         // 1. Starting Location: Foyer of the Opera House
-        #expect(world.player.currentRoom === foyer)
+        #expect(world.player.currentRoom == foyer)
         expectNoDifference(harness.flush(), """
             The walls of this small room were clearly once lined with hooks, though now only \
             one remains. The exit is a door to the east, but there is also a cramped opening \
@@ -175,7 +175,7 @@ struct CloakOfDarknessTests {
 
         // 2. Go West to the Cloakroom
         engine.executeCommand(.move(.west))
-        #expect(world.player.currentRoom === cloakroom)
+        #expect(world.player.currentRoom == cloakroom)
 //        outputHandler.clear()
 
         #expect(
@@ -208,7 +208,7 @@ struct CloakOfDarknessTests {
         // 5. Go to the bar
         engine.executeCommand(.move(.east))
         engine.executeCommand(.move(.south))
-        #expect(world.player.currentRoom === bar)
+        #expect(world.player.currentRoom == bar)
 
         // The bar should be lit now that we're not wearing the cloak
         #expect(bar.hasFlag(.isNaturallyLit))
@@ -221,7 +221,7 @@ struct CloakOfDarknessTests {
 
         // 7. Go back to the foyer
         engine.executeCommand(.move(.north))
-        #expect(world.player.currentRoom === foyer)
+        #expect(world.player.currentRoom == foyer)
 //        outputHandler.clear()
 
         // 8. Verify we won the game
@@ -246,12 +246,12 @@ struct CloakOfDarknessTests {
         bar.setFlag(.isNaturallyLit)
 
         // 1. Start in the Foyer
-        #expect(world.player.currentRoom === foyer)
+        #expect(world.player.currentRoom == foyer)
 //        outputHandler.clear()
 
         // 2. Go directly to the bar while still wearing cloak
         engine.executeCommand(.move(.south))
-        #expect(world.player.currentRoom === bar)
+        #expect(world.player.currentRoom == bar)
 
         // Force the bar to be dark for testing
         bar.clearFlag(.isOn)
@@ -384,13 +384,13 @@ struct CloakOfDarknessTests {
 
         // Move to the cloakroom
         engine.executeCommand(.move(.west))
-        #expect(world.player.currentRoom === cloakroom)
+        #expect(world.player.currentRoom == cloakroom)
 //        outputHandler.clear()
 
         // Try to go west while wearing the cloak
         //outputHandler.output = "You cannot enter the opening to the west while in possession of your cloak."
 //        #expect(outputHandler.received("cannot"))
-        #expect(world.player.currentRoom === cloakroom)  // Should still be in cloakroom
+        #expect(world.player.currentRoom == cloakroom)  // Should still be in cloakroom
 
         // Now drop the cloak
         engine.executeCommand(.drop(cloak))

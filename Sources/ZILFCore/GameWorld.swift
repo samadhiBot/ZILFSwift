@@ -32,9 +32,10 @@ public class GameWorld {
     
     /// <#Description#>
     public enum RegistrationType {
+        case global
+        case localGlobal
         case object
         case room
-        case global
     }
     /// Adds an object to the game world.
     ///
@@ -44,6 +45,12 @@ public class GameWorld {
         _ type: RegistrationType? = nil
     ) {
         switch type {
+        case .global:
+            globalObjects.append(object)
+            object.setState(String.globalObject, forKey: .globalObject)
+        case .localGlobal:
+            globalObjects.append(object)
+            object.setState(String.localGlobalObject, forKey: .globalObject)
         case .object:
             objects.append(object)
         case .room:
@@ -52,8 +59,6 @@ public class GameWorld {
                 return
             }
             rooms.append(room)
-        case .global:
-            globalObjects.append(object)
         case nil:
             if let room = object as? Room {
                 rooms.append(room)
@@ -182,19 +187,19 @@ public extension GameWorld {
     /// - Parameters:
     ///   - object: The object to register as global.
     ///   - isLocalGlobal: Whether this is a local-global (false = global).
-    func registerGlobalObject(_ object: GameObject, isLocalGlobal: Bool = false) {
-        // First make sure it's not already registered
-        guard !globalObjects.contains(where: { $0 === object }) else {
-            return
-        }
-
-        // Add to global objects list
-        register(object, .global)
-
-        // Mark the object with its global type
-        let typeValue = isLocalGlobal ? String.localGlobalObject : String.globalObject
-        object.setState(typeValue, forKey: String.globalObjectType)
-    }
+//    func registerGlobalObject(_ object: GameObject, isLocalGlobal: Bool = false) {
+//        // First make sure it's not already registered
+//        guard !globalObjects.contains(where: { $0 === object }) else {
+//            return
+//        }
+//
+//        // Add to global objects list
+//        register(object, .global)
+//
+//        // Mark the object with its global type
+//        let typeValue = isLocalGlobal ? String.localGlobalObject : String.globalObject
+//        object.setState(typeValue, forKey: String.globalObjectType)
+//    }
 
     /// Get all global objects of a specific type.
     ///
@@ -205,7 +210,7 @@ public extension GameWorld {
             let objectType: String? = object.getState(forKey: .globalObjectType)
             if let objectType {
                 if let isLocalGlobal = localGlobal {
-                    let targetType = isLocalGlobal ? String.localGlobalObject : String.globalObject
+                    let targetType: String = isLocalGlobal ? .localGlobalObject : .globalObject
                     return objectType == targetType
                 }
                 return true
@@ -232,7 +237,7 @@ public extension GameWorld {
             return true
         } else if objectType == String.localGlobalObject {
             // Local-global objects are only accessible from rooms that list them
-            let accessibleRooms: [Room]? = object.getState(forKey: "accessibleRooms")
+            let accessibleRooms: [Room]? = object.getState(forKey: .accessibleRooms)
             return accessibleRooms?.contains(room) ?? false
         }
 

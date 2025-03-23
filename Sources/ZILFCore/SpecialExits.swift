@@ -67,7 +67,7 @@ extension Room {
         direction: Direction,
         specialExit: SpecialExit
     ) {
-        setState(specialExit, forKey: "specialExit_\(direction.rawValue)")
+        setState(specialExit, forKey: "specialExit\(direction.name)")
     }
 
     /// Get a special exit in the specified direction, if one exists.
@@ -75,7 +75,7 @@ extension Room {
     /// - Parameter direction: The direction of the exit.
     /// - Returns: The special exit, or nil if no special exit exists in that direction.
     public func find(specialExit direction: Direction) -> SpecialExit? {
-        getState(forKey: "specialExit_\(direction.rawValue)")
+        getState(forKey: "specialExit\(direction.name)")
     }
 
     /// Check if a special exit is available in the given direction.

@@ -63,6 +63,11 @@ extension Direction {
 }
 
 extension Direction {
+    /// <#Description#>
+    public var name: String {
+        rawValue.capitalized
+    }
+
     /// The direction's opposite, useful for two-way connections.
     public var opposite: Direction? {
         switch self {

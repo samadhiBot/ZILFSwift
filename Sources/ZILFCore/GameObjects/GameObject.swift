@@ -229,7 +229,7 @@ public class GameObject {
             return []
         }
 
-        let accessibleRooms: [Room]? = getState(forKey: "accessibleRooms")
+        let accessibleRooms: [Room]? = getState(forKey: .accessibleRooms)
         return accessibleRooms ?? []
     }
 
@@ -276,7 +276,7 @@ public class GameObject {
     /// - Parameter key: Key to retrieve.
     /// - Returns: The stored value, or nil if not found.
     func getState<T>(forKey key: String) -> T? {
-        return stateValues[key] as? T
+        stateValues[key] as? T
     }
 
     /// Remove a state value for this object.
@@ -519,17 +519,7 @@ public struct PropertyExistenceChecker {
 
 // MARK: - String Constants
 
-/// String constants for global object types.
-public extension String {
-    /// Global object type accessible from anywhere.
-    static let globalObjectType = "global-object-type"
 
-    /// Global object type value for global objects.
-    static let globalObject = "global"
-
-    /// Global object type value for local-global objects.
-    static let localGlobalObject = "local-global"
-}
 
 // MARK: - CustomDebugStringConvertible
 
