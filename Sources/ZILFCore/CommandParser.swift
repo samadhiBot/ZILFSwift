@@ -27,30 +27,28 @@ struct CommandParser {
         in world: GameWorld
     ) -> Command {
         // Normalize input
-        let normalizedInput = input.lowercased().trimmingCharacters(
-            in: .whitespacesAndNewlines
-        )
+        let normalizedInput = input
+            .lowercased()
+            .trimmingCharacters(in: .whitespacesAndNewlines)
 
-        // Handle empty input
-        if normalizedInput.isEmpty {
-            return .unknown("No command given")
-        }
+//        // Handle empty input
+//        if normalizedInput.isEmpty {
+//            return .unknown("No command given")
+//        }
 
         // Split into words
-        let words = normalizedInput.components(
-            separatedBy: .whitespacesAndNewlines
-        )
+        let words = normalizedInput
+            .components(separatedBy: .whitespacesAndNewlines)
             .filter { !$0.isEmpty }
 
         // Early return if no words
-        guard !words.isEmpty else {
+        if words.isEmpty {
             return .unknown("No command given")
         }
 
         // 1. Handle single-word commands first (these are common and simple)
         if words.count == 1 {
             return parseSingleWordCommand(words[0])
-
         }
 
         // 2. Process natural language
@@ -60,7 +58,8 @@ struct CommandParser {
 
         // Handle different verb patterns
         switch verb {
-            // MARK: Attack
+
+        // MARK: Attack
         case "attack", "kill", "destroy":
             return if words.count > 1 {
                 parseCommandWithTool(
@@ -72,7 +71,7 @@ struct CommandParser {
                 .attack(nil)
             }
 
-            // MARK: Close
+        // MARK: Close
         case "close", "shut":
             if words.count > 1 {
                 let objName = words.dropFirst().joined(separator: " ")
@@ -81,7 +80,7 @@ struct CommandParser {
             }
             return .close(nil)
 
-            // MARK: Drop
+        // MARK: Drop
         case "drop":
             if words.count > 1 {
                 let objName = words.dropFirst().joined(separator: " ")
@@ -90,7 +89,7 @@ struct CommandParser {
             }
             return .drop(nil)
 
-            // MARK: Examine
+        // MARK: Examine
         case "examine", "x", "inspect":
             return if words.count > 1 {
                 parseCommandWithTool(
@@ -102,7 +101,7 @@ struct CommandParser {
                 .examine(nil)
             }
 
-            // MARK: Look/Examine
+        // MARK: Look/Examine
         case "look":
             if words.count > 1 && words[1] == "at" && words.count > 2 {
                 return parseCommandWithTool(
@@ -117,14 +116,14 @@ struct CommandParser {
             }
             return .look
 
-            // MARK: Movement related
+        // MARK: Movement related
         case "move", "walk", "run", "go":
             if words.count >= 2, let direction = Direction(words[1]) {
                 return .move(direction)
             }
             return .move(nil)
 
-            // MARK: Open
+        // MARK: Open
         case "open":
             return if words.count > 1 {
                 parseCommandWithTool(
@@ -136,11 +135,11 @@ struct CommandParser {
                 .open(nil)
             }
 
-            // MARK: Put
+        // MARK: Put
         case "put", "place", "set":
             return parsePutCommand(words, in: world)
 
-            // MARK: Read
+        // MARK: Read
         case "read", "peruse":
             return if words.count > 1 {
                 parseCommandWithTool(
@@ -152,7 +151,7 @@ struct CommandParser {
                 .read(nil)
             }
 
-            // MARK: Take/Get
+        // MARK: Take/Get
         case "take", "get", "grab", "pick":
             if words.count > 1 {
                 // Check for "pick up" pattern
@@ -175,7 +174,7 @@ struct CommandParser {
             }
             return .take(nil)
 
-            // MARK: Turn on/off
+        // MARK: Turn on/off
         case "turn":
             // Natural language "turn on/off"
             if words.count > 2 {
@@ -213,7 +212,7 @@ struct CommandParser {
             }
             return .turnOff(nil)
 
-            // MARK: Flip/Switch
+        // MARK: Flip/Switch
         case "flip", "switch", "toggle":
             if words.count > 1 {
                 let objName = words.dropFirst().joined(separator: " ")
@@ -222,7 +221,7 @@ struct CommandParser {
             }
             return .flip(nil)
 
-            // MARK: Wear
+        // MARK: Wear
         case "wear", "don":
             if words.count > 1 {
                 let objName = words.dropFirst().joined(separator: " ")
@@ -231,7 +230,7 @@ struct CommandParser {
             }
             return .wear(nil)
 
-            // MARK: Unwear
+        // MARK: Unwear
         case "unwear", "remove", "doff", "take-off":
             if words.count > 1 {
                 let objName = words.dropFirst().joined(separator: " ")
@@ -240,7 +239,7 @@ struct CommandParser {
             }
             return .unwear(nil)
 
-            // MARK: Lock/Unlock
+        // MARK: Lock/Unlock
         case "lock":
             return if words.count > 1 {
                 parseCommandWithTool(
@@ -263,19 +262,19 @@ struct CommandParser {
                 .unlock(nil)
             }
 
-            // MARK: Give
+        // MARK: Give
         case "give":
             return parseGiveCommand(words, in: world)
 
-            // MARK: Throw
+        // MARK: Throw
         case "throw":
             return parseThrowCommand(words, in: world)
 
-            // MARK: Tell
+        // MARK: Tell
         case "tell":
             return parseTellCommand(words, in: world)
 
-            // MARK: More object
+        // MARK: More object
         case "burn", "light":
             return if words.count > 1 {
                 parseCommandWithTool(
@@ -287,6 +286,7 @@ struct CommandParser {
                 .burn(nil)
             }
 
+        // MARK: Climb
         case "climb":
             if words.count > 1 {
                 let objName = words.dropFirst().joined(separator: " ")
@@ -295,6 +295,7 @@ struct CommandParser {
             }
             return .climb(nil)
 
+        // MARK: Drink
         case "drink", "sip", "quaff":
             if words.count > 1 {
                 let objName = words.dropFirst().joined(separator: " ")
@@ -303,6 +304,7 @@ struct CommandParser {
             }
             return .drink(nil)
 
+        // MARK: Eat
         case "eat", "consume", "devour":
             if words.count > 1 {
                 let objName = words.dropFirst().joined(separator: " ")
@@ -311,6 +313,7 @@ struct CommandParser {
             }
             return .eat(nil)
 
+        // MARK: Empty
         case "empty":
             if words.count > 1 {
                 let objName = words.dropFirst().joined(separator: " ")
@@ -319,6 +322,7 @@ struct CommandParser {
             }
             return .empty(nil)
 
+        // MARK: Fill
         case "fill":
             if words.count > 1 {
                 let objName = words.dropFirst().joined(separator: " ")
@@ -327,6 +331,7 @@ struct CommandParser {
             }
             return .fill(nil)
 
+        // MARK: Pull
         case "pull":
             if words.count > 1 {
                 let objName = words.dropFirst().joined(separator: " ")
@@ -335,6 +340,7 @@ struct CommandParser {
             }
             return .pull(nil)
 
+        // MARK: Push
         case "push":
             if words.count > 1 {
                 let objName = words.dropFirst().joined(separator: " ")
@@ -343,6 +349,7 @@ struct CommandParser {
             }
             return .push(nil)
 
+        // MARK: Rub
         case "rub":
             return if words.count > 1 {
                 parseCommandWithTool(
@@ -354,6 +361,7 @@ struct CommandParser {
                 .rub(nil)
             }
 
+        // MARK: Search
         case "search":
             if words.count > 1 {
                 let objName = words.dropFirst().joined(separator: " ")
@@ -362,6 +370,7 @@ struct CommandParser {
             }
             return .search(nil)
 
+        // MARK: Smell
         case "smell":
             if words.count > 1 {
                 let objName = words.dropFirst().joined(separator: " ")
@@ -370,6 +379,7 @@ struct CommandParser {
             }
             return .smell(nil)
 
+        // MARK: Think
         case "think-about", "ponder", "contemplate":
             if words.count > 1 {
                 let objName = words.dropFirst().joined(separator: " ")
@@ -378,6 +388,7 @@ struct CommandParser {
             }
             return .thinkAbout(nil)
 
+        // MARK: Wake
         case "wake":
             if words.count > 1 {
                 let objName = words.dropFirst().joined(separator: " ")
@@ -386,6 +397,7 @@ struct CommandParser {
             }
             return .wake(nil)
 
+        // MARK: Wave
         case "wave":
             if words.count > 1 {
                 let objName = words.dropFirst().joined(separator: " ")
@@ -394,6 +406,7 @@ struct CommandParser {
             }
             return .wave(nil)
 
+        // MARK: Wave
         case "wave-hands":
             return .waveHands
 
@@ -718,7 +731,7 @@ extension CommandParser {
         in world: GameWorld
     ) -> GameObject? {
         // Clean the description by removing articles
-        let cleanDescription = removeArticles(from: description)
+        let cleanDescription = removeArticles(from: description).lowercased()
 
         // If the cleaned description is empty, return nil
         if cleanDescription.isEmpty {
@@ -726,38 +739,36 @@ extension CommandParser {
         }
 
         // If "it" is used, return the last mentioned object
-        if cleanDescription.lowercased() == "it" {
+        if cleanDescription == "it" {
             return world.lastMentionedObject
         }
 
         // Get objects in scope (inventory + visible in room)
-        let objectsInScope = getObjectsInScope(in: world)
+        let objectsInScope = world.player.objectsInScope
 
         // Try exact match first (checking both primary name and synonyms)
-        for obj in objectsInScope {
-            if obj.matchesName(cleanDescription) {
-                return obj
-            }
+        for obj in objectsInScope where obj.matchesName(cleanDescription) {
+            return obj
         }
 
-        // Try partial match if contains all words in sequence
-        for obj in objectsInScope {
-            let objNameLower = obj.name.lowercased()
-            if objNameLower.contains(cleanDescription.lowercased()) {
-                return obj
-            }
-
-            // Also check synonyms for partial matches
-            for synonym in obj.synonyms {
-                if synonym.lowercased().contains(cleanDescription.lowercased()) {
-                    return obj
-                }
-            }
-        }
+//        // Try partial match if contains all words in sequence
+//        for obj in objectsInScope {
+//            let objNameLower = obj.name.lowercased()
+//            if objNameLower.contains(cleanDescription) {
+//                return obj
+//            }
+//
+//            // Also check synonyms for partial matches
+//            for synonym in obj.synonyms {
+//                if synonym.lowercased().contains(cleanDescription) {
+//                    return obj
+//                }
+//            }
+//        }
 
         // Try matching if all words in cleanDescription appear in the object name
-        let descriptionWords = cleanDescription.lowercased().components(
-            separatedBy: .whitespacesAndNewlines)
+        let descriptionWords = cleanDescription
+            .components(separatedBy: .whitespacesAndNewlines)
 
         outer: for obj in objectsInScope {
             let objName = obj.name.lowercased()
@@ -813,35 +824,35 @@ extension CommandParser {
     }
 
     /// Get all objects that are visible to the player
-    private func getObjectsInScope(in world: GameWorld) -> [GameObject] {
-        var objectsInScope: [GameObject] = []
-        let player = world.player
-        let currentRoom = player.currentRoom
-
-        // Add objects in player's inventory
-        objectsInScope.append(contentsOf: player.inventory)
-
-        // Add objects in the current room
-        if let room = currentRoom {
-            // Add objects directly in the room
-            for obj in room.contents where obj !== player {
-                objectsInScope.append(obj)
-
-                // Add objects in visible containers
-                if obj.hasFlags(.isContainer, .isOpen) || obj.hasFlag(.isTransparent) {
-                    objectsInScope.append(contentsOf: obj.contents)
-                }
-            }
-
-            // Add global objects accessible in this room
-            for globalObj in world.globalObjects
-            where world.isGlobalObjectAccessible(globalObj, in: room) {
-                objectsInScope.append(globalObj)
-            }
-        }
-
-        return objectsInScope
-    }
+//    private func getObjectsInScope(in world: GameWorld) -> [GameObject] {
+//        var objectsInScope: [GameObject] = []
+//        let player = world.player
+//        let currentRoom = player.currentRoom
+//
+//        // Add objects in player's inventory
+//        objectsInScope.append(contentsOf: player.inventory)
+//
+//        // Add objects in the current room
+//        if let room = currentRoom {
+//            // Add objects directly in the room
+//            for obj in room.contents where obj !== player {
+//                objectsInScope.append(obj)
+//
+//                // Add objects in visible containers
+//                if obj.hasFlags(.isContainer, .isOpen) || obj.hasFlag(.isTransparent) {
+//                    objectsInScope.append(contentsOf: obj.contents)
+//                }
+//            }
+//
+//            // Add global objects accessible in this room
+//            for globalObj in world.globalObjects
+//            where world.isGlobalObjectAccessible(globalObj, in: room) {
+//                objectsInScope.append(globalObj)
+//            }
+//        }
+//
+//        return objectsInScope
+//    }
 
     /// Removes articles like "the", "a", "an" from a phrase
     private func removeArticles(from phrase: String) -> String {

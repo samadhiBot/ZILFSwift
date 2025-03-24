@@ -2162,7 +2162,8 @@ extension GameEngine {
             }
 
             // Check if this is a global object accessible from the current room
-            if obj.isGlobalObject() && world.isGlobalObjectAccessible(obj, in: room) {
+//            if obj.isGlobalObject() && world.isGlobalObjectAccessible(obj, in: room) {
+            if obj.isAccessibleIn(room) {
                 return true
             }
         }

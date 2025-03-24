@@ -115,6 +115,14 @@ extension GameObject {
         return false
     }
 
+    public func isAccessibleIn(_ room: Room) -> Bool {
+        switch type {
+        case .global: true
+        case .localGlobal(let rooms): rooms.contains(room)
+        default: isIn(room)
+        }
+    }
+
     /// Checks if this object is inside another object, directly or indirectly.
     ///
     /// - Parameter obj: The object to check if this object is inside.
@@ -246,35 +254,37 @@ extension GameObject {
 // MARK: - Global Object Operations
 
 extension GameObject {
-    /// Checks if this object is a global object.
-    ///
-    /// - Returns: True if this is a global object.
-    public func isGlobalObject() -> Bool {
-        let objectType: String? = getState(forKey: .globalObjectType)
-        return objectType != nil
-    }
+//    /// Checks if this object is a global object.
+//    ///
+//    /// - Returns: True if this is a global object.
+//    public var isGlobal: Bool {
+//        switch type {
+//        case .global: true
+//        default: false
+//        }
+//    }
 
     /// Checks if this object is a global object of a specific type.
     ///
     /// - Parameter localGlobal: Whether to check for local-global (false = global).
     /// - Returns: True if this object is a global object of the specified type.
-    public func isGlobalObject(localGlobal: Bool) -> Bool {
-        let objectType: String? = getState(forKey: .globalObjectType)
-        let targetType = localGlobal ? String.localGlobalObject : String.globalObject
-        return objectType == targetType
-    }
+//    public func isGlobalObject(localGlobal: Bool) -> Bool {
+//        let objectType: String? = getState(forKey: .globalObjectType)
+//        let targetType = localGlobal ? String.localGlobalObject : String.globalObject
+//        return objectType == targetType
+//    }
 
     /// Get all rooms where this local-global object is accessible.
     ///
     /// - Returns: Array of rooms where this object is accessible.
-    public func getAccessibleRooms() -> [Room] {
-        guard isGlobalObject(localGlobal: true) else {
-            return []
-        }
-
-        let accessibleRooms: [Room]? = getState(forKey: .accessibleRooms)
-        return accessibleRooms ?? []
-    }
+//    public func getAccessibleRooms() -> [Room] {
+//        guard isGlobalObject(localGlobal: true) else {
+//            return []
+//        }
+//
+//        let accessibleRooms: [Room]? = getState(forKey: .accessibleRooms)
+//        return accessibleRooms ?? []
+//    }
 
     /// Find the player by traversing up the object graph.
     ///
@@ -519,17 +529,30 @@ extension GameObject {
     }
 
     /// Removes a synonym from this object.
+    ///
     /// - Parameter synonym: The synonym to remove.
     public func removeSynonym(_ synonym: String) {
         synonyms.remove(synonym)
     }
 
     /// Checks if a given word matches this object's name or any of its synonyms.
-    /// - Parameter word: The word to check.
+    ///
+    /// - Parameters:
+    ///   - word: The word to check.
+    ///   - partial: Whether to include partial matches.
     /// - Returns: Whether the word matches this object.
-    public func matchesName(_ word: String) -> Bool {
-        return name.lowercased() == word.lowercased() ||
-               synonyms.contains { $0.lowercased() == word.lowercased() }
+    public func matchesName(
+        _ word: String,
+        partial: Bool = false
+    ) -> Bool {
+        let nameLower = name.lowercased()
+        let wordLower = word.lowercased()
+        if nameLower == wordLower { return true }
+        if synonyms.contains(where: { $0.lowercased() == wordLower }) { return true }
+        if !partial { return false }
+        if nameLower.contains(wordLower) { return true }
+        if synonyms.contains(where: { $0.lowercased().contains(wordLower) }) { return true }
+        return false
     }
 }
 

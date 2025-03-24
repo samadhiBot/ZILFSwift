@@ -15,6 +15,7 @@ struct CommandParserTests {
             location: world.player.currentRoom,
             flags: .isContainer, .isOpen
         ) // Start opened
+        world.register(box)
 
         // Test basic close command
         if case let .close(obj) = parser.parse("close box", in: world) {

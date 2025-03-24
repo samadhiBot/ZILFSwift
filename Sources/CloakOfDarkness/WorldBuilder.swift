@@ -209,18 +209,18 @@ extension WorldBuilder {
         // Custom enter action for the cloakroom
         cloakroom.enterAction = { (room: Room) -> Bool in
             // Check if rug is a local-global in foyer
-            if let foyer = try? world.find(room: "Foyer of the Opera House" ),
-               let rug = world.globalObjects.first(where: { $0.name == "rug" })
-            {
-                if foyer.getAccessibleLocalGlobals().contains(where: { $0 === rug }) {
-                    world.output("""
-                        Did you know that the rug is a local-global object \
-                        in the Foyer and the Bar?
-                        """)
-                    return true
-                }
+            guard
+                let rug = try? world.find("rug"),
+                case let .localGlobal(rooms) = rug.type,
+                rooms.contains(foyer)
+            else {
+                return false
             }
-            return false
+            world.output("""
+                Did you know that the rug is a local-global object \
+                in the Foyer and the Bar?
+                """)
+            return true
         }
 
         // Handle the special exit west
@@ -599,9 +599,10 @@ extension WorldBuilder {
         // Ceiling with cobwebs
         let ceiling = GameObject(
             name: "ceiling",
-            description: "Nothing really noticeable about the ceiling."
+            description: "Nothing really noticeable about the ceiling.",
+            type: .global
         )
-        world.register(ceiling, .global)
+        world.register(ceiling)
 
         ceiling.setExamineHandler { obj in
             world.output("Nothing really noticeable about the ceiling.")
@@ -612,10 +613,11 @@ extension WorldBuilder {
         let darkness = GameObject(
             name: "darkness",
             description: "It's too dark to see anything.",
+            type: .global,
             flags: .omitArticle,
             synonyms: "dark"
         )
-        world.register(darkness, .global)
+        world.register(darkness)
 
         darkness.setCustomCommandHandler(verb: "think-about") { obj, objects in
             if objects.contains(where: { $0 === obj }) {
@@ -628,9 +630,9 @@ extension WorldBuilder {
         // Rug - as a local-global object
         let rug = GameObject(
             name: "rug",
-            description: "A tatty old rug."
+            description: "A tatty old rug.",
+            type: .localGlobal([bar, foyer])
         )
-
         rug.setCustomCommandHandler(verb: "put-on") { obj, objects in
             if objects.contains(where: { $0 === obj }) {
                 world.output("You don't want to place anything on that tatty rug.")
@@ -638,9 +640,6 @@ extension WorldBuilder {
             }
             return false
         }
-
-        foyer.addLocalGlobal(rug)
-        bar.addLocalGlobal(rug)
         world.register(rug)
 
         // Sign in hallway

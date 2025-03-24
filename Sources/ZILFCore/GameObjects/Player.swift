@@ -91,6 +91,23 @@ public class Player: GameObject {
         return true
     }
 
+    public var objectsInScope: [GameObject] {
+        world?.objects.filter {
+            switch $0.type {
+            case .global:
+                true
+            case .localGlobal(let rooms):
+                if let currentRoom { rooms.contains(currentRoom) } else { false }
+            case .object:
+                if let currentRoom { $0.isIn(currentRoom) } else { false }
+            default:
+                false
+            }
+        } ?? [] + inventory
+    }
+}
+
+extension Player {
     /// Sets the game engine for this player.
     /// - Parameter engine: The game engine to associate with this player.
     func setEngine(_ engine: GameEngine) {

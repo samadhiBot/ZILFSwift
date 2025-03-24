@@ -1,5 +1,5 @@
 /// <#Description#>
-public enum GameObjectType {
+public enum GameObjectType: Equatable {
     case global
     case localGlobal([Room])
     case object
