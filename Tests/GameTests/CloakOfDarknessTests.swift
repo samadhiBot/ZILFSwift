@@ -110,12 +110,12 @@ struct CloakOfDarknessTests {
 
         // Local-global objects
         let rug = try world.find("rug")
-        guard case .localGlobal(let rooms) = rug.type else {
+        guard case .localGlobal(let roomIDs) = rug.type else {
             throw TestFailure("Expected rug to be local-global")
         }
-        #expect(rooms.contains(foyer))
-        #expect(rooms.contains(bar))
-        #expect(!rooms.contains(cloakroom))
+        #expect(roomIDs.contains(foyer.id))
+        #expect(roomIDs.contains(bar.id))
+        #expect(!roomIDs.contains(cloakroom.id))
 //            foyer.getAccessibleLocalGlobals().contains { $0.name == "rug" },
 //                "Rug should be accessible from the foyer")
 //        #expect(bar.getAccessibleLocalGlobals().contains { $0.name == "rug" },

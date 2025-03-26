@@ -6,6 +6,7 @@ struct WorldBuilder {
     // MARK: Rooms
 
     let bar = Room(
+        id: "bar",
         name: "Foyer Bar",
         description: """
             The bar, much rougher than you'd have guessed after the opulence of the foyer \
@@ -89,7 +90,8 @@ struct WorldBuilder {
     )
 
     let cloak = GameObject(
-        name: "cloak",
+        id: "cloak",
+        name: "velvet cloak",
         description: """
             A handsome cloak, of velvet trimmed with satin, and slightly spattered \
             with raindrops. Its blackness is so deep that it almost seems to suck \
@@ -159,6 +161,7 @@ struct WorldBuilder {
     )
 
     let hook = GameObject(
+        id: "hook",
         name: "small brass hook",
         description: "A small brass hook mounted on the wall.",
         flags: .isContainer, .isSurface,
@@ -172,6 +175,7 @@ struct WorldBuilder {
     )
 
     let lightSwitch = GameObject(
+        id: "switch",
         name: "light switch",
         description: "An ordinary light switch.",
         flags: .isDevice,
@@ -198,7 +202,7 @@ struct WorldBuilder {
     let rug = GameObject(
         name: "rug",
         description: "A tatty old rug.",
-        type: .global // localGlobal([bar, foyer])
+        type: .localGlobal(["bar", "foyer"])
     )
 
     let safe = GameObject(
@@ -426,8 +430,8 @@ extension WorldBuilder {
             // Check if rug is a local-global in foyer
             guard
                 let rug = try? world.find("rug"),
-                case let .localGlobal(rooms) = rug.type,
-                rooms.contains(foyer)
+                case .localGlobal(let roomIDs) = rug.type,
+                roomIDs.contains(foyer.id)
             else {
                 return false
             }

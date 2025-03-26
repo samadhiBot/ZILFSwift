@@ -30,12 +30,14 @@ public class Room: GameObject {
     /// Creates a new game object with name, description and optional location.
     ///
     /// - Parameters:
+    ///   - id: The object's unique identifier.
     ///   - name: The name of the object.
     ///   - description: The description of the object.
     ///   - location: The location of the object (optional).
     ///   - flags: Variadic list of flags to set on the object.
     ///   - synonyms: Variadic list of synonyms for the object.
     public init(
+        id: GameObject.ID? = nil,
         name: String,
         description: String,
         location: GameObject? = nil,
@@ -43,6 +45,7 @@ public class Room: GameObject {
         synonyms: String...
     ) {
         super.init(
+            id: id,
             name: name,
             description: description,
             location: location,

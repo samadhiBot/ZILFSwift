@@ -1,11 +1,16 @@
 import Foundation
 
-/// Represents any object in the game world including rooms, items, and characters.
+/// Represents any object in the game world.
+///
+/// Items in the game world have type `GameObject`. `Room` and `Player` are subclasses.
 ///
 /// Provides functionality for object relationships, state management, and interactions.
 @dynamicMemberLookup
 public class GameObject {
     /// The object's primary identifier.
+    public let id: GameObject.ID
+
+    /// The object's name.
     public let name: String
 
     /// The descriptive text for this object.
@@ -24,7 +29,7 @@ public class GameObject {
     public private(set) var synonyms: Set<String>
 
     /// The game object type.
-    public private(set) var type: GameObjectType
+    public private(set) var type: GameObject.Category
 
     /// The maximum number of objects this object can contain.
     public private(set) var capacity: Int?
@@ -36,8 +41,9 @@ public class GameObject {
     public private(set) weak var world: GameWorld?
 
     /// Creates a new game object with name, description and optional location.
-    ///
+    /// 
     /// - Parameters:
+    ///   - id: The object's unique identifier.
     ///   - name: The name of the object.
     ///   - description: The description of the object.
     ///   - location: The location of the object (optional).
@@ -45,16 +51,18 @@ public class GameObject {
     ///   - flags: Variadic list of flags to set on the object.
     ///   - synonyms: Variadic list of synonyms for the object.
     public init(
+        id: GameObject.ID? = nil,
         name: String,
         description: String,
         location: GameObject? = nil,
-        type: GameObjectType = .object,
+        type: GameObject.Category = .object,
         flags: Flag...,
         synonyms: String...
     ) {
+        self.id = id ?? GameObject.ID(stringLiteral: name)
         self.name = name
         self.description = description
-        self.location = nil
+        self.location = location
         self.flags = Set(flags)
         self.synonyms = Set(synonyms)
         self.type = type
@@ -66,16 +74,18 @@ public class GameObject {
 
     /// An internal `GameObject` initializer used by subclasses.
     init(
+        id: GameObject.ID? = nil,
         name: String,
         description: String,
         location: GameObject? = nil,
-        type: GameObjectType,
+        type: GameObject.Category,
         flags: [Flag],
         synonyms: [String]
     ) {
+        self.id = id ?? GameObject.ID(stringLiteral: name)
         self.name = name
         self.description = description
-        self.location = nil
+        self.location = location
         self.flags = Set(flags)
         self.synonyms = Set(synonyms)
         self.type = type
@@ -114,11 +124,14 @@ extension GameObject {
         }
         return false
     }
-
-    public func isAccessibleIn(_ room: Room) -> Bool {
+    
+    /// <#Description#>
+    /// - Parameter room: <#room description#>
+    /// - Returns: <#description#>
+    public func isAccessible(in room: Room) -> Bool {
         switch type {
         case .global: true
-        case .localGlobal(let rooms): rooms.contains(room)
+        case .localGlobal(let roomIDs): roomIDs.contains(room.id)
         default: isIn(room)
         }
     }
@@ -194,7 +207,7 @@ extension GameObject {
     /// Sets the object's type.
     ///
     /// - Parameter type: The object's type.
-    func setType(to type: GameObjectType) {
+    func setType(to type: GameObject.Category) {
         self.type = type
     }
 }
