@@ -9,7 +9,7 @@ struct ToyGame: ZilfGame {
         self.output = output
     }
 
-    func createWorld() -> GameWorld {
+    func createWorld() throws -> GameWorld {
         // Create rooms
         let kitchen = Room(
             name: "Kitchen",
@@ -30,18 +30,18 @@ struct ToyGame: ZilfGame {
         kitchen.exits[.south] = livingRoom
         livingRoom.exits[.north] = kitchen
 
-        // Register rooms
-        gameWorld.register(kitchen)
-        gameWorld.register(livingRoom)
+        // Add rooms to world
+        try gameWorld.add(kitchen)
+        try gameWorld.add(livingRoom)
 
-        // Add objects
+        // Insert objects into world
         let apple = GameObject(
             name: "apple",
             description: "A shiny red apple.",
             location: kitchen,
             flags: .isTakable
         )
-        gameWorld.register(apple)
+        try gameWorld.insert(apple)
 
         return gameWorld
     }

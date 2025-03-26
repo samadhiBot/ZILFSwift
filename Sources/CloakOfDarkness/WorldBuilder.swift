@@ -54,7 +54,7 @@ struct WorldBuilder {
     )
 
     /// Builds the complete game world with all rooms and objects.
-    func buildWorld(_ world: GameWorld) {
+    func build(_ world: GameWorld) throws {
         // Create the rooms
         configureFoyer(in: world)
         configureBar(in: world)
@@ -64,12 +64,14 @@ struct WorldBuilder {
         configureCloset(in: world)
 
         // Register rooms with the world
-        world.register(foyer)
-        world.register(bar)
-        world.register(cloakroom)
-        world.register(hallToStudy)
-        world.register(study)
-        world.register(closet)
+        try world.add(
+            foyer,
+            bar,
+            cloakroom,
+            hallToStudy,
+            study,
+            closet
+        )
 
         // Connect rooms with exits
         foyer.exits[.south] = bar
@@ -82,14 +84,14 @@ struct WorldBuilder {
         closet.exits[.south] = study
 
         // Place objects in their initial locations
-        createBarObjects(in: world)
-        createCloakroomObjects(in: world)
-        createClosetObjects(in: world)
-        createFoyerObjects(in: world)
-        createGlobalObjects(in: world)
-        createHallwayObjects(in: world)
-        createPlayerInventory(in: world)
-        createStudyObjects(in: world)
+        try createBarObjects(in: world)
+        try createCloakroomObjects(in: world)
+        try createClosetObjects(in: world)
+        try createFoyerObjects(in: world)
+        try createGlobalObjects(in: world)
+        try createHallwayObjects(in: world)
+        try createPlayerInventory(in: world)
+        try createStudyObjects(in: world)
     }
 }
 
@@ -327,16 +329,18 @@ extension WorldBuilder {
     /// - Parameters:
     ///   - world: The game world.
     ///   - bar: The bar room.
-    private func createBarObjects(in world: GameWorld) {
+    private func createBarObjects(in world: GameWorld) throws {
         // Message
-        let message = GameObject(
-            name: "message",
-            description: "The message reads: \"No loitering in the bar without a drink.\"",
-            location: bar
+        let message = try world.insert(
+            GameObject(
+                name: "message",
+                description: "The message reads: \"No loitering in the bar without a drink.\"",
+                location: bar
+            )
         )
+
         message.firstDescription =
-        "There seems to be some sort of message scrawled in the sawdust on the floor."
-        world.register(message)
+            "There seems to be some sort of message scrawled in the sawdust on the floor."
 
         message.setExamineHandler { obj in
             let room = obj.location as? Room
@@ -372,15 +376,16 @@ extension WorldBuilder {
     /// - Parameters:
     ///   - world: The game world.
     ///   - closet: The closet room.
-    private func createClosetObjects(in world: GameWorld) {
+    private func createClosetObjects(in world: GameWorld) throws {
         // Create a broom in the closet
-        let broom = GameObject(
-            name: "broom",
-            description: "A plain wooden broom for sweeping.",
-            location: closet,
-            flags: .isTakable
+        let broom = try world.insert(
+            GameObject(
+                name: "broom",
+                description: "A plain wooden broom for sweeping.",
+                location: closet,
+                flags: .isTakable
+            )
         )
-        world.register(broom)
 
         broom.setExamineHandler { obj in
             world.output(
@@ -390,13 +395,14 @@ extension WorldBuilder {
         }
 
         // Create a dusty shelf
-        let shelf = GameObject(
-            name: "shelf",
-            description: "A narrow utility shelf.",
-            location: closet,
-            flags: .isContainer, .isSurface
+        let shelf = try world.insert(
+            GameObject(
+                name: "shelf",
+                description: "A narrow utility shelf.",
+                location: closet,
+                flags: .isContainer, .isSurface
+            )
         )
-        world.register(shelf)
 
         shelf.setExamineHandler { obj in
             world.output("A dusty wooden shelf attached to the wall.")
@@ -409,17 +415,19 @@ extension WorldBuilder {
     /// - Parameters:
     ///   - world: The game world.
     ///   - cloakroom: The cloakroom.
-    private func createCloakroomObjects(in world: GameWorld) {
+    private func createCloakroomObjects(in world: GameWorld) throws {
         // Hook
-        let hook = GameObject(
-            name: "small brass hook",
-            description: "A small brass hook mounted on the wall.",
-            location: cloakroom,
-            flags: .isContainer, .isSurface,
-            synonyms: "peg"
+        let hook = try world.insert(
+            GameObject(
+                name: "small brass hook",
+                description: "A small brass hook mounted on the wall.",
+                location: cloakroom,
+                flags: .isContainer, .isSurface,
+                synonyms: "peg"
+            )
         )
+
         hook.firstDescription = "A small brass hook is on the wall."
-        world.register(hook)
 
         hook.setExamineHandler { obj in
             world.output("Test: Normal examine replaced by a dequeue of the Table event.")
@@ -434,13 +442,15 @@ extension WorldBuilder {
     /// - Parameters:
     ///   - world: The game world.
     ///   - foyer: The foyer room.
-    private func createFoyerObjects(in world: GameWorld) {
+    private func createFoyerObjects(in world: GameWorld) throws {
         // Create an apple in the foyer
-        let apple = GameObject(
-            name: "apple",
-            description: "A shiny red apple.",
-            location: foyer,
-            flags: .isTakable, .isEdible, .beginsWithVowel
+        let apple = try world.insert(
+            GameObject(
+                name: "apple",
+                description: "A shiny red apple.",
+                location: foyer,
+                flags: .isTakable, .isEdible, .beginsWithVowel
+            )
         )
 
         apple.setExamineHandler { obj in
@@ -463,17 +473,16 @@ extension WorldBuilder {
             return true
         }
 
-        world.register(apple)
-
         // Table in the foyer
-        let table = GameObject(
-            name: "table",
-            description: "Tatty but functional.",
-            location: foyer,
-            flags: .isContainer, .isSurface,
-            synonyms: "furniture"
+        let table = try world.insert(
+            GameObject(
+                name: "table",
+                description: "Tatty but functional.",
+                location: foyer,
+                flags: .isContainer, .isSurface,
+                synonyms: "furniture"
+            )
         )
-        world.register(table)
 
         table.setExamineHandler { obj in
             world.output("Tatty but functional.")
@@ -498,22 +507,24 @@ extension WorldBuilder {
         }
 
         // Grapes on the table
-        let grapes = GameObject(
-            name: "grapes",
-            description: "A bunch of grapes.",
-            location: table,
-            flags: .isTakable, .isEdible, .isPlural, .omitArticle
+        let grapes = try world.insert(
+            GameObject(
+                name: "grapes",
+                description: "A bunch of grapes.",
+                location: table,
+                flags: .isTakable, .isEdible, .isPlural, .omitArticle
+            )
         )
-        world.register(grapes)
 
         // Playing card on the table
-        let card = GameObject(
-            name: "card",
-            description: "A playing card.",
-            location: table,
-            flags: .isTakable
+        let card = try world.insert(
+            GameObject(
+                name: "card",
+                description: "A playing card.",
+                location: table,
+                flags: .isTakable
+            )
         )
-        world.register(card)
 
         card.setExamineHandler { obj in
             // Pick a random description
@@ -523,13 +534,14 @@ extension WorldBuilder {
         }
 
         // Time cube
-        let cube = GameObject(
-            name: "cube",
-            description: "A mysterious cube.",
-            location: foyer,
-            flags: .isTakable
+        let cube = try world.insert(
+            GameObject(
+                name: "cube",
+                description: "A mysterious cube.",
+                location: foyer,
+                flags: .isTakable
+            )
         )
-        world.register(cube)
 
         cube.setExamineHandler { obj in
             world.output("As you inspected the cube you realized time around you speeds by.")
@@ -538,13 +550,14 @@ extension WorldBuilder {
         }
 
         // Changing painting
-        let painting = GameObject(
-            name: "painting",
-            description: "An unusual painting that seems to change.",
-            location: foyer,
-            synonyms: "picture", "art"
+        let painting = try world.insert(
+            GameObject(
+                name: "painting",
+                description: "An unusual painting that seems to change.",
+                location: foyer,
+                synonyms: "picture", "art"
+            )
         )
-        world.register(painting)
 
         painting.setExamineHandler { obj in
             // Pick a random description
@@ -570,13 +583,14 @@ extension WorldBuilder {
         }
 
         // Some grime on the floor
-        let grime = GameObject(
-            name: "grime",
-            description: "Just some dirty spots on the marble floor.",
-            location: foyer,
-            flags: .isTakable, .omitArticle
+        let grime = try world.insert(
+            GameObject(
+                name: "grime",
+                description: "Just some dirty spots on the marble floor.",
+                location: foyer,
+                flags: .isTakable, .omitArticle
+            )
         )
-        world.register(grime)
 
         grime.setExamineHandler { obj in
             world.output("A small but disgusting collection of crud.")
@@ -595,14 +609,15 @@ extension WorldBuilder {
     /// Creates global objects available throughout the game.
     ///
     /// - Parameter world: The game world.
-    private func createGlobalObjects(in world: GameWorld) {
+    private func createGlobalObjects(in world: GameWorld) throws {
         // Ceiling with cobwebs
-        let ceiling = GameObject(
-            name: "ceiling",
-            description: "Nothing really noticeable about the ceiling.",
-            type: .global
+        let ceiling = try world.insert(
+            GameObject(
+                name: "ceiling",
+                description: "Nothing really noticeable about the ceiling.",
+                type: .global
+            )
         )
-        world.register(ceiling)
 
         ceiling.setExamineHandler { obj in
             world.output("Nothing really noticeable about the ceiling.")
@@ -610,14 +625,15 @@ extension WorldBuilder {
         }
 
         // Darkness
-        let darkness = GameObject(
-            name: "darkness",
-            description: "It's too dark to see anything.",
-            type: .global,
-            flags: .omitArticle,
-            synonyms: "dark"
+        let darkness = try world.insert(
+            GameObject(
+                name: "darkness",
+                description: "It's too dark to see anything.",
+                type: .global,
+                flags: .omitArticle,
+                synonyms: "dark"
+            )
         )
-        world.register(darkness)
 
         darkness.setCustomCommandHandler(verb: "think-about") { obj, objects in
             if objects.contains(where: { $0 === obj }) {
@@ -628,11 +644,14 @@ extension WorldBuilder {
         }
 
         // Rug - as a local-global object
-        let rug = GameObject(
-            name: "rug",
-            description: "A tatty old rug.",
-            type: .localGlobal([bar, foyer])
+        let rug = try world.insert(
+            GameObject(
+                name: "rug",
+                description: "A tatty old rug.",
+                type: .localGlobal([bar, foyer])
+            )
         )
+
         rug.setCustomCommandHandler(verb: "put-on") { obj, objects in
             if objects.contains(where: { $0 === obj }) {
                 world.output("You don't want to place anything on that tatty rug.")
@@ -640,18 +659,20 @@ extension WorldBuilder {
             }
             return false
         }
-        world.register(rug)
 
         // Sign in hallway
-        let sign = GameObject(
-            name: "sign",
-            description: "It's a block of grey wood bearing hastily-painted words.",
-            location: hallToStudy,
-            flags: .isReadable
+        let sign = try world.insert(
+            GameObject(
+                name: "sign",
+                description: "It's a block of grey wood bearing hastily-painted words.",
+                location: hallToStudy,
+                flags: .isReadable
+            )
         )
+
         sign.firstDescription = "A crude wooden sign hangs above the western exit."
+        
         sign.text = "It reads, 'Welcome to the Study'"
-        world.register(sign)
     }
 
     /// Creates objects for the hallway to study.
@@ -659,22 +680,23 @@ extension WorldBuilder {
     /// - Parameters:
     ///   - world: The game world.
     ///   - hallToStudy: The hallway to study.
-    private func createHallwayObjects(in world: GameWorld) {
+    private func createHallwayObjects(in world: GameWorld) throws {
         // Sign is created in globalObjects since it's referenced there
     }
 
     /// Creates the player's initial inventory.
     ///
     /// - Parameter world: The game world.
-    private func createPlayerInventory(in world: GameWorld) {
+    private func createPlayerInventory(in world: GameWorld) throws {
         // Cloak
-        let cloak = GameObject(
-            name: "cloak",
-            description: "A handsome cloak, of velvet trimmed with satin, and slightly spattered with raindrops. Its blackness is so deep that it almost seems to suck light from the room.",
-            location: world.player,
-            flags: .isTakable, .isWearable, .isBeingWorn
+        let cloak = try world.insert(
+            GameObject(
+                name: "cloak",
+                description: "A handsome cloak, of velvet trimmed with satin, and slightly spattered with raindrops. Its blackness is so deep that it almost seems to suck light from the room.",
+                location: world.player,
+                flags: .isTakable, .isWearable, .isBeingWorn
+            )
         )
-        world.register(cloak)
 
         cloak.setExamineHandler { obj in
             world.output("The cloak is unnaturally dark.")
@@ -687,16 +709,17 @@ extension WorldBuilder {
     /// - Parameters:
     ///   - world: The game world.
     ///   - study: The study room.
-    private func createStudyObjects(in world: GameWorld) {
+    private func createStudyObjects(in world: GameWorld) throws {
         // Light switch
-        let lightSwitch = GameObject(
-            name: "light switch",
-            description: "An ordinary light switch.",
-            location: study,
-            flags: .isDevice,
-            synonyms: "switch"
+        let lightSwitch = try world.insert(
+            GameObject(
+                name: "light switch",
+                description: "An ordinary light switch.",
+                location: study,
+                flags: .isDevice,
+                synonyms: "switch"
+            )
         )
-        world.register(lightSwitch)
 
         lightSwitch.setExamineHandler { obj in
             world.output("An ordinary light switch set in the wall to the left of the entrance to the closet. It is currently " +
@@ -783,14 +806,15 @@ extension WorldBuilder {
         }
 
         // Flashlight
-        let flashlight = GameObject(
-            name: "flashlight",
-            description: "A cheap plastic flashlight.",
-            location: study,
-            flags: .isDevice, .isTakable, .isLightSource,
-            synonyms: "torch", "light"
+        let flashlight = try world.insert(
+            GameObject(
+                name: "flashlight",
+                description: "A cheap plastic flashlight.",
+                location: study,
+                flags: .isDevice, .isTakable, .isLightSource,
+                synonyms: "torch", "light"
+            )
         )
-        world.register(flashlight)
 
         flashlight.setExamineHandler { obj in
             world.output("A cheap plastic flashlight. It is currently " +
@@ -891,120 +915,139 @@ extension WorldBuilder {
         }
 
         // Stand
-        let stand = GameObject(
-            name: "stand",
-            description: "A worn wooden stand.",
-            location: study,
-            flags: .isContainer, .isSurface
+        let stand = try world.insert(
+            GameObject(
+                name: "stand",
+                description: "A worn wooden stand.",
+                location: study,
+                flags: .isContainer, .isSurface
+            )
         )
+
         stand.setCapacity(to: 15)
-        world.register(stand)
 
         // Book
-        let book = GameObject(
-            name: "book",
-            description: "A tattered hard-cover book with a red binding.",
-            location: stand,
-            flags: .isTakable, .isReadable,
-            synonyms: "tome", "volume"
+        let book = try world.insert(
+            GameObject(
+                name: "book",
+                description: "A tattered hard-cover book with a red binding.",
+                location: stand,
+                flags: .isTakable, .isReadable,
+                synonyms: "tome", "volume"
+            )
         )
-        book.text =
-        "It tells of an adventurer who was tasked with testing out a library that was old and new at the same time."
-        world.register(book)
+
+        book.text = """
+            It tells of an adventurer who was tasked with testing out a library \
+            that was old and new at the same time.
+            """
 
         // Other study objects
-        let safe = GameObject(
-            name: "safe",
-            description: "A small wall safe.",
-            location: study,
-            flags: .isContainer, .isOpenable
+        let safe = try world.insert(
+            GameObject(
+                name: "safe",
+                description: "A small wall safe.",
+                location: study,
+                flags: .isContainer, .isOpenable
+            )
         )
-        world.register(safe)
 
-        let bill = GameObject(
-            name: "dollar",
-            description: "A crisp one-dollar bill.",
-            location: safe,
-            flags: .isTakable,
-            synonyms: "bill"
+        let bill = try world.insert(
+            GameObject(
+                name: "dollar",
+                description: "A crisp one-dollar bill.",
+                location: safe,
+                flags: .isTakable,
+                synonyms: "bill"
+            )
         )
-        world.register(bill)
 
-        let glassCase = GameObject(
-            name: "case",
-            description: "A large glass case.",
-            location: study,
-            flags: .isContainer, .isTransparent,
-            synonyms: "display", "container"
+        let glassCase = try world.insert(
+            GameObject(
+                name: "case",
+                description: "A large glass case.",
+                location: study,
+                flags: .isContainer, .isTransparent,
+                synonyms: "display", "container"
+            )
         )
-        world.register(glassCase)
 
-        let muffin = GameObject(
-            name: "muffin",
-            description: "A tasty-looking muffin.",
-            location: glassCase,
-            flags: .isTakable, .isEdible
+        let muffin = try world.insert(
+            GameObject(
+                name: "muffin",
+                description: "A tasty-looking muffin.",
+                location: glassCase,
+                flags: .isTakable, .isEdible
+            )
         )
-        world.register(muffin)
 
-        let sphere = GameObject(
-            name: "sphere",
-            description: "A glass sphere.",
-            location: study,
-            flags: .isTakable, .isTransparent, .isContainer
+        let sphere = try world.insert(
+            GameObject(
+                name: "sphere",
+                description: "A glass sphere.",
+                location: study,
+                flags: .isTakable, .isTransparent, .isContainer
+            )
         )
-        world.register(sphere)
 
-        let firefly = GameObject(
-            name: "firefly",
-            description: "A tiny but brightly glowing firefly.",
-            location: sphere,
-            flags: .isTakable, .isOn
+        let firefly = try world.insert(
+            GameObject(
+                name: "firefly",
+                description: "A tiny but brightly glowing firefly.",
+                location: sphere,
+                flags: .isTakable, .isOn
+            )
         )
-        world.register(firefly)
 
-        let wallet = GameObject(
-            name: "wallet",
-            description: "A leather wallet.",
-            location: study,
-            flags: .isContainer, .isTakable, .isOpenable
+        let wallet = try world.insert(
+            GameObject(
+                name: "wallet",
+                description: "A leather wallet.",
+                location: study,
+                flags: .isContainer, .isTakable, .isOpenable
+            )
         )
         wallet.setCapacity(to: 2)
-        world.register(wallet)
 
-        let jar = GameObject(
-            name: "jar",
-            description: "A glass jar.",
-            location: stand,
-            flags: .isContainer, .isOpen, .isTakable
+        let jar = try world.insert(
+            GameObject(
+                name: "jar",
+                description: "A glass jar.",
+                location: stand,
+                flags: .isContainer, .isOpen, .isTakable
+            )
         )
         jar.setCapacity(to: 6)
-        world.register(jar)
 
-        let plum = GameObject(
-            name: "plum",
-            description: "A ripe purple plum.",
-            location: jar,
-            flags: .isTakable, .isEdible
+        let plum = try world.insert(
+            GameObject(
+                name: "plum",
+                description: "A ripe purple plum.",
+                location: jar,
+                flags: .isTakable, .isEdible
+            )
         )
-        world.register(plum)
 
-        let crate = GameObject(
-            name: "crate",
-            description: "A wooden crate.",
-            location: study,
-            flags: .isContainer
+        let crate = try world.insert(
+            GameObject(
+                name: "crate",
+                description: "A wooden crate.",
+                location: study,
+                flags: .isContainer
+            )
         )
+
         crate.setCapacity(to: 15)
-        world.register(crate)
 
-        let tray = GameObject(
-            name: "tray",
-            description: "A serving tray.",
-            location: stand,
-            flags: .isContainer, .isTakable, .isSurface
+        let tray = try world.insert(
+            GameObject(
+                name: "tray",
+                description: "A serving tray.",
+                location: stand,
+                flags: .isContainer, .isTakable, .isSurface
+            )
         )
+
         tray.setCapacity(to: 11)
-        world.register(tray)
     }
 }

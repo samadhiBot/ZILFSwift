@@ -3,21 +3,28 @@ import Foundation
 @testable import ZILFCore
 
 struct LightingSystemTests {
-    @Test func testBasicLighting() {
+    @Test func testBasicLighting() throws {
         // Create a naturally lit room
-        let litRoom = Room(name: "Lit Room", description: "A naturally lit room")
-        litRoom.setFlag(.isNaturallyLit)
-
-        // Create a dark room
-        let darkRoom = Room(name: "Dark Room", description: "A dark room")
+        let litRoom = Room(
+            name: "Lit Room",
+            description: "A naturally lit room",
+            flags: .isNaturallyLit
+        )
 
         // Create a player
         let player = Player(startingRoom: litRoom)
 
         // Create a game world
         let world = GameWorld(player: player)
-        world.register(litRoom)
-        world.register(darkRoom)
+//        _ try world.add(litRoom)
+
+        // Create a dark room
+        let darkRoom = try world.add(
+            Room(
+                name: "Dark Room",
+                description: "A dark room"
+            )
+        )
 
         // Test if bright room is naturally lit
         #expect(litRoom.hasFlag(.isNaturallyLit))
@@ -31,10 +38,12 @@ struct LightingSystemTests {
         #expect(!darkRoom.isLit())
 
         // Test player carrying a light source (lantern)
-        let lantern = GameObject(
-            name: "brass lantern",
-            description: "A old brass lantern.",
-            flags: .isLightSource, .isOn // Create with light source and on flags
+        let lantern = try world.insert(
+            GameObject(
+                name: "brass lantern",
+                description: "A old brass lantern.",
+                flags: .isLightSource, .isOn // Create with light source and on flags
+            )
         )
 
         // Move lantern to player's inventory
@@ -59,57 +68,61 @@ struct LightingSystemTests {
         #expect(!darkRoom.isLit())
     }
 
-    @Test func testLightSources() {
+    @Test func testLightSources() throws {
         // Create a room
-        let room = Room(name: "Test Room", description: "A test room")
+        let darkRoom = Room(
+            name: "Test Room",
+            description: "A test room"
+        )
         // Room is dark by default (no flags set)
 
         // Create a player
-        let player = Player(startingRoom: room)
+        let player = Player(startingRoom: darkRoom)
 
         // Create a game world
         let world = GameWorld(player: player)
-        world.register(room)
 
         // The room is dark by default and we've explicitly made it dark
-        #expect(!room.isLit())
+        #expect(!darkRoom.isLit())
 
         // Create a lantern (off)
-        let lantern = GameObject(
-            name: "lantern",
-            description: "A brass lantern",
-            flags: .isLightSource // Light source but not on
+        let lantern = try world.insert(
+            GameObject(
+                name: "lantern",
+                description: "A brass lantern",
+                flags: .isLightSource // Light source but not on
+            )
         )
-        lantern.moveTo(room)
+        lantern.moveTo(darkRoom)
 
         // The room should still be dark
-        #expect(!room.isLit())
+        #expect(!darkRoom.isLit())
 
         // Turn on the lantern
         lantern.setFlag(.isOn)
 
         // Now the room should be lit
-        #expect(room.isLit())
+        #expect(darkRoom.isLit())
 
         // Test toggle functionality
         lantern.clearFlag(.isOn) // Turn off
         #expect(!lantern.hasFlag(.isOn))
-        #expect(!room.isLit())
+        #expect(!darkRoom.isLit())
 
         lantern.setFlag(.isOn) // Turn on
         #expect(lantern.hasFlag(.isOn))
-        #expect(room.isLit())
+        #expect(darkRoom.isLit())
 
         // Test getting all light sources in the room
         var lightSources: [GameObject] = []
 
         // Check if room is a light source
-        if room.hasFlag(.isLightSource) {
-            lightSources.append(room)
+        if darkRoom.hasFlag(.isLightSource) {
+            lightSources.append(darkRoom)
         }
 
         // Add light sources in the room
-        for obj in room.contents where obj.hasFlag(.isLightSource) {
+        for obj in darkRoom.contents where obj.hasFlag(.isLightSource) {
             lightSources.append(obj)
         }
 
@@ -122,10 +135,12 @@ struct LightingSystemTests {
         #expect(lightSources[0] === lantern)
 
         // Test with multiple light sources
-        let candle = GameObject(
-            name: "candle",
-            description: "A small candle",
-            flags: .isLightSource, .isOn // Light source that's already on
+        let candle = try world.insert(
+            GameObject(
+                name: "candle",
+                description: "A small candle",
+                flags: .isLightSource, .isOn // Light source that's already on
+            )
         )
         candle.moveTo(player)
 
@@ -136,12 +151,12 @@ struct LightingSystemTests {
         lightSources = []
 
         // Check if room is a light source
-        if room.hasFlag(.isLightSource) {
-            lightSources.append(room)
+        if darkRoom.hasFlag(.isLightSource) {
+            lightSources.append(darkRoom)
         }
 
         // Add light sources in the room
-        for obj in room.contents where obj.hasFlag(.isLightSource) {
+        for obj in darkRoom.contents where obj.hasFlag(.isLightSource) {
             lightSources.append(obj)
         }
 
@@ -153,7 +168,7 @@ struct LightingSystemTests {
         #expect(lightSources.count == 2)
     }
 
-    @Test func testTransparentContainers() {
+    @Test func testTransparentContainers() throws {
         // Create a room
         let room = Room(name: "Test Room", description: "A test room")
 
@@ -162,24 +177,27 @@ struct LightingSystemTests {
 
         // Create a game world
         let world = GameWorld(player: player)
-        world.register(room)
 
         // The room is dark by default
         #expect(!room.isLit())
 
         // Create a glass box (transparent container)
-        let glassBox = GameObject(
-            name: "glass box",
-            description: "A clear glass box",
-            flags: .isContainer, .isOpen, .isTransparent
+        let glassBox = try world.insert(
+            GameObject(
+                name: "glass box",
+                description: "A clear glass box",
+                flags: .isContainer, .isOpen, .isTransparent
+            )
         )
         glassBox.moveTo(room)
 
         // Create a light source inside the glass box
-        let crystal = GameObject(
-            name: "glowing crystal",
-            description: "A crystal that emits a soft glow",
-            flags: .isLightSource, .isOn
+        let crystal = try world.insert(
+            GameObject(
+                name: "glowing crystal",
+                description: "A crystal that emits a soft glow",
+                flags: .isLightSource, .isOn
+            )
         )
         crystal.moveTo(glassBox)
 
@@ -187,11 +205,13 @@ struct LightingSystemTests {
         #expect(room.isLit())
 
         // Create a wooden box (non-transparent container)
-        let woodenBox = GameObject(
-            name: "wooden box",
-            description: "A solid wooden box",
-            flags: .isContainer, .isOpen
-            // Not transparent
+        let woodenBox = try world.insert(
+            GameObject(
+                name: "wooden box",
+                description: "A solid wooden box",
+                flags: .isContainer, .isOpen
+                // Not transparent
+            )
         )
         woodenBox.moveTo(room)
 

@@ -4,10 +4,10 @@ import ZILFTestSupport
 struct ToyGameTests {
     let harness: GameTestHarness<ToyGame>
 
-    init() {
+    init() throws {
         let game = ToyGame { _ in }
         harness = GameTestHarness(for: game)
-        harness.initialize()
+        try harness.initialize()
     }
 
     @Test func testInitialRoomDescription() throws {
@@ -29,7 +29,7 @@ struct ToyGameTests {
 
     @Test func testMoveBetweenRooms() throws {
         // Move to living room
-        let moveOutput = harness.execute("south")
+        let moveOutput = try harness.execute("south")
         #expect(moveOutput.first == """
             A comfortable living room with a fireplace.
             
@@ -37,7 +37,7 @@ struct ToyGameTests {
             """)
 
         // Move back to kitchen
-        let moveBackOutput = harness.execute("north")
+        let moveBackOutput = try harness.execute("north")
         #expect(moveBackOutput.first == """
             A cozy kitchen with modern appliances.
 
@@ -50,22 +50,22 @@ struct ToyGameTests {
 
     @Test func testTakeAndDropObject() throws {
         // Take the apple
-        let takeOutput = harness.execute("take apple")
+        let takeOutput = try harness.execute("take apple")
         #expect(takeOutput.first == "Taken.")
 
         // Check inventory
-        let invOutput = harness.execute("inventory")
+        let invOutput = try harness.execute("inventory")
         #expect(invOutput[0...1] == [
             "You are carrying:",
             "  apple"
         ])
 
         // Drop the apple
-        let dropOutput = harness.execute("drop apple")
+        let dropOutput = try harness.execute("drop apple")
         #expect(dropOutput.first == "Dropped.")
 
         // Verify apple is no longer in inventory
-        let invOutput2 = harness.execute("inventory")
+        let invOutput2 = try harness.execute("inventory")
         #expect(invOutput2.first == "You're not carrying anything.")
     }
 }

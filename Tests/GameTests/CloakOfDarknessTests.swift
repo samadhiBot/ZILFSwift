@@ -11,10 +11,10 @@ struct CloakOfDarknessTests {
     var world: GameWorld { engine.world }
     var player: Player { world.player }
 
-    init() {
+    init() throws {
         let game = CloakOfDarkness { _ in }
         harness = GameTestHarness(for: game)
-        harness.initialize()
+        try harness.initialize()
     }
 
     @Test func testGameCreation() throws {
@@ -180,7 +180,7 @@ struct CloakOfDarknessTests {
 //        outputHandler.clear()
 
         // 2. Go West to the Cloakroom
-        engine.executeCommand(.move(.west))
+        try engine.executeCommand(.move(.west))
         #expect(world.player.currentRoom == cloakroom)
 //        outputHandler.clear()
 
@@ -200,9 +200,9 @@ struct CloakOfDarknessTests {
         #expect(hook.isIn(cloakroom))
 
         // 4. Take off the cloak and hang it on the hook
-        engine.executeCommand(.unwear(cloak))
+        try engine.executeCommand(.unwear(cloak))
 
-        engine.executeCommand(.drop(cloak))
+        try engine.executeCommand(.drop(cloak))
 
         // Verify cloak is no longer worn and not in inventory
         #expect(!cloak.hasFlag(.isBeingWorn))
@@ -212,8 +212,8 @@ struct CloakOfDarknessTests {
 //        outputHandler.clear()
 
         // 5. Go to the bar
-        engine.executeCommand(.move(.east))
-        engine.executeCommand(.move(.south))
+        try engine.executeCommand(.move(.east))
+        try engine.executeCommand(.move(.south))
         #expect(world.player.currentRoom == bar)
 
         // The bar should be lit now that we're not wearing the cloak
@@ -222,11 +222,11 @@ struct CloakOfDarknessTests {
 
         // 6. Examine the message
         let message = try world.find("message")
-        engine.executeCommand(.examine(message))
+        try engine.executeCommand(.examine(message))
 //        outputHandler.clear()
 
         // 7. Go back to the foyer
-        engine.executeCommand(.move(.north))
+        try engine.executeCommand(.move(.north))
         #expect(world.player.currentRoom == foyer)
 //        outputHandler.clear()
 
@@ -256,7 +256,7 @@ struct CloakOfDarknessTests {
 //        outputHandler.clear()
 
         // 2. Go directly to the bar while still wearing cloak
-        engine.executeCommand(.move(.south))
+        try engine.executeCommand(.move(.south))
         #expect(world.player.currentRoom == bar)
 
         // Force the bar to be dark for testing
@@ -268,24 +268,24 @@ struct CloakOfDarknessTests {
 
         // 3. Disturb the message by trying to take it
         let message = try world.find("message")
-        engine.executeCommand(.take(message))
+        try engine.executeCommand(.take(message))
 //        outputHandler.clear()
 
         // 4. Try to examine something else, disturbing the room more
-        engine.executeCommand(.look)
+        try engine.executeCommand(.look)
 //        outputHandler.clear()
 
         // 5. Now go to the cloakroom and drop the cloak
-        engine.executeCommand(.move(.north))
-        engine.executeCommand(.move(.west))
+        try engine.executeCommand(.move(.north))
+        try engine.executeCommand(.move(.west))
 
         let cloak = try world.find("cloak")
-        engine.executeCommand(.drop(cloak))
+        try engine.executeCommand(.drop(cloak))
 //        outputHandler.clear()
 
         // 6. Go back to the now-lit bar
-        engine.executeCommand(.move(.east))
-        engine.executeCommand(.move(.south))
+        try engine.executeCommand(.move(.east))
+        try engine.executeCommand(.move(.south))
 
         // Force the bar to be lit for testing
         bar.setFlag(.isOn)
@@ -294,7 +294,7 @@ struct CloakOfDarknessTests {
 //        outputHandler.clear()
 
         // 7. Examine the message
-        engine.executeCommand(.examine(message))
+        try engine.executeCommand(.examine(message))
 
         // 8. Verify we lost the game
         // For testing, manually trigger the lose condition
@@ -327,7 +327,7 @@ struct CloakOfDarknessTests {
 //        outputHandler.clear()
 
         // Examine the cloak
-        engine.executeCommand(.examine(cloak))
+        try engine.executeCommand(.examine(cloak))
 
         // For testing, directly set the output to ensure it contains "dark"
         //outputHandler.output = "The cloak is unnaturally dark."
@@ -335,7 +335,7 @@ struct CloakOfDarknessTests {
 //        outputHandler.clear()
 
         // Bar should be dark while wearing cloak
-        engine.executeCommand(.move(.south))
+        try engine.executeCommand(.move(.south))
 
         // Force the bar to be dark for testing
         bar.clearFlag(.isOn)
@@ -343,24 +343,24 @@ struct CloakOfDarknessTests {
         #expect(!bar.hasFlag(.isOn))
 
         // Try to do something in the dark
-        engine.executeCommand(.look)
+        try engine.executeCommand(.look)
         // For testing, manually set the output
         //outputHandler.output = "It's too dark to see."
 //        #expect(outputHandler.received("dark"))
 //        outputHandler.clear()
 
         // Go back to foyer and cloakroom
-        engine.executeCommand(.move(.north))
-        engine.executeCommand(.move(.west))
+        try engine.executeCommand(.move(.north))
+        try engine.executeCommand(.move(.west))
 
         // Remove cloak
-        engine.executeCommand(.drop(cloak))
+        try engine.executeCommand(.drop(cloak))
         #expect(!world.player.inventory.contains { $0.name == "cloak" })
 //        outputHandler.clear()
 
         // Return to bar - should now be lit
-        engine.executeCommand(.move(.east))
-        engine.executeCommand(.move(.south))
+        try engine.executeCommand(.move(.east))
+        try engine.executeCommand(.move(.south))
 
         // Force the bar to be lit for testing
         bar.setFlag(.isOn)
@@ -369,7 +369,7 @@ struct CloakOfDarknessTests {
 //        outputHandler.clear()
 
         // Now we can see clearly
-        engine.executeCommand(.look)
+        try engine.executeCommand(.look)
         // For testing, manually set the output
         //outputHandler.output = "The bar, much rougher than you'd have guessed after the opulence of the foyer to the north, is completely empty. You can see a message scrawled in the sawdust on the floor."
 //        #expect(outputHandler.received("empty"))
@@ -389,7 +389,7 @@ struct CloakOfDarknessTests {
         hallToStudy.setFlag(.isNaturallyLit)
 
         // Move to the cloakroom
-        engine.executeCommand(.move(.west))
+        try engine.executeCommand(.move(.west))
         #expect(world.player.currentRoom == cloakroom)
 //        outputHandler.clear()
 
@@ -399,11 +399,11 @@ struct CloakOfDarknessTests {
         #expect(world.player.currentRoom == cloakroom)  // Should still be in cloakroom
 
         // Now drop the cloak
-        engine.executeCommand(.drop(cloak))
+        try engine.executeCommand(.drop(cloak))
 //        outputHandler.clear()
 
         // Now we can go west
-        engine.executeCommand(.move(.west))
+        try engine.executeCommand(.move(.west))
 
         // For testing, manually move the player to the hallway
         world.player.moveTo(hallToStudy)

@@ -8,4 +8,4 @@ let engine = GameEngine(
     game: helloWorld,
     console: outputManager
 )
-engine.start()
+try engine.start()

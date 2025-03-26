@@ -122,9 +122,9 @@ struct WorldBuilder {
     // MARK: - World Building
 
     /// Builds the complete game world with all rooms and objects
-    func buildWorld(_ world: GameWorld) {
+    func build(_ world: GameWorld) throws {
         // Register all rooms
-        registerRooms(in: world)
+        try registerRooms(in: world)
 
         // Connect rooms with exits
         connectRooms()
@@ -133,7 +133,7 @@ struct WorldBuilder {
         placeObjects()
 
         // Register all objects
-        registerObjects(in: world)
+        try registerObjects(in: world)
 
         // Configure special object behaviors
         configureObjectBehaviors(in: world)
@@ -143,13 +143,15 @@ struct WorldBuilder {
     }
 
     /// Register all rooms with the game world
-    private func registerRooms(in world: GameWorld) {
-        world.register(entrance)
-        world.register(mainCavern)
-        world.register(treasureRoom)
-        world.register(secretRoom)
-        world.register(vaultRoom)
-        world.register(pitRoom)
+    private func registerRooms(in world: GameWorld) throws {
+        try world.add(
+            entrance,
+            mainCavern,
+            treasureRoom,
+            secretRoom,
+            vaultRoom,
+            pitRoom
+        )
     }
 
     /// Connect all rooms with exits
@@ -181,16 +183,18 @@ struct WorldBuilder {
     }
 
     /// Register all objects with the game world
-    private func registerObjects(in world: GameWorld) {
-        world.register(lantern)
-        world.register(coin)
-        world.register(chest)
-        world.register(treasure)
-        world.register(ancientKey)
-        world.register(magnifyingGlass)
-        world.register(dagger)
-        world.register(lockedBox)
-        world.register(gem)
+    private func registerObjects(in world: GameWorld) throws {
+        try world.insert(
+            lantern,
+            coin,
+            chest,
+            treasure,
+            ancientKey,
+            magnifyingGlass,
+            dagger,
+            lockedBox,
+            gem
+        )
     }
 
     /// Configure special object behaviors

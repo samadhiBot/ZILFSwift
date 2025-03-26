@@ -11,7 +11,7 @@ import Testing
 
 @Suite struct SpecialExitsTests {
 
-    @Test func testBasicSpecialExits() {
+    @Test func testBasicSpecialExits() throws {
         // Create test rooms
         let room1 = Room(name: "Room 1", description: "Test room 1")
         let room2 = Room(name: "Room 2", description: "Test room 2")
@@ -21,8 +21,8 @@ import Testing
         // Create a player and world
         let player = Player(startingRoom: room1)
         let world = GameWorld(player: player)
-        world.register(room1)
-        world.register(room2)
+        try world.add(room1)
+        try world.add(room2)
 
         // Create a special exit
         let specialExit = SpecialExit(
@@ -49,7 +49,7 @@ import Testing
         #expect(player.currentRoom === room2)
     }
 
-    @Test func testHiddenExit() {
+    @Test func testHiddenExit() throws {
         // Create test rooms
         let room1 = Room(name: "Room 1", description: "Test room 1")
         let room2 = Room(name: "Room 2", description: "Test room 2")
@@ -59,8 +59,8 @@ import Testing
         // Create a player and world
         let player = Player(startingRoom: room1)
         let world = GameWorld(player: player)
-        world.register(room1)
-        world.register(room2)
+        try world.add(room1)
+        try world.add(room2)
 
         // Create a variable to control exit visibility
         var exitRevealed = false
@@ -92,7 +92,7 @@ import Testing
         #expect(player.currentRoom === room2)
     }
 
-    @Test func testLockedExit() {
+    @Test func testLockedExit() throws {
         // Create test rooms
         let room1 = Room(name: "Room 1", description: "Test room 1")
         let room2 = Room(name: "Room 2", description: "Test room 2")
@@ -102,13 +102,13 @@ import Testing
         // Create a player and world
         let player = Player(startingRoom: room1)
         let world = GameWorld(player: player)
-        world.register(room1)
-        world.register(room2)
+        try world.add(room1)
+        try world.add(room2)
 
         // Create a key
         let key = GameObject(name: "brass key", description: "A shiny brass key")
         key.setFlag(.isTakable)
-        world.register(key)
+        try world.insert(key)
 
         // Create a locked exit
         room1.setLockedExit(
@@ -138,7 +138,7 @@ import Testing
         #expect(player.currentRoom === room2)
     }
 
-    @Test func testOneWayExit() {
+    @Test func testOneWayExit() throws {
         // Create test rooms
         let room1 = Room(name: "Room 1", description: "Test room 1")
         let room2 = Room(name: "Room 2", description: "Test room 2")
@@ -148,8 +148,8 @@ import Testing
         // Create a player and world
         let player = Player(startingRoom: room1)
         let world = GameWorld(player: player)
-        world.register(room1)
-        world.register(room2)
+        try world.add(room1)
+        try world.add(room2)
 
         // Create a one-way exit from room1 to room2
         room1.setOneWayExit(
@@ -173,7 +173,7 @@ import Testing
         #expect(player.currentRoom === room2)
     }
 
-    @Test func testScriptedExit() {
+    @Test func testScriptedExit() throws {
         // Create test rooms
         let room1 = Room(name: "Room 1", description: "Test room 1")
         let room2 = Room(name: "Room 2", description: "Test room 2")
@@ -183,8 +183,8 @@ import Testing
         // Create a player and world
         let player = Player(startingRoom: room1)
         let world = GameWorld(player: player)
-        world.register(room1)
-        world.register(room2)
+        try world.add(room1)
+        try world.add(room2)
 
         // Create a variable to track script execution
         var scriptExecuted = false
@@ -209,7 +209,7 @@ import Testing
         #expect(player.currentRoom === room2)
     }
 
-    @Test func testConditionalExit() {
+    @Test func testConditionalExit() throws {
         // Create test rooms
         let room1 = Room(name: "Room 1", description: "Test room 1")
         let room2 = Room(name: "Room 2", description: "Test room 2")
@@ -219,8 +219,8 @@ import Testing
         // Create a player and world
         let player = Player(startingRoom: room1)
         let world = GameWorld(player: player)
-        world.register(room1)
-        world.register(room2)
+        try world.add(room1)
+        try world.add(room2)
 
         // Create a variable to control the condition
         var isConditionMet = false

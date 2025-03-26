@@ -71,6 +71,27 @@ struct CommandParser {
                 .attack(nil)
             }
 
+        // MARK: Burn
+        case "burn", "light":
+            return if words.count > 1 {
+                parseCommandWithTool(
+                    Array(words.dropFirst()),
+                    commandType: "burn",
+                    in: world
+                )
+            } else {
+                .burn(nil)
+            }
+
+        // MARK: Climb
+        case "climb":
+            if words.count > 1 {
+                let objName = words.dropFirst().joined(separator: " ")
+                let obj = find(objName, in: world)
+                return .climb(obj)
+            }
+            return .climb(nil)
+
         // MARK: Close
         case "close", "shut":
             if words.count > 1 {
@@ -80,6 +101,15 @@ struct CommandParser {
             }
             return .close(nil)
 
+        // MARK: Drink
+        case "drink", "sip", "quaff":
+            if words.count > 1 {
+                let objName = words.dropFirst().joined(separator: " ")
+                let obj = find(objName, in: world)
+                return .drink(obj)
+            }
+            return .drink(nil)
+
         // MARK: Drop
         case "drop":
             if words.count > 1 {
@@ -88,6 +118,24 @@ struct CommandParser {
                 return .drop(obj)
             }
             return .drop(nil)
+
+        // MARK: Eat
+        case "eat", "consume", "devour":
+            if words.count > 1 {
+                let objName = words.dropFirst().joined(separator: " ")
+                let obj = find(objName, in: world)
+                return .eat(obj)
+            }
+            return .eat(nil)
+
+        // MARK: Empty
+        case "empty":
+            if words.count > 1 {
+                let objName = words.dropFirst().joined(separator: " ")
+                let obj = find(objName, in: world)
+                return .empty(obj)
+            }
+            return .empty(nil)
 
         // MARK: Examine
         case "examine", "x", "inspect":
@@ -99,6 +147,42 @@ struct CommandParser {
                 )
             } else {
                 .examine(nil)
+            }
+
+        // MARK: Fill
+        case "fill":
+            if words.count > 1 {
+                let objName = words.dropFirst().joined(separator: " ")
+                let obj = find(objName, in: world)
+                return .fill(obj)
+            }
+            return .fill(nil)
+
+        // MARK: Give
+        case "give":
+            return parseGiveCommand(words, in: world)
+
+        // MARK: Lock/Unlock
+        case "lock":
+            return if words.count > 1 {
+                parseCommandWithTool(
+                    Array(words.dropFirst()),
+                    commandType: "lock",
+                    in: world
+                )
+            } else {
+                .lock(nil)
+            }
+
+        case "unlock":
+            return if words.count > 1 {
+                parseCommandWithTool(
+                    Array(words.dropFirst()),
+                    commandType: "unlock",
+                    in: world
+                )
+            } else {
+                .unlock(nil)
             }
 
         // MARK: Look/Examine
@@ -135,6 +219,24 @@ struct CommandParser {
                 .open(nil)
             }
 
+        // MARK: Pull
+        case "pull":
+            if words.count > 1 {
+                let objName = words.dropFirst().joined(separator: " ")
+                let obj = find(objName, in: world)
+                return .pull(obj)
+            }
+            return .pull(nil)
+
+        // MARK: Push
+        case "push":
+            if words.count > 1 {
+                let objName = words.dropFirst().joined(separator: " ")
+                let obj = find(objName, in: world)
+                return .push(obj)
+            }
+            return .push(nil)
+
         // MARK: Put
         case "put", "place", "set":
             return parsePutCommand(words, in: world)
@@ -150,6 +252,36 @@ struct CommandParser {
             } else {
                 .read(nil)
             }
+
+        // MARK: Rub
+        case "rub":
+            return if words.count > 1 {
+                parseCommandWithTool(
+                    Array(words.dropFirst()),
+                    commandType: "rub",
+                    in: world
+                )
+            } else {
+                .rub(nil)
+            }
+
+        // MARK: Search
+        case "search":
+            if words.count > 1 {
+                let objName = words.dropFirst().joined(separator: " ")
+                let obj = find(objName, in: world)
+                return .search(obj)
+            }
+            return .search(nil)
+
+        // MARK: Smell
+        case "smell":
+            if words.count > 1 {
+                let objName = words.dropFirst().joined(separator: " ")
+                let obj = find(objName, in: world)
+                return .smell(obj)
+            }
+            return .smell(nil)
 
         // MARK: Take/Get
         case "take", "get", "grab", "pick":
@@ -173,6 +305,32 @@ struct CommandParser {
                 return .take(obj)
             }
             return .take(nil)
+
+        // MARK: Tell
+        case "tell":
+            return parseTellCommand(words, in: world)
+
+        // MARK: Think
+        case "think-about", "ponder", "contemplate":
+            if words.count > 1 {
+                let objName = words.dropFirst().joined(separator: " ")
+                let obj = find(objName, in: world)
+                return .thinkAbout(obj)
+            }
+            return .thinkAbout(nil)
+
+        // MARK: Throw
+        case "throw":
+            return parseThrowCommand(words, in: world)
+
+        // MARK: Toggle
+        case "toggle", "flip", "switch":
+            if words.count > 1 {
+                let objName = words.dropFirst().joined(separator: " ")
+                let obj = find(objName, in: world)
+                return .flip(obj)
+            }
+            return .flip(nil)
 
         // MARK: Turn on/off
         case "turn":
@@ -212,24 +370,6 @@ struct CommandParser {
             }
             return .turnOff(nil)
 
-        // MARK: Flip/Switch
-        case "flip", "switch", "toggle":
-            if words.count > 1 {
-                let objName = words.dropFirst().joined(separator: " ")
-                let obj = find(objName, in: world)
-                return .flip(obj)
-            }
-            return .flip(nil)
-
-        // MARK: Wear
-        case "wear", "don":
-            if words.count > 1 {
-                let objName = words.dropFirst().joined(separator: " ")
-                let obj = find(objName, in: world)
-                return .wear(obj)
-            }
-            return .wear(nil)
-
         // MARK: Unwear
         case "unwear", "remove", "doff", "take-off":
             if words.count > 1 {
@@ -238,155 +378,6 @@ struct CommandParser {
                 return .unwear(obj)
             }
             return .unwear(nil)
-
-        // MARK: Lock/Unlock
-        case "lock":
-            return if words.count > 1 {
-                parseCommandWithTool(
-                    Array(words.dropFirst()),
-                    commandType: "lock",
-                    in: world
-                )
-            } else {
-                .lock(nil)
-            }
-
-        case "unlock":
-            return if words.count > 1 {
-                parseCommandWithTool(
-                    Array(words.dropFirst()),
-                    commandType: "unlock",
-                    in: world
-                )
-            } else {
-                .unlock(nil)
-            }
-
-        // MARK: Give
-        case "give":
-            return parseGiveCommand(words, in: world)
-
-        // MARK: Throw
-        case "throw":
-            return parseThrowCommand(words, in: world)
-
-        // MARK: Tell
-        case "tell":
-            return parseTellCommand(words, in: world)
-
-        // MARK: More object
-        case "burn", "light":
-            return if words.count > 1 {
-                parseCommandWithTool(
-                    Array(words.dropFirst()),
-                    commandType: "burn",
-                    in: world
-                )
-            } else {
-                .burn(nil)
-            }
-
-        // MARK: Climb
-        case "climb":
-            if words.count > 1 {
-                let objName = words.dropFirst().joined(separator: " ")
-                let obj = find(objName, in: world)
-                return .climb(obj)
-            }
-            return .climb(nil)
-
-        // MARK: Drink
-        case "drink", "sip", "quaff":
-            if words.count > 1 {
-                let objName = words.dropFirst().joined(separator: " ")
-                let obj = find(objName, in: world)
-                return .drink(obj)
-            }
-            return .drink(nil)
-
-        // MARK: Eat
-        case "eat", "consume", "devour":
-            if words.count > 1 {
-                let objName = words.dropFirst().joined(separator: " ")
-                let obj = find(objName, in: world)
-                return .eat(obj)
-            }
-            return .eat(nil)
-
-        // MARK: Empty
-        case "empty":
-            if words.count > 1 {
-                let objName = words.dropFirst().joined(separator: " ")
-                let obj = find(objName, in: world)
-                return .empty(obj)
-            }
-            return .empty(nil)
-
-        // MARK: Fill
-        case "fill":
-            if words.count > 1 {
-                let objName = words.dropFirst().joined(separator: " ")
-                let obj = find(objName, in: world)
-                return .fill(obj)
-            }
-            return .fill(nil)
-
-        // MARK: Pull
-        case "pull":
-            if words.count > 1 {
-                let objName = words.dropFirst().joined(separator: " ")
-                let obj = find(objName, in: world)
-                return .pull(obj)
-            }
-            return .pull(nil)
-
-        // MARK: Push
-        case "push":
-            if words.count > 1 {
-                let objName = words.dropFirst().joined(separator: " ")
-                let obj = find(objName, in: world)
-                return .push(obj)
-            }
-            return .push(nil)
-
-        // MARK: Rub
-        case "rub":
-            return if words.count > 1 {
-                parseCommandWithTool(
-                    Array(words.dropFirst()),
-                    commandType: "rub",
-                    in: world
-                )
-            } else {
-                .rub(nil)
-            }
-
-        // MARK: Search
-        case "search":
-            if words.count > 1 {
-                let objName = words.dropFirst().joined(separator: " ")
-                let obj = find(objName, in: world)
-                return .search(obj)
-            }
-            return .search(nil)
-
-        // MARK: Smell
-        case "smell":
-            if words.count > 1 {
-                let objName = words.dropFirst().joined(separator: " ")
-                let obj = find(objName, in: world)
-                return .smell(obj)
-            }
-            return .smell(nil)
-
-        // MARK: Think
-        case "think-about", "ponder", "contemplate":
-            if words.count > 1 {
-                let objName = words.dropFirst().joined(separator: " ")
-                let obj = find(objName, in: world)
-                return .thinkAbout(obj)
-            }
-            return .thinkAbout(nil)
 
         // MARK: Wake
         case "wake":
@@ -409,6 +400,15 @@ struct CommandParser {
         // MARK: Wave
         case "wave-hands":
             return .waveHands
+
+        // MARK: Wear
+        case "wear", "don":
+            if words.count > 1 {
+                let objName = words.dropFirst().joined(separator: " ")
+                let obj = find(objName, in: world)
+                return .wear(obj)
+            }
+            return .wear(nil)
 
         default:
             return .custom(words)

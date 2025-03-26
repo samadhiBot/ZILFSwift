@@ -24,29 +24,69 @@ public class GameWorld {
 
     /// Creates a new game world with the specified player.
     ///
+    /// Also adds the player's starting room to the world.
+    ///
     /// - Parameter player: The player character for this game world.
     public init(player: Player) {
         self.player = player
         player.setWorld(to: self)
+
+        if let room = player.currentRoom {
+            _ = try? add(room)
+        }
     }
     
-    /// Adds an object to the game world.
+    /// Adds a room to the game world.
     ///
-    /// - Parameter object: The object to register.
-    public func register(_ object: GameObject) {
+    /// - Parameter room: The room to add.
+    /// - Returns: The added room.
+    @discardableResult
+    public func add(_ room: Room) throws -> Room {
+        try insert(room)
+        return room
+    }
+    
+    /// Adds a collection of rooms to the game world.
+    ///
+    /// - Parameter rooms: The rooms to add.
+    public func add(_ rooms: Room...) throws {
+        for room in rooms {
+            try insert(room)
+        }
+    }
+
+    /// Inserts an object into the game world.
+    ///
+    /// - Parameter object: The object to insert.
+    /// - Returns: The inserted object.
+    @discardableResult
+    public func insert(_ object: GameObject) throws -> GameObject {
         switch object.type {
         case .global, .localGlobal, .object:
-            objects.append(object)
+            if !objects.contains(object) {
+                objects.append(object)
+            }
         case .player:
-            break
+            throw GameWorldError.cannotInsertPlayer(object.debugDescription)
         case .room:
             guard let room = object as? Room else {
-                assert(false, "Attempted to register \(object) as a room")
-                return
+                throw GameWorldError.objectInsertedAsRoom(object.debugDescription)
             }
-            rooms.append(room)
+            if !rooms.contains(room) {
+                rooms.append(room)
+            }
         }
         object.setWorld(to: self)
+        return object
+    }
+    
+    /// Inserts a collection of objects into the game world.
+    ///
+    /// - Parameter objects: The objects to insert.
+    public func insert(_ objects: GameObject...) throws {
+        for object in objects {
+            try insert(object)
+        }
     }
 
     /// Schedules an event to run after a specified number of turns.
@@ -131,14 +171,16 @@ public class GameWorld {
     }
 }
 
+enum GameWorldError: Error {
+    case cannotInsertPlayer(String)
+    case objectInsertedAsRoom(String)
+    case objectNotFound(String)
+    case roomNotFound(String)
+}
+
 // MARK: - Finders
 
 extension GameWorld {
-    enum NotFound: Error {
-        case objectNotFound(String)
-        case roomNotFound(String)
-    }
-    
     /// Finds an object in the world by name.
     ///
     /// - Parameter object: The name of an object.
@@ -148,7 +190,7 @@ extension GameWorld {
         guard
             let found = objects.first(where: { $0.name.lowercased() == object.lowercased() })
         else {
-            throw NotFound.objectNotFound(object)
+            throw GameWorldError.objectNotFound(object)
         }
         return found
     }
@@ -162,7 +204,7 @@ extension GameWorld {
         guard
             let found = rooms.first(where: { $0.name.lowercased() == room.lowercased() })
         else {
-            throw NotFound.roomNotFound(room)
+            throw GameWorldError.roomNotFound(room)
         }
         return found
     }

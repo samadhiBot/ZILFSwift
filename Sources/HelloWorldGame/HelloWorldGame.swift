@@ -22,13 +22,13 @@ struct HelloWorldGame: ZilfGame {
     }
 
     /// Creates the game world
-    func createWorld() -> GameWorld {
+    func createWorld() throws -> GameWorld {
         // Create player and world
         let player = Player(startingRoom: worldBuilder.entrance)
         let world = GameWorld(player: player)
 
         // Build the game world
-        worldBuilder.buildWorld(world)
+        try worldBuilder.build(world)
 
         // Configure events
         configureEvents(in: world)

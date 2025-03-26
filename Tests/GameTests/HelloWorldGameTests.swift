@@ -11,16 +11,17 @@ struct HelloWorldGameTests {
     var world: GameWorld { engine.world }
     var player: Player { world.player }
 
-    init() {
+    init() throws {
         let game = HelloWorldGame { _ in }
         harness = GameTestHarness(for: game)
-        harness.initialize()
+        try harness.initialize()
     }
 
     @Test func testGameCreation() throws {
         // Verify world properties
         #expect(player.currentRoom?.name == "Entrance")
         #expect(world.rooms.count == 6)
+        print("🎾", world.rooms)
 
         // Find rooms
         let entrance = try world.find(room: "Entrance")
@@ -103,7 +104,7 @@ struct HelloWorldGameTests {
         harness.flush()
 
         // Test initial look command
-        engine.executeCommand(.look)
+        try engine.executeCommand(.look)
         expectNoDifference(harness.flush(), """
             You are standing at the entrance to a small cave. Sunlight streams in from outside.
             
@@ -116,16 +117,16 @@ struct HelloWorldGameTests {
 
         // Test taking the lantern
         let lantern = try world.find("lantern" )
-        engine.executeCommand(.take(lantern))
+        try engine.executeCommand(.take(lantern))
         expectNoDifference(harness.flush(), "Taken.")
         #expect(player.inventory.contains(lantern))
 
         // Test examining the lantern after taking it
-        engine.executeCommand(.examine(lantern))
+        try engine.executeCommand(.examine(lantern))
         expectNoDifference(harness.flush(), "A brass lantern that provides warm light.")
 
         // Test moving to the main cavern
-        engine.executeCommand(.move(.north))
+        try engine.executeCommand(.move(.north))
         #expect(player.currentRoom?.name == "Main Cavern")
         expectNoDifference(harness.flush(), """
             This spacious cavern has smooth walls that glisten with moisture. A strange glow \
@@ -140,12 +141,12 @@ struct HelloWorldGameTests {
 
         // Test taking the coin
         let coin = try world.find("gold coin" )
-        engine.executeCommand(.take(coin))
+        try engine.executeCommand(.take(coin))
         #expect(player.inventory.contains { $0.name == "gold coin" })
         expectNoDifference(harness.flush(), "Taken.")
 
         // Test inventory
-        engine.executeCommand(.inventory)
+        try engine.executeCommand(.inventory)
         expectNoDifference(harness.flush(), """
             You are carrying:
               lantern
@@ -153,7 +154,7 @@ struct HelloWorldGameTests {
             """)
 
         // Test moving to the treasure room
-        engine.executeCommand(.move(.east))
+        try engine.executeCommand(.move(.east))
         #expect(player.currentRoom?.name == "Treasure Room")
         expectNoDifference(harness.flush(), """
             You feel a sense of awe as you enter this ancient chamber.
@@ -170,16 +171,16 @@ struct HelloWorldGameTests {
 
         // Test examining the chest
         let chest = try world.find("treasure chest" )
-        engine.executeCommand(.examine(chest))
+        try engine.executeCommand(.examine(chest))
         expectNoDifference(harness.flush(), "An ornate wooden chest with intricate carvings.")
 
         // Test trying to take the chest (which shouldn't be take-able)
-        engine.executeCommand(.take(chest))
+        try engine.executeCommand(.take(chest))
         #expect(!player.inventory.contains(chest))
         expectNoDifference(harness.flush(), "You can't take that.")
 
         // Test going back to the main cavern
-        engine.executeCommand(.move(.west))
+        try engine.executeCommand(.move(.west))
         #expect(player.currentRoom?.name == "Main Cavern")
         expectNoDifference(harness.flush(), """
             This spacious cavern has smooth walls that glisten with moisture. A strange glow \
@@ -192,7 +193,7 @@ struct HelloWorldGameTests {
             """)
 
         // Test dropping the coin
-        engine.executeCommand(.drop(coin))
+        try engine.executeCommand(.drop(coin))
         #expect(!player.inventory.contains(coin))
         #expect(player.currentRoom?.contents.contains(coin) ?? false)
         expectNoDifference(harness.flush(), "Dropped.")
@@ -245,12 +246,12 @@ struct HelloWorldGameTests {
         }
     }
 
-    @Test func testUnstableLedge() async throws {
+    @Test func testUnstableLedge() throws {
         // Skip the welcome
         harness.flush()
 
         // Navigate to the Treasure Room first
-        engine.executeCommand(.move(.north)) // Move to Main Cavern
+        try engine.executeCommand(.move(.north)) // Move to Main Cavern
         #expect(player.currentRoom?.name == "Main Cavern")
         expectNoDifference(harness.flush(), """
             This spacious cavern has smooth walls that glisten with moisture. A strange glow \
@@ -263,7 +264,7 @@ struct HelloWorldGameTests {
             Exits: south, east
             """)
 
-        engine.executeCommand(.move(.east)) // Move to Treasure Room
+        try engine.executeCommand(.move(.east)) // Move to Treasure Room
         #expect(player.currentRoom?.name == "Treasure Room")
         expectNoDifference(harness.flush(), """
             You feel a sense of awe as you enter this ancient chamber.
@@ -279,7 +280,7 @@ struct HelloWorldGameTests {
             """)
 
         // Move to the Unstable Ledge
-        engine.executeCommand(.move(.south))
+        try engine.executeCommand(.move(.south))
         #expect(player.currentRoom?.name == "Unstable Ledge")
         expectNoDifference(harness.flush(), """
             You stand at the edge of a crumbling ledge above a bottomless pit. The ground feels \
@@ -289,7 +290,7 @@ struct HelloWorldGameTests {
             """)
 
         // Test examining the room (using look instead of examine with a string)
-        engine.executeCommand(.look)
+        try engine.executeCommand(.look)
         expectNoDifference(harness.flush(), """
             You stand at the edge of a crumbling ledge above a bottomless pit. The ground feels \
             very unstable.
@@ -298,7 +299,7 @@ struct HelloWorldGameTests {
             """)
 
         // Test moving back to safety
-        engine.executeCommand(.move(.north))
+        try engine.executeCommand(.move(.north))
         #expect(player.currentRoom?.name == "Treasure Room")
         expectNoDifference(harness.flush(), """
             You feel a sense of awe as you enter this ancient chamber.
@@ -314,7 +315,7 @@ struct HelloWorldGameTests {
             """)
 
         // Return to the Unstable Ledge to test the deadly exit
-        engine.executeCommand(.move(.south))
+        try engine.executeCommand(.move(.south))
         expectNoDifference(harness.flush(), """
             You stand at the edge of a crumbling ledge above a bottomless pit. The ground feels \
             very unstable.
@@ -323,7 +324,7 @@ struct HelloWorldGameTests {
             """)
 
         // Test falling into the pit (deadly exit)
-        engine.executeCommand(.move(.down))
+        try engine.executeCommand(.move(.down))
         expectNoDifference(harness.flush(), """
             You step forward and the ledge gives way beneath you. You fall into darkness, \
             tumbling endlessly into the abyss...
@@ -339,7 +340,7 @@ struct HelloWorldGameTests {
             """))
     }
 
-    @Test func testVictoryCondition() async throws {
+    @Test func testVictoryCondition() throws {
         // Skip the welcome
         harness.flush()
 
@@ -347,7 +348,7 @@ struct HelloWorldGameTests {
         player.moveTo(try world.find(room: "Main Cavern"))
 
         // Refresh the display
-        engine.executeCommand(.look)
+        try engine.executeCommand(.look)
         expectNoDifference(harness.flush(), """
             This spacious cavern has smooth walls that glisten with moisture. \
             A strange glow emanates from deeper in the cave.
@@ -365,14 +366,14 @@ struct HelloWorldGameTests {
         amulet.moveTo(player)
 
         // Check inventory has the amulet
-        engine.executeCommand(.inventory)
+        try engine.executeCommand(.inventory)
         expectNoDifference(harness.flush(), """
             You are carrying:
               golden amulet
             """)
 
         // Try moving west (this should trigger victory)
-        engine.executeCommand(.move(.west))
+        try engine.executeCommand(.move(.west))
         expectNoDifference(harness.flush(), """
             As you move west with the golden amulet in your possession, it begins to glow \
             brightly. The cave wall shimmers and dissolves, revealing a hidden passage. \
@@ -392,13 +393,13 @@ struct HelloWorldGameTests {
             """))
     }
 
-//    @Test func testSecretChamber() async throws {
+//    @Test func testSecretChamber() throws {
 //        let world = HelloWorldGame.create()
 //        let outputHandler = CaptureConsole()
 //        let engine = GameEngine(world: world, outputManager: outputHandler)
 //
 //        // Move to Main Cavern
-//        engine.executeCommand(.move(.north))
+//        try engine.executeCommand(.move(.north))
 //        expectNoDifference(harness.flush(), """
 //            This spacious cavern has smooth walls that glisten with moisture. A strange glow \
 //            emanates from deeper in the cave.
@@ -412,13 +413,13 @@ struct HelloWorldGameTests {
 //
 //        // Get the dagger from the main cavern
 //        let dagger = try world.find("dagger")
-//        engine.executeCommand(.take(dagger))
+//        try engine.executeCommand(.take(dagger))
 //        expectNoDifference(harness.flush(), """
 //            Taken.
 //            """)
 //
 //        // Move to Treasure Room
-//        engine.executeCommand(.move(.east))
+//        try engine.executeCommand(.move(.east))
 //        expectNoDifference(harness.flush(), """
 //            You feel a sense of awe as you enter this ancient chamber.
 //            This small chamber is filled with a soft, magical light. The walls are adorned with \
@@ -433,7 +434,7 @@ struct HelloWorldGameTests {
 //
 //        // First examine the room to discover the hidden exit
 //        let treasureRoom = try world.find(room: "Treasure Room")
-//        engine.executeCommand(.examine(treasureRoom))
+//        try engine.executeCommand(.examine(treasureRoom))
 //        expectNoDifference(harness.flush(), """
 //            ?
 //            """)
@@ -443,16 +444,16 @@ struct HelloWorldGameTests {
 //
 //        // Break open the locked box using the dagger
 //        let lockedBox = try world.find("locked box")
-//        engine.executeCommand(.attack(lockedBox, with: dagger))
+//        try engine.executeCommand(.attack(lockedBox, with: dagger))
 //        let _ = harness.flush() // The output is capture by the handler already
 //
 //        // Now we should be able to go down to the secret chamber
 //        // We might need to move around to trigger the hidden exit
-//        engine.executeCommand(.look)
+//        try engine.executeCommand(.look)
 //        let _ = harness.flush()
 //
 //        // Attempt to go down to the secret chamber
-//        engine.executeCommand(.move(.down))
+//        try engine.executeCommand(.move(.down))
 //
 //        // If we didn't make it to the Secret Chamber, force the move
 //        if player.currentRoom?.name != "Secret Chamber" {
@@ -462,7 +463,7 @@ struct HelloWorldGameTests {
 //        let _ = harness.flush()
 //
 //        // Test examining the secret chamber
-//        engine.executeCommand(.look)
+//        try engine.executeCommand(.look)
 //        let lookOutput = harness.flush()
 //        #expect(lookOutput.contains("symbols") || lookOutput.contains("chamber"))
 //
@@ -471,7 +472,7 @@ struct HelloWorldGameTests {
 //        ancientKey.moveTo(player)
 //
 //        // This should take us to the Ancient Vault or back to Main Cavern via a chute
-//        engine.executeCommand(.move(.north))
+//        try engine.executeCommand(.move(.north))
 //        let _ = harness.flush()
 //
 //        // Should enter the Ancient Vault with the key, or some other room via a special exit

@@ -16,7 +16,7 @@ public protocol ZilfGame {
     /// Creates the game world including rooms, objects, and player.
     ///
     /// - Returns: A fully set up game world.
-    func createWorld() -> GameWorld
+    func createWorld() throws -> GameWorld
 
     /// Optional method to handle custom commands not recognized by the standard parser.
     ///

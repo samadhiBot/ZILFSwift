@@ -277,7 +277,7 @@ struct EventSystemTests {
         #expect(eventManager.listActiveEvents().isEmpty)
     }
 
-    @Test func testFullEventSystem() {
+    @Test func testFullEventSystem() throws {
         // Create a simple game world with rooms and a player
         var clockTickCount = 0
         var kettleBoiling = false
@@ -295,15 +295,15 @@ struct EventSystemTests {
 
         // Create the game world with the player
         let world = GameWorld(player: player)
-        world.register(kitchen)
-        world.register(garden)
+        try world.add(kitchen)
+        try world.add(garden)
 
         var kettle: GameObject?
 
         // Event-related state
         kettle = GameObject(name: "kettle", description: "A copper kettle.")
         kettle?.moveTo(kitchen)
-        world.register(kettle!)
+        try world.insert(kettle!)
 
         // Move kettle to kitchen for event
         kettle?.moveTo(kitchen)

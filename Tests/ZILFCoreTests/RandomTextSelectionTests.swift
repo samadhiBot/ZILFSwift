@@ -27,8 +27,7 @@ struct LCRandom: RandomNumberGenerator {
 @Suite
 struct RandomTextSelectionTests {
 
-    @Test
-    func testRandomTextCollection() {
+    @Test func testRandomTextCollection() {
         let options = ["Option 1", "Option 2", "Option 3"]
         let collection = RandomTextCollection(options: options)
 
@@ -41,8 +40,7 @@ struct RandomTextSelectionTests {
         #expect(options.contains(randomText))
     }
 
-    @Test
-    func testEmptyCollection() {
+    @Test func testEmptyCollection() {
         let collection = RandomTextCollection(options: [])
 
         #expect(collection.count == 0)
@@ -50,16 +48,23 @@ struct RandomTextSelectionTests {
         #expect(collection.getRandomText() == "")
     }
 
-    @Test
-    func testGameObjectRandomText() {
+    @Test func testGameObjectRandomText() throws {
         // Create test objects
-        let room = Room(name: "Test Room", description: "A test room")
-        let player = Player(startingRoom: room)
-        let world = GameWorld(player: player)
-        let object = GameObject(name: "Test Object", description: "A test object")
+        let room = Room(
+            name: "Test Room",
+            description: "A test room"
+        )
 
-        world.register(room)
-        world.register(object)
+        let player = Player(startingRoom: room)
+
+        let world = GameWorld(player: player)
+
+        let object = try world.insert(
+            GameObject(
+                name: "Test Object",
+                description: "A test object"
+            )
+        )
 
         // Set up random text options
         let weatherDescriptions = [
@@ -100,8 +105,7 @@ struct RandomTextSelectionTests {
         #expect(!addedToNonExistent)
     }
 
-    @Test
-    func testPredictableRandomSelection() {
+    @Test func testPredictableRandomSelection() {
         let options = ["First", "Second", "Third", "Fourth", "Fifth"]
         let collection = RandomTextCollection(options: options)
 
@@ -114,14 +118,11 @@ struct RandomTextSelectionTests {
         #expect(results.allSatisfy { options.contains($0) })
     }
 
-    @Test
-    func testGameObjectsWithRandomDescriptions() {
+    @Test func testGameObjectsWithRandomDescriptions() {
         // Create test objects
         let room = Room(name: "Forest", description: "A dense forest")
         let player = Player(startingRoom: room)
         let world = GameWorld(player: player)
-
-        world.register(room)
 
         // Set up random room descriptions
         let forestDescriptions = [

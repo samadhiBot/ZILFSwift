@@ -11,8 +11,16 @@ public class Player: GameObject {
 
     /// Creates a new player instance starting in the specified room.
     /// - Parameter startingRoom: The room where the player begins the game.
-    public init(startingRoom: Room) {
-        super.init(name: "player", description: "As good-looking as ever.")
+    public init(
+        name: String = "Player",
+        description: String = "As good-looking as ever.",
+        startingRoom: Room
+    ) {
+        super.init(
+            name: name,
+            description: description,
+            type: .player
+        )
         self.moveTo(startingRoom)
     }
 
