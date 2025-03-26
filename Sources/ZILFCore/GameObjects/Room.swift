@@ -7,31 +7,25 @@ import Foundation
 /// trigger at specific phases during gameplay.
 public class Room: GameObject {
     /// Called at the beginning of processing a command while in this room.
-    /// - Returns: `true` if the action handled the command (prevents further processing).
-    public var beginCommandAction: ((Room, Command) -> Bool)?
+    public var beginCommandAction: ((Room, Command) throws -> Bool)?
 
     /// Called at the beginning of the turn, before any command processing (M-BEG in ZIL).
-    /// - Returns: `true` if the action produced output or handled the command.
-    public var beginTurnAction: ((Room) -> Bool)?
+    public var beginTurnAction: ((Room) throws -> Bool)?
 
     /// Called at the end of each turn while the player is in this room.
-    /// - Returns: `true` if the action produced output to display.
-    public var endTurnAction: ((Room) -> Bool)?
+    public var endTurnAction: ((Room) throws -> Bool)?
 
     /// Called when a player enters this room.
-    /// - Returns: `true` if the action produced output to display.
-    public var enterAction: ((Room) -> Bool)?
+    public var enterAction: ((Room) throws -> Bool)?
+
+    /// Called when the room should show important details even in brief mode (M-FLASH in ZIL).
+    public var flashAction: ((Room) throws -> Bool)?
+
+    /// Called when the room is being looked at (M-LOOK in ZIL).
+    public var lookAction: ((Room) throws -> Bool)?
 
     /// Dictionary of exits mapping directions to destination rooms.
     public var exits: [Direction: Room] = [:]
-
-    /// Called when the room should show important details even in brief mode (M-FLASH in ZIL).
-    /// - Returns: `true` if the action produced output.
-    public var flashAction: ((Room) -> Bool)?
-
-    /// Called when the room is being looked at (M-LOOK in ZIL).
-    /// - Returns: `true` if the action produced a description (prevents default description).
-    public var lookAction: ((Room) -> Bool)?
 
     /// Creates a new game object with name, description and optional location.
     ///
@@ -61,57 +55,57 @@ public class Room: GameObject {
     /// Executes the begin-command action for this room.
     /// - Parameter command: The command to process.
     /// - Returns: `true` if the action handled the command.
-    public func executeBeginCommandAction(command: Command) -> Bool {
+    public func executeBeginCommandAction(command: Command) throws -> Bool {
         guard let action = beginCommandAction else { return false }
-        return action(self, command)
+        return try action(self, command)
     }
 
     /// Executes the begin-turn action for this room (before command processing).
     /// - Returns: `true` if the action produced output.
-    public func executeBeginTurnAction() -> Bool {
+    public func executeBeginTurnAction() throws -> Bool {
         guard let action = beginTurnAction else { return false }
-        return action(self)
+        return try action(self)
     }
 
     /// Executes the end-of-turn action for this room.
     /// - Returns: `true` if the action produced output.
-    public func executeEndTurnAction() -> Bool {
+    public func executeEndTurnAction() throws -> Bool {
         guard let action = endTurnAction else { return false }
-        return action(self)
+        return try action(self)
     }
 
     /// Executes the enter action for this room.
     /// - Returns: `true` if the action produced output.
-    public func executeEnterAction() -> Bool {
+    public func executeEnterAction() throws -> Bool {
         guard let action = enterAction else { return false }
-        return action(self)
+        return try action(self)
     }
 
     /// Executes a specific action phase for this room.
     /// - Parameter phase: The action phase to execute.
     /// - Returns: `true` if the action produced output or handled a command.
-    public func executePhase(_ phase: ActionPhase) -> Bool {
+    public func executePhase(_ phase: ActionPhase) throws -> Bool {
         switch phase {
         case .beginTurn:
-            return executeBeginTurnAction()
+            return try executeBeginTurnAction()
         case .endTurn:
-            return executeEndTurnAction()
+            return try executeEndTurnAction()
         case .enter:
-            return executeEnterAction()
+            return try executeEnterAction()
         case .look:
-            return executeLookAction()
+            return try executeLookAction()
         case .flash:
-            return executeFlashAction()
+            return try executeFlashAction()
         case .command(let command):
-            return executeBeginCommandAction(command: command)
+            return try executeBeginCommandAction(command: command)
         }
     }
 
     /// Executes the flash action for this room (important details even in brief mode).
     /// - Returns: `true` if the action produced output.
-    public func executeFlashAction() -> Bool {
+    public func executeFlashAction() throws -> Bool {
         if let action = flashAction {
-            action(self)
+            try action(self)
         } else {
             false
         }
@@ -120,9 +114,9 @@ public class Room: GameObject {
     /// Executes the look action for this room.
     ///
     /// - Returns: `true` if the action provided a description.
-    public func executeLookAction() -> Bool {
+    public func executeLookAction() throws -> Bool {
         if let action = lookAction {
-            action(self)
+            try action(self)
         } else {
             false
         }

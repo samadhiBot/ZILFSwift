@@ -7,18 +7,20 @@ struct WorldBuilder {
 
     let bar = Room(
         name: "Foyer Bar",
-        description:
-            "The bar, much rougher than you'd have guessed after the opulence of the foyer to the north, is completely empty.",
+        description: """
+            The bar, much rougher than you'd have guessed after the opulence of the foyer \
+            to the north, is completely empty.
+            """,
         flags: .isNaturallyLit
     )
 
     let cloakroom = Room(
         name: "Cloakroom",
         description: """
-                The walls of this small room were clearly once lined with hooks, though now \
-                only one remains. The exit is a door to the east, but there is also a cramped \
-                opening to the west.
-                """,
+            The walls of this small room were clearly once lined with hooks, though now \
+            only one remains. The exit is a door to the east, but there is also a cramped \
+            opening to the west.
+            """,
         flags: .isNaturallyLit
     )
 
@@ -30,10 +32,10 @@ struct WorldBuilder {
     let foyer = Room(
         name: "Foyer of the Opera House",
         description: """
-                You are standing in a spacious hall, splendidly decorated in red and gold, \
-                with glittering chandeliers overhead. The entrance from the street is to the \
-                north, and there are doorways south and west.
-                """,
+            You are standing in a spacious hall, splendidly decorated in red and gold, \
+            with glittering chandeliers overhead. The entrance from the street is to the \
+            north, and there are doorways south and west.
+            """,
         flags: .isNaturallyLit
     )
 
@@ -47,10 +49,205 @@ struct WorldBuilder {
     let study = Room(
         name: "Study",
         description: """
-                A small room with a worn stand in the middle. A hallway lies east of here, \
-                a closet off to the west.
-                """,
+            A small room with a worn stand in the middle. A hallway lies east of here, \
+            a closet off to the west.
+            """,
         flags: .isNaturallyLit
+    )
+
+    // MARK: Objects
+
+    let apple = GameObject(
+        name: "apple",
+        description: "A shiny red apple.",
+        flags: .isTakable, .isEdible, .beginsWithVowel
+    )
+
+    let book = GameObject(
+        name: "book",
+        description: "A tattered hard-cover book with a red binding.",
+        flags: .isTakable, .isReadable,
+        synonyms: "tome", "volume"
+    )
+
+    let broom = GameObject(
+        name: "broom",
+        description: "A plain wooden broom for sweeping.",
+        flags: .isTakable
+    )
+
+    let card = GameObject(
+        name: "card",
+        description: "A playing card.",
+        flags: .isTakable
+    )
+
+    let ceiling = GameObject(
+        name: "ceiling",
+        description: "Nothing really noticeable about the ceiling.",
+        type: .global
+    )
+
+    let cloak = GameObject(
+        name: "cloak",
+        description: """
+            A handsome cloak, of velvet trimmed with satin, and slightly spattered \
+            with raindrops. Its blackness is so deep that it almost seems to suck \
+            light from the room.
+            """,
+        flags: .isTakable, .isWearable, .isBeingWorn,
+        synonyms: "dark cloak", "satin cloak", "black cloak", "velvet cloak"
+    )
+
+    let crate = GameObject(
+        name: "crate",
+        description: "A wooden crate.",
+        flags: .isContainer
+    )
+
+    let cube = GameObject(
+        name: "cube",
+        description: "A mysterious cube.",
+        flags: .isTakable
+    )
+
+    let darkness = GameObject(
+        name: "darkness",
+        description: "It's too dark to see anything.",
+        type: .global,
+        flags: .omitArticle,
+        synonyms: "dark"
+    )
+
+    let dollar = GameObject(
+        name: "dollar",
+        description: "A crisp one-dollar bill.",
+        flags: .isTakable,
+        synonyms: "bill"
+    )
+
+    let firefly = GameObject(
+        name: "firefly",
+        description: "A tiny but brightly glowing firefly.",
+        flags: .isTakable, .isOn
+    )
+
+    let flashlight = GameObject(
+        name: "flashlight",
+        description: "A cheap plastic flashlight.",
+        flags: .isDevice, .isTakable, .isLightSource,
+        synonyms: "torch", "light"
+    )
+
+    let glassCase = GameObject(
+        name: "case",
+        description: "A large glass case.",
+        flags: .isContainer, .isTransparent,
+        synonyms: "display", "container"
+    )
+
+    let grapes = GameObject(
+        name: "grapes",
+        description: "A bunch of grapes.",
+        flags: .isTakable, .isEdible, .isPlural, .omitArticle
+    )
+
+    let grime = GameObject(
+        name: "grime",
+        description: "Just some dirty spots on the marble floor.",
+        flags: .isTakable, .omitArticle
+    )
+
+    let hook = GameObject(
+        name: "small brass hook",
+        description: "A small brass hook mounted on the wall.",
+        flags: .isContainer, .isSurface,
+        synonyms: "peg"
+    )
+
+    let jar = GameObject(
+        name: "jar",
+        description: "A glass jar.",
+        flags: .isContainer, .isOpen, .isTakable
+    )
+
+    let lightSwitch = GameObject(
+        name: "light switch",
+        description: "An ordinary light switch.",
+        flags: .isDevice,
+        synonyms: "switch"
+    )
+
+    let message = GameObject(
+        name: "message",
+        description: "The message reads: \"No loitering in the bar without a drink.\"",
+    )
+
+    let muffin = GameObject(
+        name: "muffin",
+        description: "A tasty-looking muffin.",
+        flags: .isTakable, .isEdible
+    )
+
+    let painting = GameObject(
+        name: "painting",
+        description: "An unusual painting that seems to change.",
+        synonyms: "picture", "art"
+    )
+
+    let rug = GameObject(
+        name: "rug",
+        description: "A tatty old rug.",
+        type: .global // localGlobal([bar, foyer])
+    )
+
+    let safe = GameObject(
+        name: "safe",
+        description: "A small wall safe.",
+        flags: .isContainer, .isOpenable
+    )
+
+    let shelf = GameObject(
+        name: "shelf",
+        description: "A narrow utility shelf.",
+        flags: .isContainer, .isSurface
+    )
+
+    let sign = GameObject(
+        name: "sign",
+        description: "It's a block of grey wood bearing hastily-painted words.",
+        flags: .isReadable
+    )
+
+    let sphere = GameObject(
+        name: "sphere",
+        description: "A glass sphere.",
+        flags: .isTakable, .isTransparent, .isContainer
+    )
+
+    let stand = GameObject(
+        name: "stand",
+        description: "A worn wooden stand.",
+        flags: .isContainer, .isSurface
+    )
+
+    let table = GameObject(
+        name: "table",
+        description: "Tatty but functional.",
+        flags: .isContainer, .isSurface,
+        synonyms: "furniture"
+    )
+
+    let tray = GameObject(
+        name: "tray",
+        description: "A serving tray.",
+        flags: .isContainer, .isTakable, .isSurface
+    )
+
+    let wallet = GameObject(
+        name: "wallet",
+        description: "A leather wallet.",
+        flags: .isContainer, .isTakable, .isOpenable
     )
 
     /// Builds the complete game world with all rooms and objects.
@@ -190,10 +387,10 @@ extension WorldBuilder {
     /// - Returns: A configured closet room.
     private func configureCloset(in world: GameWorld) {
         // Closet enter action - update lighting based on switch
-        closet.enterAction = { (room: Room) -> Bool in
-            guard let lightSwitch = study.contents.first(matchingCategory: "light switch") else {
-                throw GameError("Could not find light switch in study")
-            }
+        closet.enterAction = { (room: Room) throws -> Bool in
+//            guard let lightSwitch = study.contents.first(matchingCategory: "light switch") else {
+//                throw GameError("Could not find light switch in study")
+//            }
             if lightSwitch.hasFlag(.isOn) {
                 room.setFlag(.isOn)
             } else {
@@ -269,7 +466,7 @@ extension WorldBuilder {
                         player.moveTo(hallToStudy)
 
                         // Execute enter actions in the new room
-                        _ = hallToStudy.executeEnterAction()
+                        _ = try hallToStudy.executeEnterAction()
 
                         return true
                     }
@@ -475,16 +672,13 @@ extension WorldBuilder {
             world.eventManager.scheduleEvent(
                 name: "I-APPLE-FUN",
                 turns: 3,
-                action: {
-                    true
-                }
+                action: { true }
             )
             return true
         }
 
         apple.setCustomCommandHandler(verb: "eat") { obj, objects in
             world.output("Oh no! It was actually a poison apple (mostly so we could test JIGS-UP).")
-            // Find the player
             world.player.engine?.gameOver(with: .defeat("You've been poisoned by the apple."))
             return true
         }
@@ -515,9 +709,7 @@ extension WorldBuilder {
             world.eventManager.scheduleEvent(
                 name: "I-TABLE-FUN",
                 turns: -1, // -1 means every turn
-                action: {
-                    true
-                }
+                action: { true }
             )
             return true
         }
@@ -561,7 +753,7 @@ extension WorldBuilder {
 
         cube.setExamineHandler { obj in
             world.output("As you inspected the cube you realized time around you speeds by.")
-            world.waitTurns(10)
+            try world.waitTurns(10)
             return true
         }
 
@@ -591,7 +783,7 @@ extension WorldBuilder {
 
         painting.setCustomCommandHandler(verb: "read") { obj, _ in
             // Pick a random signature
-            let signatures = ["Micheangelo.", "Phil Collins.", "The Dude."]
+            let signatures = ["Michelangelo.", "Phil Collins.", "The Dude."]
             world.output(
                 "The signature at the bottom rearranges itself to read \(signatures.randomElement() ?? "unknown")"
             )
@@ -614,9 +806,7 @@ extension WorldBuilder {
             world.eventManager.scheduleEvent(
                 name: "I-GRIME-FUN",
                 turns: 2,
-                action: {
-                    true
-                }
+                action: { true }
             )
             return true
         }

@@ -181,10 +181,10 @@ extension GameEngine {
         if !currentRoom.isLit() {
             // Check if the current room has a handler for this command
             if let beginCommandAction = currentRoom.beginCommandAction,
-               beginCommandAction(currentRoom, command)
+               try beginCommandAction(currentRoom, command)
             {
                 // The room's custom action handled the command
-                advanceTime()
+                try advanceTime()
                 return
             }
 
@@ -215,24 +215,24 @@ extension GameEngine {
 
         // Check if the current room has a handler for this command
         if let beginCommandAction = currentRoom.beginCommandAction,
-           beginCommandAction(currentRoom, command)
+           try beginCommandAction(currentRoom, command)
         {
             // The room's custom action handled the command
-            advanceTime()
+            try advanceTime()
             return
         }
 
         // Process the command with default handling
         switch command {
         case .look:
-            handleLook()
+            try handleLook()
 
         case .inventory:
             handleInventory()
 
         case .move(let direction):
             if let direction {
-                handleMove(direction: direction)
+                try handleMove(direction: direction)
             } else {
                 output("Which way do you want to go?")
             }
@@ -531,7 +531,7 @@ extension GameEngine {
 
         // Only advance time for non-game verbs
         if !command.isMeta {
-            advanceTime()
+            try advanceTime()
         }
 
         // After executing any command, update the status line
@@ -700,9 +700,9 @@ extension GameEngine {
     /// Advances game time by one turn.
     ///
     /// This processes scheduled events and updates game state.
-    private func advanceTime() {
+    private func advanceTime() throws {
         // Process one turn of game actions and events
-        let _ = world.waitTurns(1)
+        let _ = try world.waitTurns(1)
 
         // Increment move count
         moveCount += 1
@@ -1297,7 +1297,7 @@ extension GameEngine {
     /// Handle the LOOK command.
     ///
     /// Shows the description of the player's current location.
-    private func handleLook() {
+    private func handleLook() throws {
         guard let room = world.player.currentRoom else { return }
 
         // The `handleLook` method is called when entering a new room, including when entering
@@ -1305,7 +1305,7 @@ extension GameEngine {
         guard state == .running else { return }
 
         // Check if the room's look action handles the description
-        if !room.executeLookAction() {
+        if try !room.executeLookAction() {
             // If not, show the full room description using our special text properties
             let roomDescription = room.getFullRoomDescription(in: world)
             output(roomDescription)
@@ -1336,7 +1336,7 @@ extension GameEngine {
     /// Handle the MOVE command
     ///
     /// - Parameter direction: The direction to move in
-    private func handleMove(direction: Direction) {
+    private func handleMove(direction: Direction) throws {
         let player = world.player
 
         // Check if the current room has a custom handler for this direction
@@ -1347,9 +1347,9 @@ extension GameEngine {
             return
         }
 
-        if player.move(direction: direction) {
+        if try player.move(direction: direction) {
             // Player successfully moved, show the new room description
-            handleLook()
+            try handleLook()
         } else {
             output("You can't go that way.")
         }

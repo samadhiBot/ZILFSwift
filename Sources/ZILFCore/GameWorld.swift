@@ -89,6 +89,11 @@ public class GameWorld {
         }
     }
 
+    public func place(_ object: GameObject, in location: GameObject) throws {
+        try insert(object)
+        object.moveTo(location)
+    }
+
     /// Schedules an event to run after a specified number of turns.
     /// - Parameters:
     ///   - name: A unique identifier for the event.
@@ -147,14 +152,14 @@ public class GameWorld {
     /// - Parameter turns: The maximum number of turns to wait.
     /// - Returns: `true` if the wait was interrupted by something producing output,
     ///   `false` if all turns elapsed with no output.
-    public func waitTurns(_ turns: Int) -> Bool {
+    public func waitTurns(_ turns: Int) throws -> Bool {
         var turnCount = 0
         var outputProduced = false
 
         while turnCount < turns && !outputProduced {
             // Process room end-of-turn action first
             if let room = player.currentRoom {
-                let roomOutput = room.executeEndTurnAction()
+                let roomOutput = try room.executeEndTurnAction()
                 outputProduced = roomOutput
             }
 

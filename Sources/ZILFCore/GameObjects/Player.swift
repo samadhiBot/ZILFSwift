@@ -41,7 +41,7 @@ public class Player: GameObject {
     ///
     /// - Parameter direction: The direction to move in.
     /// - Returns: `true` if the movement was successful, `false` otherwise.
-    public func move(direction: Direction) -> Bool {
+    public func move(direction: Direction) throws -> Bool {
         guard let currentRoom = self.currentRoom else {
             return false
         }
@@ -69,7 +69,7 @@ public class Player: GameObject {
                 moveTo(destination)
 
                 // Trigger the room's enter action
-                destination.executeEnterAction()
+                try destination.executeEnterAction()
 
                 return true
             } else {
@@ -94,7 +94,7 @@ public class Player: GameObject {
         moveTo(newRoom)
 
         // Trigger the room's enter action
-        newRoom.executeEnterAction()
+        try newRoom.executeEnterAction()
 
         return true
     }

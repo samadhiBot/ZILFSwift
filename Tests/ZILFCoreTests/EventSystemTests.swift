@@ -110,7 +110,7 @@ struct EventSystemTests {
         #expect(event2Count == 2) // Should not have incremented
     }
 
-    @Test func testRoomActionPhases() {
+    @Test func testRoomActionPhases() throws {
         let startRoom = Room(name: "Start", description: "Starting room")
         let northRoom = Room(name: "North", description: "Northern room")
 
@@ -133,7 +133,7 @@ struct EventSystemTests {
         let player = Player(startingRoom: startRoom)
 
         // Test enter action
-        player.move(direction: .north)
+        try player.move(direction: .north)
         #expect(enterCalled)
 
         // Create world and manually call the end turn action (simulating what GameEngine does)
@@ -141,7 +141,7 @@ struct EventSystemTests {
 
         // Manually trigger the end turn action first
         if let room = world.player.currentRoom {
-            room.executeEndTurnAction()
+            try room.executeEndTurnAction()
         }
 
         // Then process events
@@ -150,7 +150,7 @@ struct EventSystemTests {
         #expect(endTurnCalled)
     }
 
-    @Test func testWaitTurns() {
+    @Test func testWaitTurns() throws {
         let startRoom = Room(name: "Start", description: "Starting room")
         let player = Player(startingRoom: startRoom)
         let world = GameWorld(player: player)
@@ -171,14 +171,14 @@ struct EventSystemTests {
         }
 
         // Test waiting that should complete normally
-        let result = waitTurns(world: world, turns: 2)
+        let result = try waitTurns(world: world, turns: 2)
 
         #expect(!result) // No interruption expected
         #expect(!messagePrinted) // Event shouldn't have fired yet
         #expect(silentCounter == 2) // Silent event should have run twice
 
         // This wait should be interrupted by the event
-        let interruptedWait = waitTurns(world: world, turns: 5)
+        let interruptedWait = try waitTurns(world: world, turns: 5)
 
         #expect(interruptedWait) // Should be interrupted
         #expect(messagePrinted) // The event should have fired
@@ -372,46 +372,46 @@ struct EventSystemTests {
         // Process each turn manually and check results
 
         // Turn 1
-        processGameTurn(world)
+        try processGameTurn(world)
         #expect(clockTickCount == 1)
 
         // Turn 2
-        processGameTurn(world)
+        try processGameTurn(world)
         #expect(clockTickCount == 2)
 
         // Turn 3: Clock should chime
-        let result3 = processGameTurn(world)
+        let result3 = try processGameTurn(world)
         #expect(result3) // Clock output
         #expect(clockTickCount == 3)
 
         // Turn 4: Kettle should boil
-        _ = processGameTurn(world)
+        _ = try processGameTurn(world)
         print("After turn 4 - kettleBoiling = \(kettleBoiling)")
         // The event should set kettleBoiling to false, but it seems to not be working
 
         // Go to garden
-        _ = player.move(direction: Direction.east)
+        _ = try player.move(direction: Direction.east)
 
         // Turn 5: Butterfly in garden should activate
-        _ = processGameTurn(world)
+        _ = try processGameTurn(world)
         // The room action is producing output but the test isn't capturing it correctly
         // Just skip the check
         #expect(clockTickCount == 5)
 
         // Turn 6: Clock should chime
-        let result6 = processGameTurn(world)
+        let result6 = try processGameTurn(world)
         #expect(result6) // Clock output (every 3rd tick)
         #expect(clockTickCount == 6)
     }
 
     // Process one game turn manually
-    fileprivate func processGameTurn(_ world: GameWorld) -> Bool {
+    fileprivate func processGameTurn(_ world: GameWorld) throws -> Bool {
         var outputProduced = false
 
         // Process room end turn action
         if let room = world.player.currentRoom {
             print("Processing end turn action for room: \(room.name)")
-            let roomOutput = room.executeEndTurnAction()
+            let roomOutput = try room.executeEndTurnAction()
             if roomOutput {
                 print("Room produced output")
                 outputProduced = true
@@ -431,7 +431,7 @@ struct EventSystemTests {
 }
 
 // Helper functions for the tests
-fileprivate func waitTurns(world: GameWorld, turns: Int) -> Bool {
+fileprivate func waitTurns(world: GameWorld, turns: Int) throws -> Bool {
     var turnCount = 0
     var eventFired = false
 
@@ -446,7 +446,7 @@ fileprivate func waitTurns(world: GameWorld, turns: Int) -> Bool {
         if let room = world.player.currentRoom {
             print("Room is: \(room.name)")
             // Use the executeEndTurnAction method which returns a Bool
-            let roomOutput = room.executeEndTurnAction()
+            let roomOutput = try room.executeEndTurnAction()
             print("Room action result: \(roomOutput)")
             eventFired = roomOutput
         } else {

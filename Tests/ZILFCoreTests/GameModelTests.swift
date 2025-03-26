@@ -39,7 +39,7 @@ struct GameModelTests {
         #expect(obj.isIn(room))
     }
 
-    @Test func playerMovement() {
+    @Test func playerMovement() throws {
         let startRoom = Room(name: "Start", description: "Starting room")
         let northRoom = Room(name: "North", description: "Northern room")
         startRoom.setExit(.north, to: northRoom)
@@ -48,11 +48,11 @@ struct GameModelTests {
         let player = Player(startingRoom: startRoom)
 
         #expect(player.currentRoom === startRoom)
-        #expect(player.move(direction: .north))
+        #expect(try player.move(direction: .north))
         #expect(player.currentRoom === northRoom)
-        #expect(player.move(direction: .south))
+        #expect(try player.move(direction: .south))
         #expect(player.currentRoom === startRoom)
-        #expect(!player.move(direction: .east))
+        #expect(try !player.move(direction: .east))
     }
 
     @Test func objectFlags() {

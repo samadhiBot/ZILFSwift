@@ -376,17 +376,17 @@ extension GameObject {
     /// Set a command handler for this game object.
     ///
     /// - Parameter handler: The command handler function.
-    public func setCommandHandler(_ handler: @escaping (GameObject, Command) -> Bool) {
+    public func setCommandHandler(_ handler: @escaping (GameObject, Command) throws -> Bool) {
         stateValues["commandAction"] = handler
     }
 
     /// Set a handler for the examine command.
     ///
     /// - Parameter handler: The handler function that takes a GameObject and returns a Bool.
-    public func setExamineHandler(_ handler: @escaping (GameObject) -> Bool) {
-        let commandHandler: (GameObject, Command) -> Bool = { obj, command in
+    public func setExamineHandler(_ handler: @escaping (GameObject) throws -> Bool) {
+        let commandHandler: (GameObject, Command) throws -> Bool = { obj, command in
             if case .examine = command {
-                return handler(obj)
+                return try handler(obj)
             }
             return false
         }
