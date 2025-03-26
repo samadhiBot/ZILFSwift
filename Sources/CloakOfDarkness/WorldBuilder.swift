@@ -55,33 +55,33 @@ struct WorldBuilder {
 
     /// Builds the complete game world with all rooms and objects.
     func build(_ world: GameWorld) throws {
-        // Create the rooms
-        configureFoyer(in: world)
-        configureBar(in: world)
-        configureCloakroom(in: world)
-        configureHallToStudy(in: world)
-        configureStudy(in: world)
-        configureCloset(in: world)
-
         // Register rooms with the world
         try world.add(
-            foyer,
             bar,
             cloakroom,
+            closet,
+            foyer,
             hallToStudy,
-            study,
-            closet
+            study
         )
 
+        // Create the rooms
+        configureBar(in: world)
+        configureCloakroom(in: world)
+        configureCloset(in: world)
+        configureFoyer(in: world)
+        configureHallToStudy(in: world)
+        configureStudy(in: world)
+
         // Connect rooms with exits
-        foyer.exits[.south] = bar
-        foyer.exits[.west] = cloakroom
         bar.exits[.north] = foyer
         cloakroom.exits[.east] = foyer
-        hallToStudy.exits[.east] = study
-        study.exits[.west] = hallToStudy
-        study.exits[.north] = closet
         closet.exits[.south] = study
+        foyer.exits[.south] = bar
+        foyer.exits[.west] = cloakroom
+        hallToStudy.exits[.east] = study
+        study.exits[.north] = closet
+        study.exits[.west] = hallToStudy
 
         // Place objects in their initial locations
         try createBarObjects(in: world)
@@ -191,15 +191,24 @@ extension WorldBuilder {
     private func configureCloset(in world: GameWorld) {
         // Closet enter action - update lighting based on switch
         closet.enterAction = { (room: Room) -> Bool in
-            if let study = try? world.find(room: "Study" ),
-               let lightSwitch = study.contents.first(where: { $0.name == "light switch" })
-            {
-                if lightSwitch.hasFlag(.isOn) {
-                    room.setFlag(.isOn)
-                } else {
-                    room.clearFlag(.isOn)
-                }
+            guard let lightSwitch = study.contents.first(matchingCategory: "light switch") else {
+                throw GameError("Could not find light switch in study")
             }
+            if lightSwitch.hasFlag(.isOn) {
+                room.setFlag(.isOn)
+            } else {
+                room.clearFlag(.isOn)
+            }
+
+//            if let study = try? world.find(room: "Study" ),
+//               let lightSwitch = study.contents.first(where: { $0.name == "light switch" })
+//            {
+//                if lightSwitch.hasFlag(.isOn) {
+//                    room.setFlag(.isOn)
+//                } else {
+//                    room.clearFlag(.isOn)
+//                }
+//            }
             return false
         }
     }
@@ -208,6 +217,13 @@ extension WorldBuilder {
     ///
     /// - Returns: A configured cloakroom.
     private func configureCloakroom(in world: GameWorld) {
+        // Add a special exit west from cloakroom to hallway (for test purposes)
+        // This is a one-way exit
+        cloakroom.setSpecialExit(.west, to: SpecialExit(
+            destination: hallToStudy,
+            isVisible: true
+        ))
+
         // Custom enter action for the cloakroom
         cloakroom.enterAction = { (room: Room) -> Bool in
             // Check if rug is a local-global in foyer
@@ -694,7 +710,8 @@ extension WorldBuilder {
                 name: "cloak",
                 description: "A handsome cloak, of velvet trimmed with satin, and slightly spattered with raindrops. Its blackness is so deep that it almost seems to suck light from the room.",
                 location: world.player,
-                flags: .isTakable, .isWearable, .isBeingWorn
+                flags: .isTakable, .isWearable, .isBeingWorn,
+                synonyms: "dark cloak", "satin cloak", "black cloak", "velvet cloak"
             )
         )
 

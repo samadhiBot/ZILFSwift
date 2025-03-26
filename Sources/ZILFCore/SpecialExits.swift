@@ -64,8 +64,8 @@ extension Room {
     ///   - direction: The direction of the exit.
     ///   - specialExit: The special exit to add.
     public func setSpecialExit(
-        direction: Direction,
-        specialExit: SpecialExit
+        _ direction: Direction,
+        to specialExit: SpecialExit
     ) {
         setState(specialExit, forKey: "specialExit\(direction.name)")
     }
@@ -109,10 +109,7 @@ extension Room {
             isVisible: false,
             successMessage: revealMessage
         )
-        setSpecialExit(
-            direction: direction,
-            specialExit: specialExit
-        )
+        setSpecialExit(direction, to: specialExit)
     }
 
     /// Create a locked exit that requires an object (key) to pass.
@@ -140,10 +137,7 @@ extension Room {
             successMessage: unlockedMessage,
             failureMessage: lockedMessage
         )
-        setSpecialExit(
-            direction: direction,
-            specialExit: specialExit
-        )
+        setSpecialExit(direction, to: specialExit)
     }
 
     /// Create a one-way exit.
@@ -163,10 +157,7 @@ extension Room {
             destination: destination,
             successMessage: message
         )
-        setSpecialExit(
-            direction: direction,
-            specialExit: specialExit
-        )
+        setSpecialExit(direction, to: specialExit)
     }
 
     /// Create a scripted exit that runs custom code when traversed.
@@ -184,10 +175,7 @@ extension Room {
             destination: destination,
             onTraverse: script
         )
-        setSpecialExit(
-            direction: direction,
-            specialExit: specialExit
-        )
+        setSpecialExit(direction, to: specialExit)
     }
 
     /// Create a conditional exit that's only available when a condition is met.
@@ -208,10 +196,7 @@ extension Room {
             condition: condition,
             failureMessage: failureMessage
         )
-        setSpecialExit(
-            direction: direction,
-            specialExit: specialExit
-        )
+        setSpecialExit(direction, to: specialExit)
     }
 
     /// Create a deadly exit that triggers game over when used.
@@ -244,10 +229,7 @@ extension Room {
             ),
             onTraverse: exitAction
         )
-        setSpecialExit(
-            direction: direction,
-            specialExit: specialExit
-        )
+        setSpecialExit(direction, to: specialExit)
     }
 
     /// Create a victory exit that triggers game win when used.
@@ -281,9 +263,6 @@ extension Room {
             ),
             onTraverse: exitAction
         )
-        setSpecialExit(
-            direction: direction,
-            specialExit: specialExit
-        )
+        setSpecialExit(direction, to: specialExit)
     }
 }

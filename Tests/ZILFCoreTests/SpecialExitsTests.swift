@@ -33,10 +33,7 @@ import Testing
         )
 
         // Add the special exit to room1
-        room1.setSpecialExit(
-            direction: .north,
-            specialExit: specialExit
-        )
+        room1.setSpecialExit(.north, to: specialExit)
 
         // Test that the exit exists
         #expect(room1.find(specialExit: .north) != nil)
