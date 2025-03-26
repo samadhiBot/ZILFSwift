@@ -21,7 +21,6 @@ struct CloakOfDarknessTests {
         // Test world structure and basic properties
         #expect(world.rooms.count == 6, "Should have exactly 6 rooms")
         #expect(world.objects.count > 0, "Should have objects in the world")
-//        #expect(world.globalObjects.count > 0, "Should have global objects")
 
         // Find and verify all rooms
         let foyer = try world.find(room: "Foyer of the Opera House")

@@ -823,37 +823,6 @@ extension CommandParser {
         return nil
     }
 
-    /// Get all objects that are visible to the player
-//    private func getObjectsInScope(in world: GameWorld) -> [GameObject] {
-//        var objectsInScope: [GameObject] = []
-//        let player = world.player
-//        let currentRoom = player.currentRoom
-//
-//        // Add objects in player's inventory
-//        objectsInScope.append(contentsOf: player.inventory)
-//
-//        // Add objects in the current room
-//        if let room = currentRoom {
-//            // Add objects directly in the room
-//            for obj in room.contents where obj !== player {
-//                objectsInScope.append(obj)
-//
-//                // Add objects in visible containers
-//                if obj.hasFlags(.isContainer, .isOpen) || obj.hasFlag(.isTransparent) {
-//                    objectsInScope.append(contentsOf: obj.contents)
-//                }
-//            }
-//
-//            // Add global objects accessible in this room
-//            for globalObj in world.globalObjects
-//            where world.isGlobalObjectAccessible(globalObj, in: room) {
-//                objectsInScope.append(globalObj)
-//            }
-//        }
-//
-//        return objectsInScope
-//    }
-
     /// Removes articles like "the", "a", "an" from a phrase
     private func removeArticles(from phrase: String) -> String {
         let words = phrase.components(separatedBy: .whitespacesAndNewlines)

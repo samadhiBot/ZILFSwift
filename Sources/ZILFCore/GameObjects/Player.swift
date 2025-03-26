@@ -98,20 +98,57 @@ public class Player: GameObject {
 
         return true
     }
+    
+    /// All objects that are visible to the player.
+    var objectsInScope: [GameObject] {
+        var objectsInScope: [GameObject] = []
 
-    public var objectsInScope: [GameObject] {
-        world?.objects.filter {
-            switch $0.type {
-            case .global:
-                true
-            case .localGlobal(let rooms):
-                if let currentRoom { rooms.contains(currentRoom) } else { false }
-            case .object:
-                if let currentRoom { $0.isIn(currentRoom) } else { false }
-            default:
-                false
+        // Add objects in player's inventory
+        objectsInScope.append(contentsOf: inventory)
+
+        // Add objects in the current room
+        if let currentRoom {
+            // Add objects directly in the room
+            for obj in currentRoom.contents where obj !== self {
+                objectsInScope.append(obj)
+
+                // Add objects in visible containers
+                if obj.hasFlags(.isContainer, .isOpen) || obj.hasFlag(.isTransparent) {
+                    objectsInScope.append(contentsOf: obj.contents)
+                }
             }
-        } ?? [] + inventory
+
+            // Add global objects accessible in this room
+            if let world {
+                for object in world.objects {
+                    switch object.type {
+                    case .global:
+                        objectsInScope.append(object)
+                    case .localGlobal(let rooms):
+                        if rooms.contains(currentRoom) {
+                            objectsInScope.append(object)
+                        }
+                    default:
+                        break
+                    }
+                }
+            }
+        }
+
+        return objectsInScope
+
+//        world?.objects.filter {
+//            switch $0.type {
+//            case .global:
+//                true
+//            case .localGlobal(let rooms):
+//                if let currentRoom { rooms.contains(currentRoom) } else { false }
+//            case .object:
+//                if let currentRoom { $0.isIn(currentRoom) } else { false }
+//            default:
+//                false
+//            }
+//        } ?? [] + inventory
     }
 }
 

@@ -952,7 +952,7 @@ extension WorldBuilder {
             )
         )
 
-        let bill = try world.insert(
+        try world.insert(
             GameObject(
                 name: "dollar",
                 description: "A crisp one-dollar bill.",
@@ -972,7 +972,7 @@ extension WorldBuilder {
             )
         )
 
-        let muffin = try world.insert(
+        try world.insert(
             GameObject(
                 name: "muffin",
                 description: "A tasty-looking muffin.",
@@ -990,7 +990,7 @@ extension WorldBuilder {
             )
         )
 
-        let firefly = try world.insert(
+        try world.insert(
             GameObject(
                 name: "firefly",
                 description: "A tiny but brightly glowing firefly.",
@@ -1019,7 +1019,7 @@ extension WorldBuilder {
         )
         jar.setCapacity(to: 6)
 
-        let plum = try world.insert(
+        try world.insert(
             GameObject(
                 name: "plum",
                 description: "A ripe purple plum.",
@@ -1036,7 +1036,6 @@ extension WorldBuilder {
                 flags: .isContainer
             )
         )
-
         crate.setCapacity(to: 15)
 
         let tray = try world.insert(
@@ -1047,7 +1046,6 @@ extension WorldBuilder {
                 flags: .isContainer, .isTakable, .isSurface
             )
         )
-
         tray.setCapacity(to: 11)
     }
 }

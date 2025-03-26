@@ -150,18 +150,28 @@ struct GameModelTests {
 
     @Test func testTakingFromContainer() throws {
         let room = Room(name: "Room", description: "A test room")
-        let box = GameObject(name: "wooden box", description: "A simple wooden box.", location: room)
-        box.setFlag(.isContainer)
-        box.setFlag(.isOpenable)
-        box.setFlag(.isOpen)  // Start with open box
-
-        let coin = GameObject(name: "gold coin", description: "A shiny gold coin.", location: box)
-        coin.setFlag(.isTakable)
-
         let player = Player(startingRoom: room)
         let world = GameWorld(player: player)
 
         let parser = CommandParser()
+
+        let box = try world.insert(
+            GameObject(
+                name: "wooden box",
+                description: "A simple wooden box.",
+                location: room,
+                flags: .isContainer, .isOpenable, .isOpen // Start with open box
+            )
+        )
+
+        let coin = try world.insert(
+            GameObject(
+                name: "gold coin",
+                description: "A shiny gold coin.",
+                location: box,
+                flags: .isTakable
+            )
+        )
 
         // Test finding the coin in the box
         if case let .take(obj) = parser.parse("take coin", in: world) {
