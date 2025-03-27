@@ -486,7 +486,7 @@
 //        northRoom.setExit(.south, to: startRoom)
 //
 //        let player = Player(startingRoom: startRoom)
-//        let world = GameWorld(player: player)
+//        let world = try GameWorld(player: player)
 //        world.register(startRoom)
 //        world.register(northRoom)
 //

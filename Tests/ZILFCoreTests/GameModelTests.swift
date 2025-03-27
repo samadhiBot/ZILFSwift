@@ -32,7 +32,8 @@ struct GameModelTests {
 
     @Test func objectLocation() {
         let room = Room(name: "Room", description: "A room")
-        let obj = GameObject(name: "Object", description: "A test object", location: room)
+        let obj = GameObject(name: "Object", description: "A test object")
+        obj.moveTo(room)
 
         #expect(obj.location === room)
         #expect(room.contents.contains(obj))
@@ -67,13 +68,15 @@ struct GameModelTests {
 
     @Test func testItReference() throws {
         let room = Room(name: "Room", description: "A test room")
-        let obj1 = GameObject(name: "red ball", description: "A red ball", location: room)
+        let obj1 = GameObject(name: "red ball", description: "A red ball")
+        obj1.moveTo(room)
         obj1.setFlag(.isTakable)
-        let obj2 = GameObject(name: "blue book", description: "A blue book", location: room)
+        let obj2 = GameObject(name: "blue book", description: "A blue book")
+        obj2.moveTo(room)
         obj2.setFlag(.isTakable)
 
         let player = Player(startingRoom: room)
-        let world = GameWorld(player: player)
+        let world = try GameWorld(player: player)
 
         world.lastMentionedObject = obj1
 
@@ -115,12 +118,19 @@ struct GameModelTests {
 
     @Test func testContainers() {
         let room = Room(name: "Room", description: "A test room")
-        let box = GameObject(name: "wooden box", description: "A simple wooden box.", location: room)
-        box.setFlag(.isContainer)
-        box.setFlag(.isOpenable)
+        let box = GameObject(
+            name: "wooden box",
+            description: "A simple wooden box.",
+            flags: .isContainer, .isOpenable
+        )
+        box.moveTo(room)
 
-        let coin = GameObject(name: "gold coin", description: "A shiny gold coin.", location: box)
-        coin.setFlag(.isTakable)
+        let coin = GameObject(
+            name: "gold coin",
+            description: "A shiny gold coin.",
+            flags: .isTakable
+        )
+        coin.moveTo(box)
 
         // Test initial state
         #expect(box.hasFlags(.isContainer, .isOpenable))
@@ -138,12 +148,14 @@ struct GameModelTests {
         #expect(!box.hasFlag(.isTransparent)) // The box is not inherently transparent
 
         // Create a transparent container (like glass)
-        let glass = GameObject(name: "glass jar", description: "A transparent glass jar.", location: room)
+        let glass = GameObject(name: "glass jar", description: "A transparent glass jar.")
+        glass.moveTo(room)
         glass.setFlag(.isContainer)
         glass.setFlag(.isOpenable)
         glass.setFlag(.isTransparent) // Explicitly set as transparent
 
-        let marble = GameObject(name: "marble", description: "A small glass marble.", location: glass)
+        let marble = GameObject(name: "marble", description: "A small glass marble.")
+        marble.moveTo(glass)
 
         #expect(glass.hasFlag(.isTransparent)) // Should be visible even when closed
     }
@@ -151,7 +163,7 @@ struct GameModelTests {
     @Test func testTakingFromContainer() throws {
         let room = Room(name: "Room", description: "A test room")
         let player = Player(startingRoom: room)
-        let world = GameWorld(player: player)
+        let world = try GameWorld(player: player)
 
         let parser = CommandParser()
 
@@ -159,18 +171,18 @@ struct GameModelTests {
             GameObject(
                 name: "wooden box",
                 description: "A simple wooden box.",
-                location: room,
                 flags: .isContainer, .isOpenable, .isOpen // Start with open box
-            )
+            ),
+            in: room
         )
 
         let coin = try world.insert(
             GameObject(
                 name: "gold coin",
                 description: "A shiny gold coin.",
-                location: box,
                 flags: .isTakable
-            )
+            ),
+            into: box
         )
 
         // Test finding the coin in the box

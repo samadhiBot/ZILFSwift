@@ -3,8 +3,6 @@ import Testing
 @testable import ZILFCore
 
 struct CommandParserTests {
-    // MARK: - Core Command Tests
-
     @Test func closeCommand() throws {
         let (world, parser, _, _, _) = try setupTestWorld()
 
@@ -13,9 +11,9 @@ struct CommandParserTests {
             GameObject(
                 name: "box",
                 description: "A wooden box",
-                location: world.player.currentRoom,
-                flags: .isContainer, .isOpen
-            ) // Start opened
+                flags: .isContainer, .isOpen // Start opened
+            ),
+            in: world.player.currentRoom!
         )
 
         // Test basic close command
@@ -201,9 +199,9 @@ struct CommandParserTests {
             GameObject(
                 name: "lamp",
                 description: "A brass lamp",
-                location: world.player.currentRoom,
                 flags: .isDevice
-            )
+            ),
+            in: world.player.currentRoom!
         )
 
         // Test flip command
@@ -231,9 +229,9 @@ struct CommandParserTests {
         let book = try world.insert(
             GameObject(
                 name: "book",
-                description: "A heavy book",
-                location: world.player.currentRoom
-            )
+                description: "A heavy book"
+            ),
+            in: world.player.currentRoom!
         )
 
         if case let .flip(obj) = parser.parse("flip book", in: world) {
@@ -403,9 +401,9 @@ struct CommandParserTests {
             GameObject(
                 name: "box",
                 description: "A wooden box",
-                location: world.player.currentRoom,
                 flags: .isContainer
-            )
+            ),
+            in: world.player.currentRoom!
         )
 
         // Test basic open command
@@ -441,26 +439,26 @@ struct CommandParserTests {
             GameObject(
                 name: "apple",
                 description: "A red apple",
-                location: world.player,
                 flags: .isTakable
-            )
+            ),
+            into: world.player
         )
 
         let box = try world.insert(
             GameObject(
                 name: "box",
                 description: "A wooden box",
-                location: world.player.currentRoom,
                 flags: .isContainer
-            )
+            ),
+            in: world.player.currentRoom!
         )
 
         let table = try world.insert(
             GameObject(
                 name: "table",
-                description: "A wooden table",
-                location: world.player.currentRoom
-            )
+                description: "A wooden table"
+            ),
+            in: world.player.currentRoom!
         )
 
         // Test "put X in Y" - natural language command
@@ -530,9 +528,9 @@ struct CommandParserTests {
             GameObject(
                 name: "book",
                 description: "A dusty book",
-                location: world.player.currentRoom,
                 flags: .isReadable
-            )
+            ),
+            in: world.player.currentRoom!
         )
 
         // Test read command
@@ -553,9 +551,9 @@ struct CommandParserTests {
         let rock = try world.insert(
             GameObject(
                 name: "rock",
-                description: "A gray rock",
-                location: world.player.currentRoom
-            )
+                description: "A gray rock"
+            ),
+            in: world.player.currentRoom!
         )
 
         // The parser doesn't check readability, that's for the command execution
@@ -579,9 +577,9 @@ struct CommandParserTests {
             GameObject(
                 name: "hat",
                 description: "A fancy hat",
-                location: world.player,
                 flags: .isWearable, .isBeingWorn  // Mark as currently worn
-            )
+            ),
+            into: world.player
         )
 
         // Test "remove hat" command
@@ -672,9 +670,9 @@ struct CommandParserTests {
             GameObject(
                 name: "hat",
                 description: "A fancy hat",
-                location: world.player,
                 flags: .isWearable, .isBeingWorn  // Mark as currently worn
-            )
+            ),
+            into: world.player
         )
 
         // Check if take-off (hyphenated) is recognized - it should be an unwear command
@@ -755,9 +753,9 @@ struct CommandParserTests {
             GameObject(
                 name: "hat",
                 description: "A fancy hat",
-                location: world.player,
                 flags: .isWearable, .isBeingWorn  // Mark as currently worn
-            )
+            ),
+            into: world.player
         )
 
         // Test "take off hat" command - check what the actual implementation does
@@ -793,9 +791,9 @@ struct CommandParserTests {
             GameObject(
                 name: "ball",
                 description: "A round ball",
-                location: world.player.currentRoom,
                 flags: .isTakable
-            )
+            ),
+            in: world.player.currentRoom!
         )
 
         // Verify regular take still works
@@ -814,9 +812,9 @@ struct CommandParserTests {
             GameObject(
                 name: "lamp",
                 description: "A brass lamp",
-                location: world.player.currentRoom,
                 flags: .isDevice
-            )
+            ),
+            in: world.player.currentRoom!
         )
 
         // Test "turn on lamp" (natural language command)
@@ -850,9 +848,9 @@ struct CommandParserTests {
         let book = try world.insert(
             GameObject(
                 name: "book",
-                description: "A heavy book",
-                location: world.player.currentRoom
-            )
+                description: "A heavy book"
+            ),
+            in: world.player.currentRoom!
         )
 
         if case let .turnOn(parsedBook) = parser.parse("turn on book", in: world) {
@@ -907,9 +905,9 @@ struct CommandParserTests {
             GameObject(
                 name: "coat",
                 description: "A warm coat",
-                location: world.player,
                 flags: .isWearable
-            )
+            ),
+            into: world.player
         )
 
         // Test "wear coat" command
@@ -944,9 +942,9 @@ struct CommandParserTests {
         let rock = try world.insert(
             GameObject(
                 name: "rock",
-                description: "A gray rock",
-                location: world.player
-            )
+                description: "A gray rock"
+            ),
+            into: world.player
         )
 
         if case let .wear(parsedRock) = parser.parse("wear rock", in: world) {
@@ -965,9 +963,9 @@ struct CommandParserTests {
             GameObject(
                 name: "scarf",
                 description: "A woolen scarf",
-                location: world.player.currentRoom,
                 flags: .isWearable
-            )
+            ),
+            in: world.player.currentRoom!
         )
 
         if case let .wear(parsedScarf) = parser.parse("wear scarf", in: world) {
@@ -986,7 +984,7 @@ struct CommandParserTests {
             description: "The starting room"
         )
         let player = Player(startingRoom: startRoom)
-        let world = GameWorld(player: player)
+        let world = try GameWorld(player: player)
         _ = try world.insert(startRoom)
 
         let northRoom = try world.add(
@@ -1005,9 +1003,9 @@ struct CommandParserTests {
             GameObject(
                 name: "gold coin",
                 description: "A shiny gold coin",
-                location: startRoom,
                 flags: .isTakable
-            )
+            ),
+            in: startRoom
         )
 
         let parser = CommandParser()

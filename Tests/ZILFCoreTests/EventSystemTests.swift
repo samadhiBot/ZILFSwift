@@ -76,10 +76,10 @@ struct EventSystemTests {
         #expect(!eventFired) // Event should have been cancelled
     }
 
-    @Test func testGameWorldEvents() {
+    @Test func testGameWorldEvents() throws {
         let startRoom = Room(name: "Start", description: "Starting room")
         let player = Player(startingRoom: startRoom)
-        let world = GameWorld(player: player)
+        let world = try GameWorld(player: player)
 
         var event1Fired = false
         var event2Count = 0
@@ -137,7 +137,7 @@ struct EventSystemTests {
         #expect(enterCalled)
 
         // Create world and manually call the end turn action (simulating what GameEngine does)
-        let world = GameWorld(player: player)
+        let world = try GameWorld(player: player)
 
         // Manually trigger the end turn action first
         if let room = world.player.currentRoom {
@@ -153,7 +153,7 @@ struct EventSystemTests {
     @Test func testWaitTurns() throws {
         let startRoom = Room(name: "Start", description: "Starting room")
         let player = Player(startingRoom: startRoom)
-        let world = GameWorld(player: player)
+        let world = try GameWorld(player: player)
 
         var messagePrinted = false
 
@@ -294,7 +294,7 @@ struct EventSystemTests {
         let player = Player(startingRoom: kitchen)
 
         // Create the game world with the player
-        let world = GameWorld(player: player)
+        let world = try GameWorld(player: player)
         try world.add(kitchen)
         try world.add(garden)
 

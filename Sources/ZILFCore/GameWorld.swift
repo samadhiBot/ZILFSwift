@@ -42,10 +42,12 @@ extension GameWorld {
     /// - Returns: The added room.
     @discardableResult
     public func add(_ room: Room) throws -> Room {
-        guard !rooms.contains(room) else {
-            throw Error.duplicateRoomAdded(room.id)
+        if rooms.contains(room) {
+            player.engine?
+                .error("Attempted to add room `\(room)` that already exists in the world.")
+        } else {
+            rooms.append(room)
         }
-        rooms.append(room)
         return room
     }
 
@@ -327,7 +329,6 @@ extension GameWorld {
         case cannotInsertObjectMultipleTimes(GameObject.ID)
         case cannotInsertPlayer(GameObject.ID)
         case cannotInsertRoom(GameObject.ID)
-        case duplicateRoomAdded(GameObject.ID)
         case localGlobalRequiresMultipleLocations(GameObject.ID)
         case engineNotFound(output: String)
         case objectNotFound(GameObject.ID)

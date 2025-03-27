@@ -20,7 +20,7 @@ import Testing
 
         // Create a player and world
         let player = Player(startingRoom: room1)
-        let world = GameWorld(player: player)
+        let world = try GameWorld(player: player)
         try world.add(room1)
         try world.add(room2)
 
@@ -55,7 +55,7 @@ import Testing
 
         // Create a player and world
         let player = Player(startingRoom: room1)
-        let world = GameWorld(player: player)
+        let world = try GameWorld(player: player)
         try world.add(room1)
         try world.add(room2)
 
@@ -98,7 +98,7 @@ import Testing
 
         // Create a player and world
         let player = Player(startingRoom: room1)
-        let world = GameWorld(player: player)
+        let world = try GameWorld(player: player)
         try world.add(room1)
         try world.add(room2)
 
@@ -144,7 +144,7 @@ import Testing
 
         // Create a player and world
         let player = Player(startingRoom: room1)
-        let world = GameWorld(player: player)
+        let world = try GameWorld(player: player)
         try world.add(room1)
         try world.add(room2)
 
@@ -179,7 +179,7 @@ import Testing
 
         // Create a player and world
         let player = Player(startingRoom: room1)
-        let world = GameWorld(player: player)
+        let world = try GameWorld(player: player)
         try world.add(room1)
         try world.add(room2)
 
@@ -215,7 +215,7 @@ import Testing
 
         // Create a player and world
         let player = Player(startingRoom: room1)
-        let world = GameWorld(player: player)
+        let world = try GameWorld(player: player)
         try world.add(room1)
         try world.add(room2)
 

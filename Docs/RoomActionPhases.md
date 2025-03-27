@@ -98,7 +98,7 @@ startRoom.addToContainer(lamp)
 
 // Create a player and world
 let player = Player(startingRoom: startRoom)
-let world = GameWorld(player: player)
+let world = try GameWorld(player: player)
 
 // Start the game
 let engine = GameEngine(world: world)

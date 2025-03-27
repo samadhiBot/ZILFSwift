@@ -22,7 +22,7 @@
 //        kitchen.setExit(.west, to: hall)
 //
 //        let player = Player(startingRoom: hall)
-//        let world = GameWorld(player: player)
+//        let world = try GameWorld(player: player)
 //
 //        // Register rooms
 //        world.register(hall)
@@ -86,7 +86,7 @@
 //        kitchen.setExit(.west, to: hall)
 //
 //        let player = Player(startingRoom: hall)
-//        let world = GameWorld(player: player)
+//        let world = try GameWorld(player: player)
 //
 //        // Register rooms
 //        world.register(hall)

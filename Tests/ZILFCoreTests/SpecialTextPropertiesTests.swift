@@ -9,7 +9,7 @@ import Testing
 @testable import ZILFCore
 
 struct SpecialTextPropertiesTests {
-    @Test func testBasicSpecialTextProperties() {
+    @Test func testBasicSpecialTextProperties() throws {
         let obj = GameObject(name: "test object", description: "Default description")
 
         // Test default description
@@ -32,7 +32,7 @@ struct SpecialTextPropertiesTests {
         #expect(obj.getCurrentDescription(isLit: false) == "It's very dark")
     }
 
-    @Test func testVisitCountIncrementing() {
+    @Test func testVisitCountIncrementing() throws {
         let obj = GameObject(name: "visit counter", description: "Base description")
 
         // Set descriptions for different visit counts
@@ -53,7 +53,7 @@ struct SpecialTextPropertiesTests {
         #expect(obj.getDescriptionAndIncreaseVisits() == "Base description")
     }
 
-    @Test func testContainerDescriptions() {
+    @Test func testContainerDescriptions() throws {
         let box = GameObject(name: "box", description: "A simple box.")
         box.setFlag(.isContainer)
         box.setFlag(.isOpenable)
@@ -71,16 +71,17 @@ struct SpecialTextPropertiesTests {
         #expect(box.getContentsDescription() == "It's empty.")
 
         // Add some contents
-        _ = GameObject(
+        let goldCoin = GameObject(
             name: "gold coin",
-            description: "A shiny coin.",
-            location: box
+            description: "A shiny coin."
         )
-        _ = GameObject(
+        goldCoin.moveTo(box)
+
+        let brassKey = GameObject(
             name: "brass key",
-            description: "A small key.",
-            location: box
+            description: "A small key."
         )
+        brassKey.moveTo(box)
 
         // Test with contents
         #expect(box.getContentsDescription().contains("Inside you see:"))
@@ -93,13 +94,13 @@ struct SpecialTextPropertiesTests {
         #expect(!box.getContentsDescription().contains("Inside you see:"))
     }
 
-    @Test func testRoomDescriptions() {
+    @Test func testRoomDescriptions() throws {
         let room = Room(name: "Test Room", description: "A standard room.")
         room.setSpecialText("You see a room with fancy decorations.", forKey: .description)
         room.setSpecialText("Just a room.", forKey: .briefDescription)
 
         let player = Player(startingRoom: room)
-        let world = GameWorld(player: player)
+        let world = try GameWorld(player: player)
 
         // Make the room naturally lit
         room.setFlag(.isNaturallyLit)
@@ -125,14 +126,14 @@ struct SpecialTextPropertiesTests {
         #expect(fullDesc.contains("Exits: north"))
     }
 
-    @Test func testDarkRoomDescription() {
+    @Test func testDarkRoomDescription() throws {
         let darkRoom = Room(name: "Dark Room", description: "A well-furnished room.")
         darkRoom.clearFlag(.isOn)
         darkRoom.clearFlag(.isNaturallyLit) // Ensure the room is dark
         darkRoom.setSpecialText("You can't see anything in the pitch darkness.", forKey: .darkDescription)
 
         let player = Player(startingRoom: darkRoom)
-        let world = GameWorld(player: player)
+        let world = try GameWorld(player: player)
         
         // Without a light source, should be dark
         #expect(darkRoom.getRoomDescription(in: world) == "You can't see anything in the pitch darkness.")
@@ -141,16 +142,15 @@ struct SpecialTextPropertiesTests {
         let lantern = GameObject(
             name: "lantern",
             description: "A brass lantern",
-            location: darkRoom
+            flags: .isLightSource, .isOn
         )
-        lantern.setFlag(.isLightSource)
-        lantern.setFlag(.isOn)
+        lantern.moveTo(darkRoom)
 
         #expect(darkRoom.getRoomDescription(in: world).contains("A well-furnished room"))
     }
 
-    @Test func testBriefMode() {
-        let world = GameWorld(player: Player(startingRoom: Room(name: "Test", description: "Test")))
+    @Test func testBriefMode() throws {
+        let world = try GameWorld(player: Player(startingRoom: Room(name: "Test", description: "Test")))
 
         // Default should be verbose
         #expect(!world.useBriefDescriptions)

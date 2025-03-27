@@ -262,7 +262,7 @@ struct WorldBuilder {
     /// Builds the complete game world with all rooms and objects.
     func build(_ world: GameWorld) throws {
         // Register rooms with the world
-        try world.insert(
+        try world.add(
             bar,
             cloakroom,
             closet,

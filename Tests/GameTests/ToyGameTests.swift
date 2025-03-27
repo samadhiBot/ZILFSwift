@@ -6,7 +6,7 @@ struct ToyGameTests {
 
     init() throws {
         let game = ToyGame { _ in }
-        harness = GameTestHarness(for: game)
+        harness = try GameTestHarness(for: game)
         try harness.initialize()
     }
 

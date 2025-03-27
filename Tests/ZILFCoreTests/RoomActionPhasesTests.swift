@@ -95,7 +95,7 @@
 //
 //        // Create a game world to track lighting
 //        let player = Player(startingRoom: room)
-//        let world = GameWorld(player: player)
+//        let world = try GameWorld(player: player)
 //        world.register(room)
 //
 //        // Initialize the room's lighting state
@@ -420,7 +420,7 @@
 //
 //        // Create a player and world
 //        let player = Player(startingRoom: foyer)
-//        let world = GameWorld(player: player)
+//        let world = try GameWorld(player: player)
 //        world.register(foyer)
 //        world.register(bar)
 //        world.register(kitchen)

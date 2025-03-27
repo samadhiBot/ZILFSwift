@@ -13,7 +13,7 @@ struct CloakOfDarknessTests {
 
     init() throws {
         let game = CloakOfDarkness { _ in }
-        harness = GameTestHarness(for: game)
+        harness = try GameTestHarness(for: game)
         try harness.initialize()
     }
 

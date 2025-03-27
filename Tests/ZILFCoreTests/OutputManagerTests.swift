@@ -71,7 +71,7 @@
 //        let player = Player(startingRoom: startRoom)
 //
 //        // Create the game world with the player
-//        let world = GameWorld(player: player)
+//        let world = try GameWorld(player: player)
 //
 //        // Register the room with the world
 //        world.register(startRoom)

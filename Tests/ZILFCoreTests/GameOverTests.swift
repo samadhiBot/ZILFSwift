@@ -19,7 +19,7 @@
 //        room.setFlag(.isNaturallyLit)
 //
 //        let player = Player(startingRoom: room)
-//        let world = GameWorld(player: player)
+//        let world = try GameWorld(player: player)
 //        world.register(room)
 //
 //        // Create a room with a deadly exit
@@ -59,7 +59,7 @@
 //        room.setFlag(.isNaturallyLit)
 //
 //        let player = Player(startingRoom: room)
-//        let world = GameWorld(player: player)
+//        let world = try GameWorld(player: player)
 //        world.register(room)
 //
 //        // Setup output capture
@@ -89,7 +89,7 @@
 //        room.setFlag(.isNaturallyLit)
 //
 //        let player = Player(startingRoom: room)
-//        let world = GameWorld(player: player)
+//        let world = try GameWorld(player: player)
 //        world.register(room)
 //
 //        // Create a room with a deadly exit
@@ -134,7 +134,7 @@
 //        room.setFlag(.isNaturallyLit)
 //
 //        let player = Player(startingRoom: room)
-//        let world = GameWorld(player: player)
+//        let world = try GameWorld(player: player)
 //        world.register(room)
 //
 //        // Add a victory condition

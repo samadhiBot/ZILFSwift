@@ -13,7 +13,7 @@ struct HelloWorldGameTests {
 
     init() throws {
         let game = HelloWorldGame { _ in }
-        harness = GameTestHarness(for: game)
+        harness = try GameTestHarness(for: game)
         try harness.initialize()
     }
 

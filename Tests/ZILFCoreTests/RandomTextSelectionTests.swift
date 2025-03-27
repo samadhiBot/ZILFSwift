@@ -57,7 +57,7 @@ struct RandomTextSelectionTests {
 
         let player = Player(startingRoom: room)
 
-        let world = GameWorld(player: player)
+        let world = try GameWorld(player: player)
 
         let object = try world.insert(
             GameObject(
@@ -119,11 +119,11 @@ struct RandomTextSelectionTests {
         #expect(results.allSatisfy { options.contains($0) })
     }
 
-    @Test func testGameObjectsWithRandomDescriptions() {
+    @Test func testGameObjectsWithRandomDescriptions() throws {
         // Create test objects
         let room = Room(name: "Forest", description: "A dense forest")
         let player = Player(startingRoom: room)
-        let world = GameWorld(player: player)
+        let world = try GameWorld(player: player)
 
         // Set up random room descriptions
         let forestDescriptions = [
