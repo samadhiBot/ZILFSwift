@@ -29,7 +29,7 @@ struct SpecialTextPropertiesTests {
 
         // Test dark description
         obj.setSpecialText("It's very dark", forKey: .darkDescription)
-        #expect(obj.getCurrentDescription(isLit: false) == "It's very dark")
+        #expect(obj.getCurrentDescription(hasLight: false) == "It's very dark")
     }
 
     @Test func testVisitCountIncrementing() throws {

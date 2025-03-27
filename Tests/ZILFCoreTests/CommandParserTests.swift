@@ -985,7 +985,6 @@ struct CommandParserTests {
         )
         let player = Player(startingRoom: startRoom)
         let world = try GameWorld(player: player)
-        _ = try world.insert(startRoom)
 
         let northRoom = try world.add(
             Room(

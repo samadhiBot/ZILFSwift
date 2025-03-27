@@ -264,7 +264,7 @@ struct CloakOfDarknessTests {
             """)
 
         // The bar should be lit now that we're not wearing the cloak
-        #expect(bar.isLit())
+        #expect(bar.hasLight)
         harness.flush()
 
         // 8. Examine the message to win the game

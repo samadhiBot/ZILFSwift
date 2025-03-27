@@ -54,7 +54,11 @@ public class Room: GameObject {
             synonyms: synonyms
         )
     }
+}
 
+// MARK: - Executors
+
+extension Room {
     /// Executes the begin-command action for this room.
     /// - Parameter command: The command to process.
     /// - Returns: `true` if the action handled the command.
@@ -124,13 +128,22 @@ public class Room: GameObject {
             false
         }
     }
+}
 
+// MARK: - Helpers
+
+extension Room {
     /// Finds the room connected to this room in the specified direction.
     ///
     /// - Parameter direction: The direction to check.
     /// - Returns: The connected room, or `nil` if no exit exists in that direction.
     public func find(exit direction: Direction) -> Room? {
         exits[direction]
+    }
+
+    /// Whether the room is currently lit.
+    public var hasLight: Bool {
+        world?.isRoomLit(self) ?? super.isLightSource()
     }
 
     /// Creates an exit from this room to another room in the specified direction.
@@ -140,13 +153,6 @@ public class Room: GameObject {
     ///   - room: The destination room.
     public func setExit(_ direction: Direction, to room: Room) {
         exits[direction] = room
-    }
-
-    /// Checks if this room is currently lit.
-    ///
-    /// - Returns: true if the room is lit, false otherwise.
-    public func isLit() -> Bool {
-        world?.isRoomLit(self) ?? super.isLightSource()
     }
 }
 

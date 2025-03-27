@@ -16,7 +16,10 @@ struct LightingSystemTests {
 
         // Create a game world
         let world = try GameWorld(player: player)
-//        _ try world.add(litRoom)
+
+        // Test if lit room is naturally lit
+        #expect(litRoom.hasFlag(.isNaturallyLit))
+        #expect(litRoom.hasLight)
 
         // Create a dark room
         let darkRoom = try world.add(
@@ -26,16 +29,8 @@ struct LightingSystemTests {
             )
         )
 
-        // Test if bright room is naturally lit
-        #expect(litRoom.hasFlag(.isNaturallyLit))
-        #expect(litRoom.isLit())
-
-        // Mark previous state and verify brightness remains unchanged
-//        brightRoom.setState(true, forKey: "wasLit")
-//        #expect(brightRoom.isLit())
-
         // Check dark room (should not be lit)
-        #expect(!darkRoom.isLit())
+        #expect(!darkRoom.hasLight)
 
         // Test player carrying a light source (lantern)
         let lantern = try world.insert(
@@ -59,13 +54,13 @@ struct LightingSystemTests {
         #expect(player.currentRoom === darkRoom)
 
         // Room should now be lit due to lantern
-        #expect(darkRoom.isLit())
+        #expect(darkRoom.hasLight)
 
         // Turn off the lantern
         lantern.clearFlag(.isOn)
 
         // Room should now be dark again
-        #expect(!darkRoom.isLit())
+        #expect(!darkRoom.hasLight)
     }
 
     @Test func testLightSources() throws {
@@ -83,7 +78,7 @@ struct LightingSystemTests {
         let world = try GameWorld(player: player)
 
         // The room is dark by default and we've explicitly made it dark
-        #expect(!darkRoom.isLit())
+        #expect(!darkRoom.hasLight)
 
         // Create a lantern (off)
         let lantern = try world.insert(
@@ -96,22 +91,22 @@ struct LightingSystemTests {
         lantern.moveTo(darkRoom)
 
         // The room should still be dark
-        #expect(!darkRoom.isLit())
+        #expect(!darkRoom.hasLight)
 
         // Turn on the lantern
         lantern.setFlag(.isOn)
 
         // Now the room should be lit
-        #expect(darkRoom.isLit())
+        #expect(darkRoom.hasLight)
 
         // Test toggle functionality
         lantern.clearFlag(.isOn) // Turn off
         #expect(!lantern.hasFlag(.isOn))
-        #expect(!darkRoom.isLit())
+        #expect(!darkRoom.hasLight)
 
         lantern.setFlag(.isOn) // Turn on
         #expect(lantern.hasFlag(.isOn))
-        #expect(darkRoom.isLit())
+        #expect(darkRoom.hasLight)
 
         // Test getting all light sources in the room
         var lightSources: [GameObject] = []
@@ -179,7 +174,7 @@ struct LightingSystemTests {
         let world = try GameWorld(player: player)
 
         // The room is dark by default
-        #expect(!room.isLit())
+        #expect(!room.hasLight)
 
         // Create a glass box (transparent container)
         let glassBox = try world.insert(
@@ -202,7 +197,7 @@ struct LightingSystemTests {
         crystal.moveTo(glassBox)
 
         // The room should be lit because the crystal is visible through the glass
-        #expect(room.isLit())
+        #expect(room.hasLight)
 
         // Create a wooden box (non-transparent container)
         let woodenBox = try world.insert(
@@ -219,14 +214,14 @@ struct LightingSystemTests {
         crystal.moveTo(woodenBox)
 
         // The room should still be lit because the wooden box is open
-        #expect(room.isLit())
+        #expect(room.hasLight)
 
         // Close the wooden box
         woodenBox.clearFlag(.isOpen)
         woodenBox.setFlag(.isLocked)
 
         // Now the room should be dark
-        #expect(!room.isLit())
+        #expect(!room.hasLight)
     }
 
 //    @Test func testRoomActionPatterns() {
@@ -275,18 +270,18 @@ struct LightingSystemTests {
 //            let wasLit = room.getState(forKey: "wasLit") as Bool? ?? false
 //
 //            // Get current light state
-//            let isLit = lightIsOn
+//            let hasLight = lightIsOn
 //
 //            // Update for next time
-//            room.setState(isLit, forKey: "wasLit")
+//            room.setState(hasLight, forKey: "wasLit")
 //
 //            // Detect changes
-//            if !wasLit && isLit {
+//            if !wasLit && hasLight {
 //                becameLit = true
 //                return true
 //            }
 //
-//            if wasLit && !isLit {
+//            if wasLit && !hasLight {
 //                becameDark = true
 //                return true
 //            }

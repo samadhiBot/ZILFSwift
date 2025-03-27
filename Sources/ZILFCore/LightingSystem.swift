@@ -45,13 +45,13 @@ extension GameWorld {
         let wasLit: Bool = room.getState(forKey: "wasLit") ?? false
 
         // Get current light status
-        let isLit = isRoomLit(room)
+        let isNowLit = isRoomLit(room)
 
         // Store the current state for next time
-        room.setState(isLit, forKey: "wasLit")
+        room.setState(isNowLit, forKey: "wasLit")
 
         // Return true if it was lit and is now dark
-        return wasLit && !isLit
+        return wasLit && !isNowLit
     }
 
     /// Checks if a room just became lit (equivalent to ZIL's NOW-LIT?).
@@ -62,13 +62,13 @@ extension GameWorld {
         let wasLit: Bool = room.getState(forKey: "wasLit") ?? false
 
         // Get current light status
-        let isLit = isRoomLit(room)
+        let isNowLit = isRoomLit(room)
 
         // Store the current state for next time
-        room.setState(isLit, forKey: "wasLit")
+        room.setState(isNowLit, forKey: "wasLit")
 
         // Return true if it was dark and is now lit
-        return !wasLit && isLit
+        return !wasLit && isNowLit
     }
 
     /// Checks if a given object is currently providing light.
@@ -94,7 +94,7 @@ extension GameWorld {
 
         // 3. Check for light sources in the room
         let lightSources = room.contents.filter { obj in
-            return obj.hasFlag(.isLightSource) && obj.hasFlag(.isOn)
+            obj.hasFlag(.isLightSource) && obj.hasFlag(.isOn)
         }
 
         if !lightSources.isEmpty {
@@ -217,22 +217,22 @@ extension GameObject {
 
 // MARK: - Room Lighting Extensions
 
-/// Light/darkness functionality for rooms.
-extension Room {
-    /// Checks if this room is currently lit.
-    /// - Parameter world: The game world.
-    /// - Returns: `true` if the room has any source of light.
-    public func isLit(in world: GameWorld) -> Bool {
-        return world.isRoomLit(self)
-    }
-
-    /// Configures this room to require a light source (not naturally lit).
-    public func makeDark() {
-        clearFlag(.isNaturallyLit)
-    }
-
-    /// Configures this room to be naturally lit (doesn't require a light source).
-    public func makeNaturallyLit() {
-        setFlag(.isNaturallyLit)
-    }
-}
+///// Light/darkness functio`nality for rooms.
+//extension Room {
+//    /// Checks if this room is currently lit.
+//    /// - Parameter world: The game world.
+//    /// - Returns: `true` if the room has any source of light.
+//    public func hasLight(in world: GameWorld) -> Bool {
+//        return world.isRoomLit(self)
+//    }
+//
+//    /// Configures this room to require a light source (not naturally lit).
+//    public func makeDark() {
+//        clearFlag(.isNaturallyLit)
+//    }
+//
+//    /// Configures this room to be naturally lit (doesn't require a light source).
+//    public func makeNaturallyLit() {
+//        setFlag(.isNaturallyLit)
+//    }
+//}

@@ -178,7 +178,7 @@ extension GameEngine {
         }
 
         // If we're in a dark room, only allow certain commands
-        if !currentRoom.isLit() {
+        if !currentRoom.hasLight {
             // Check if the current room has a handler for this command
             if let beginCommandAction = currentRoom.beginCommandAction,
                try beginCommandAction(currentRoom, command)

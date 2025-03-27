@@ -55,11 +55,11 @@ extension GameObject {
     /// Get the current description based on state and properties
     /// - Parameters:
     ///   - visitCount: Optional visit count, if tracking visits
-    ///   - isLit: Whether the current environment is lit
+    ///   - hasLight: Whether the current environment is lit
     /// - Returns: The appropriate description
-    public func getCurrentDescription(visitCount: Int? = nil, isLit: Bool = true) -> String {
+    public func getCurrentDescription(visitCount: Int? = nil, hasLight: Bool = true) -> String {
         // Handle darkness first
-        if !isLit {
+        if !hasLight {
             if let darkDesc = getSpecialText(forKey: .darkDescription) {
                 return darkDesc
             }
@@ -87,9 +87,9 @@ extension GameObject {
     }
 
     /// Mark this object as visited and get an appropriate description
-    /// - Parameter isLit: Whether the environment is lit
+    /// - Parameter hasLight: Whether the environment is lit
     /// - Returns: The appropriate description
-    public func getDescriptionAndIncreaseVisits(isLit: Bool = true) -> String {
+    public func getDescriptionAndIncreaseVisits(hasLight: Bool = true) -> String {
         // Get the current visit count or default to 0
         let visitCount: Int = getState(forKey: "visitCount") ?? 0
 
@@ -97,7 +97,7 @@ extension GameObject {
         setState(visitCount + 1, forKey: "visitCount")
 
         // Get description based on the count BEFORE incrementing
-        return getCurrentDescription(visitCount: visitCount + 1, isLit: isLit)
+        return getCurrentDescription(visitCount: visitCount + 1, hasLight: hasLight)
     }
 
     /// Get text that describes the contents of this object
@@ -144,7 +144,7 @@ extension Room {
         }
 
         // Get the main description based on lighting and visit count
-        return getCurrentDescription(visitCount: visitCount + 1, isLit: isLit())
+        return getCurrentDescription(visitCount: visitCount + 1, hasLight: hasLight)
     }
 
     /// Get a full description of the room including contents and exits
@@ -154,7 +154,7 @@ extension Room {
         var result = getRoomDescription(in: world)
 
         // If the room is not lit, don't show contents or exits
-        if !isLit() {
+        if !hasLight {
             return result
         }
 
