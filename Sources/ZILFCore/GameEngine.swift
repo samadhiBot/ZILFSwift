@@ -2010,7 +2010,7 @@ extension GameEngine {
 
         // Unwear the object
         obj.clearFlag(.isBeingWorn)
-        output("You take off \(obj.name).")
+        output("You take off the \(obj.name).")
 
         // Update last mentioned object
         world.lastMentionedObject = obj

@@ -222,7 +222,7 @@ struct CloakOfDarknessTests {
 
         // 4. Take off the cloak and hang it on the hook
         try engine.executeCommand(.unwear(cloak))
-        expectNoDifference(harness.flush(), "You take off cloak.")
+        expectNoDifference(harness.flush(), "You take off the velvet cloak.")
 
         try engine.executeCommand(.drop(cloak))
         expectNoDifference(harness.flush(), "Dropped.")
