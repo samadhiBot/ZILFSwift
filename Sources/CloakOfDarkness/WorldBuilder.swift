@@ -374,7 +374,7 @@ extension WorldBuilder {
 
         // Override look handler for bar to make the description match test expectations
         bar.lookAction = { (room: Room) -> Bool in
-            if room.hasLight {
+            if room.hasLight() {
                 try world.output("""
                     The bar, much rougher than you'd have guessed after the opulence \
                     of the foyer to the north, is completely empty. You can see a message \

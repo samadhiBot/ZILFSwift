@@ -19,7 +19,7 @@ struct LightingSystemTests {
 
         // Test if lit room is naturally lit
         #expect(litRoom.hasFlag(.isNaturallyLit))
-        #expect(litRoom.hasLight)
+        #expect(litRoom.hasLight())
 
         // Create a dark room
         let darkRoom = try world.add(
@@ -30,7 +30,7 @@ struct LightingSystemTests {
         )
 
         // Check dark room (should not be lit)
-        #expect(!darkRoom.hasLight)
+        #expect(!darkRoom.hasLight())
 
         // Test player carrying a light source (lantern)
         let lantern = try world.insert(
@@ -54,13 +54,13 @@ struct LightingSystemTests {
         #expect(player.currentRoom === darkRoom)
 
         // Room should now be lit due to lantern
-        #expect(darkRoom.hasLight)
+        #expect(darkRoom.hasLight())
 
         // Turn off the lantern
         lantern.clearFlag(.isOn)
 
         // Room should now be dark again
-        #expect(!darkRoom.hasLight)
+        #expect(!darkRoom.hasLight())
     }
 
     @Test func testLightSources() throws {
@@ -78,7 +78,7 @@ struct LightingSystemTests {
         let world = try GameWorld(player: player)
 
         // The room is dark by default and we've explicitly made it dark
-        #expect(!darkRoom.hasLight)
+        #expect(!darkRoom.hasLight())
 
         // Create a lantern (off)
         let lantern = try world.insert(
@@ -91,22 +91,22 @@ struct LightingSystemTests {
         lantern.moveTo(darkRoom)
 
         // The room should still be dark
-        #expect(!darkRoom.hasLight)
+        #expect(!darkRoom.hasLight())
 
         // Turn on the lantern
         lantern.setFlag(.isOn)
 
         // Now the room should be lit
-        #expect(darkRoom.hasLight)
+        #expect(darkRoom.hasLight())
 
         // Test toggle functionality
         lantern.clearFlag(.isOn) // Turn off
         #expect(!lantern.hasFlag(.isOn))
-        #expect(!darkRoom.hasLight)
+        #expect(!darkRoom.hasLight())
 
         lantern.setFlag(.isOn) // Turn on
         #expect(lantern.hasFlag(.isOn))
-        #expect(darkRoom.hasLight)
+        #expect(darkRoom.hasLight())
 
         // Test getting all light sources in the room
         var lightSources: [GameObject] = []
@@ -174,7 +174,7 @@ struct LightingSystemTests {
         let world = try GameWorld(player: player)
 
         // The room is dark by default
-        #expect(!room.hasLight)
+        #expect(!room.hasLight())
 
         // Create a glass box (transparent container)
         let glassBox = try world.insert(
@@ -197,7 +197,7 @@ struct LightingSystemTests {
         crystal.moveTo(glassBox)
 
         // The room should be lit because the crystal is visible through the glass
-        #expect(room.hasLight)
+        #expect(room.hasLight())
 
         // Create a wooden box (non-transparent container)
         let woodenBox = try world.insert(
@@ -214,14 +214,14 @@ struct LightingSystemTests {
         crystal.moveTo(woodenBox)
 
         // The room should still be lit because the wooden box is open
-        #expect(room.hasLight)
+        #expect(room.hasLight())
 
         // Close the wooden box
         woodenBox.clearFlag(.isOpen)
         woodenBox.setFlag(.isLocked)
 
         // Now the room should be dark
-        #expect(!room.hasLight)
+        #expect(!room.hasLight())
     }
 
 //    @Test func testRoomActionPatterns() {

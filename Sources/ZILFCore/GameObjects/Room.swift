@@ -142,8 +142,47 @@ extension Room {
     }
 
     /// Whether the room is currently lit.
-    public var hasLight: Bool {
-        world?.isRoomLit(self) ?? super.isLightSource()
+    public func hasLight() -> Bool {
+        // 1. If the room is naturally lit, it's always lit
+        if hasFlag(.isNaturallyLit) {
+            return true
+        }
+
+        // 2. If the room itself is a light source and is lit, it's lit
+        if hasFlags(.isLightSource, .isOn) {
+            return true
+        }
+
+        // 3. Check for light sources in the room
+        let lightSources = contents.filter { obj in
+            obj.hasFlag(.isLightSource) && obj.hasFlag(.isOn)
+        }
+
+        if !lightSources.isEmpty {
+            return true
+        }
+
+        // 4. Check if the player is in the room and has a light source
+        if let player = world?.player, player.currentRoom === self {
+            if player.inventory.contains(where: { $0.isLightSource() }) {
+                return true
+            }
+        }
+
+        // 5. Check transparent containers in the room for light sources
+        for container in contents where container.hasFlag(.isContainer) {
+            // Light can pass through if container is transparent or open
+            if container.hasFlags(.isTransparent, .isOpen, matching: .any) {
+                if container.contents.contains(where: { obj in
+                    obj.hasFlags(.isLightSource, .isOn)
+                }) {
+                    return true
+                }
+            }
+        }
+
+        // No light sources found
+        return false
     }
 
     /// Creates an exit from this room to another room in the specified direction.
