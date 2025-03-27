@@ -110,18 +110,12 @@ struct CloakOfDarknessTests {
 
         // Local-global objects
         let rug = try world.find("rug")
-        guard case .localGlobal(let roomIDs) = rug.type else {
+        guard case .localGlobal(let roomsWithRugIDs) = rug.type else {
             throw TestFailure("Expected rug to be local-global")
         }
-        #expect(roomIDs.contains(foyer.id))
-        #expect(roomIDs.contains(bar.id))
-        #expect(!roomIDs.contains(cloakroom.id))
-//            foyer.getAccessibleLocalGlobals().contains { $0.name == "rug" },
-//                "Rug should be accessible from the foyer")
-//        #expect(bar.getAccessibleLocalGlobals().contains { $0.name == "rug" },
-//                "Rug should be accessible from the bar")
-//        #expect(!cloakroom.getAccessibleLocalGlobals().contains { $0.name == "rug" },
-//                "Rug should not be accessible from the cloakroom")
+        #expect(roomsWithRugIDs.contains(foyer.id), "Rug should be accessible from the foyer")
+        #expect(roomsWithRugIDs.contains(bar.id), "Rug should be accessible from the bar")
+        #expect(!roomsWithRugIDs.contains(cloakroom.id), "Rug should not be accessible from the cloakroom")
 
         // Container contents
         let grapes = try world.find("grapes")
@@ -238,10 +232,11 @@ struct CloakOfDarknessTests {
 
         try engine.executeCommand(.move(.south))
         #expect(world.player.currentRoom == bar)
-        expectNoDifference(harness.flush(), "It's too dark to see.\n")
 
         // The bar should be lit now that we're not wearing the cloak
         #expect(bar.hasFlag(.isNaturallyLit))
+
+        expectNoDifference(harness.flush(), "It's too dark to see.\n")
 
         // 6. Examine the message
         let message = try world.find("message")
