@@ -236,7 +236,11 @@ struct CloakOfDarknessTests {
         // The bar should be lit now that we're not wearing the cloak
         #expect(bar.hasFlag(.isNaturallyLit))
 
-        expectNoDifference(harness.flush(), "It's too dark to see.\n")
+        expectNoDifference(harness.flush(), """
+            The bar, much rougher than you'd have guessed after the opulence of the foyer \
+            to the north, is completely empty. You can see a message scrawled in the sawdust \
+            on the floor.
+            """)
 
         // 6. Examine the message
         let message = try world.find("message")
@@ -250,16 +254,35 @@ struct CloakOfDarknessTests {
         #expect(world.player.currentRoom == foyer)
         harness.flush()
 
-        // 8. Verify we won the game
-        // For testing, manually trigger the win condition
-//        engine.playerWon(message: "You win!")
+        // Go to the bar
+        try engine.executeCommand(.move(.south))
+        #expect(world.player.currentRoom == bar)
+        expectNoDifference(harness.flush(), """
+            The bar, much rougher than you'd have guessed after the opulence of the foyer \
+            to the north, is completely empty. You can see a message scrawled in the sawdust \
+            on the floor.
+            """)
 
-//        #expect(outputHandler.received("You win"))
+        // The bar should be lit now that we're not wearing the cloak
+        #expect(bar.isLit())
+        harness.flush()
 
-        // The game should be over
-//        let isGameOver: Bool? = engine.isGameOver
-//        #expect(isGameOver == true)
-//        #expect(outputHandler.received("You win"))
+        // 8. Examine the message to win the game
+        print("Bar disturbed count: \(bar.disturbed ?? 0)")
+        print("Message examine handler: \(message.stateValues["commandAction"] != nil)")
+
+        try engine.executeCommand(.examine(message))
+
+        print("Bar disturbed count: \(bar.disturbed ?? 0)")
+        print("Message examine handler: \(message.stateValues["commandAction"] != nil)")
+
+        // The message should trigger the win condition
+        let output = harness.flush()
+        #expect(output.contains("You win")) // Expectation failed: (output → "The message reads: "No loitering in the bar without a drink."").contains("You win")
+
+        // Verify game state is victory
+        #expect(engine.state != .running)
+        #expect(engine.state == .victory("You win"))
     }
 
     @Test func testLoseGame() throws {

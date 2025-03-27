@@ -24,7 +24,7 @@ struct ToyGame: ZilfGame {
 
         // Create player and world
         let player = Player(startingRoom: kitchen)
-        let gameWorld = GameWorld(player: player)
+        let gameWorld = try GameWorld(player: player)
 
         // Connect rooms
         kitchen.exits[.south] = livingRoom
@@ -38,7 +38,6 @@ struct ToyGame: ZilfGame {
         let apple = GameObject(
             name: "apple",
             description: "A shiny red apple.",
-            location: kitchen,
             flags: .isTakable
         )
         try gameWorld.insert(apple)

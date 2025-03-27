@@ -128,16 +128,13 @@ struct WorldBuilder {
         connectRooms()
 
         // Place objects in their initial locations
-        placeObjects()
-
-        // Register all objects
-        try registerObjects(in: world)
+        try placeObjects(in: world)
 
         // Configure special object behaviors
         configureObjectBehaviors(in: world)
 
         // Configure special room behaviors
-        configureRoomBehaviors(in: world)
+        try configureRoomBehaviors(in: world)
     }
 
     /// Register all rooms with the game world
@@ -164,35 +161,20 @@ struct WorldBuilder {
     }
 
     /// Place all objects in their initial locations
-    private func placeObjects() {
+    private func placeObjects(in world: GameWorld) throws {
         // Place objects in rooms
-        lantern.moveTo(entrance)
-        goldCoin.moveTo(mainCavern)
-        treasureChest.moveTo(treasureRoom)
-        goldenAmulet.moveTo(treasureChest)
-        ancientKey.moveTo(secretRoom)
-        magnifyingGlass.moveTo(entrance)
-        dagger.moveTo(mainCavern)
-        lockedBox.moveTo(treasureRoom)
-        gem.moveTo(lockedBox)
+        try world.insert(lantern, in: entrance)
+        try world.insert(goldCoin, in: mainCavern)
+        try world.insert(treasureChest, in: treasureRoom)
+        try world.insert(goldenAmulet, into: treasureChest)
+        try world.insert(ancientKey, in: secretRoom)
+        try world.insert(magnifyingGlass, in: entrance)
+        try world.insert(dagger, in: mainCavern)
+        try world.insert(lockedBox, in: treasureRoom)
+        try world.insert(gem, into: lockedBox)
 
         // Make sure the chest is closed
         treasureChest.clearFlag(.isOpen)
-    }
-
-    /// Register all objects with the game world
-    private func registerObjects(in world: GameWorld) throws {
-        try world.insert(
-            lantern,
-            goldCoin,
-            treasureChest,
-            goldenAmulet,
-            ancientKey,
-            magnifyingGlass,
-            dagger,
-            lockedBox,
-            gem
-        )
     }
 
     /// Configure special object behaviors
@@ -203,7 +185,7 @@ struct WorldBuilder {
                 target === goldCoin,
                 tool?.name == "magnifying glass"
             {
-                world.output(
+                try world.output(
                     "Using the magnifying glass, you can see tiny inscriptions on the coin that tell the story of an ancient civilization that once inhabited this cave."
                 )
                 return true
@@ -217,7 +199,7 @@ struct WorldBuilder {
                 target === lockedBox
             {
                 if weapon?.name == "dagger" {
-                    world.output(
+                    try world.output(
                         "You use the dagger to pry open the locked box. The lid pops open with a satisfying crack!"
                     )
                     lockedBox.clearFlag(.isLocked)
@@ -225,7 +207,7 @@ struct WorldBuilder {
                     lockedBox.setFlag(.isOpenable)  // Now it can be opened and closed normally
                     return true
                 } else {
-                    world.output("You need something sharp to break open this box.")
+                    try world.output("You need something sharp to break open this box.")
                     return true
                 }
             }
@@ -234,9 +216,9 @@ struct WorldBuilder {
     }
 
     /// Configure special room behaviors
-    private func configureRoomBehaviors(in world: GameWorld) {
+    private func configureRoomBehaviors(in world: GameWorld) throws {
         setupMainCavernBehaviors(in: world)
-        setupTreasureRoomBehaviors(in: world)
+        try setupTreasureRoomBehaviors(in: world)
         setupSecretRoomBehaviors(in: world)
         setupVaultRoomBehaviors(in: world)
         setupPitRoomBehaviors(in: world)
@@ -247,7 +229,7 @@ struct WorldBuilder {
         // Ambient effects in the main cavern
         mainCavern.endTurnAction = { room in
             if world.isEventRunning(named: "lantern-flicker") {
-                world.output(
+                try world.output(
                     "The cavern walls seem to shimmer in the flickering light.")
                 return true  // Output was produced
             }
@@ -267,10 +249,10 @@ struct WorldBuilder {
     }
 
     /// Configure treasure room behaviors
-    private func setupTreasureRoomBehaviors(in world: GameWorld) {
+    private func setupTreasureRoomBehaviors(in world: GameWorld) throws {
         // Add entrance message
         treasureRoom.enterAction = { room in
-            world.output("You feel a sense of awe as you enter this ancient chamber.")
+            try world.output("You feel a sense of awe as you enter this ancient chamber.")
             return true  // Output was produced
         }
 
@@ -285,11 +267,11 @@ struct WorldBuilder {
         )
 
         // Make the hidden exit appear when examining the treasure room walls
-        treasureRoom.addCommandAction(
+        try treasureRoom.addCommandAction(
             Room.PrioritizedCommandAction { room, command in
                 if case .examine(let obj, _) = command, obj === treasureRoom {
                     treasureExamined = true
-                    world.output(
+                    try world.output(
                         "You carefully examine the walls of the treasure room and notice subtle markings that suggest a hidden passage somewhere in the floor."
                     )
                     return true

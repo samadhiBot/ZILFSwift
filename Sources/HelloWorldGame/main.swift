@@ -4,7 +4,7 @@ let outputManager = StandardConsole()
 
 let helloWorld = HelloWorldGame(output: outputManager.output)
 
-let engine = GameEngine(
+let engine = try GameEngine(
     game: helloWorld,
     console: outputManager
 )

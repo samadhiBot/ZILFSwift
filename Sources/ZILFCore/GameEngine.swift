@@ -40,9 +40,9 @@ public class GameEngine {
     public init(
         game: ZilfGame,
         console: GameConsole
-    ) {
+    ) throws {
         self.game = game
-        self.world = try! game.createWorld()
+        self.world = try game.createWorld()
         self.console = console
 
         world.player.setEngine(self)

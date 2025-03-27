@@ -40,47 +40,38 @@ public class GameObject {
     /// The world in which the object exists.
     public private(set) weak var world: GameWorld?
 
-    /// Creates a new game object with name, description and optional location.
+    /// Creates a new `GameObject` instance.
     /// 
     /// - Parameters:
     ///   - id: The object's unique identifier.
     ///   - name: The name of the object.
     ///   - description: The description of the object.
-    ///   - location: The location of the object (optional).
-    ///   - type: The object's type.
     ///   - flags: Variadic list of flags to set on the object.
     ///   - synonyms: Variadic list of synonyms for the object.
     public init(
         id: GameObject.ID? = nil,
         name: String,
         description: String,
-        location: GameObject? = nil,
-        type: GameObject.Category = .object,
         flags: Flag...,
         synonyms: String...
     ) {
         self.id = id ?? GameObject.ID(stringLiteral: name)
         self.name = name
         self.description = description
-        self.location = location
         self.flags = Set(flags)
         self.synonyms = Set(synonyms)
-        self.type = type
-
-        if let location {
-            moveTo(location)
-        }
+        self.type = .object
     }
 
-    /// An internal `GameObject` initializer used by subclasses.
+    /// An internal `GameObject` initializer for use in subclasses.
     init(
         id: GameObject.ID? = nil,
         name: String,
         description: String,
         location: GameObject? = nil,
         type: GameObject.Category,
-        flags: [Flag],
-        synonyms: [String]
+        flags: [Flag] = [],
+        synonyms: [String] = []
     ) {
         self.id = id ?? GameObject.ID(stringLiteral: name)
         self.name = name
@@ -409,10 +400,10 @@ extension GameObject {
     /// Set a handler for the take command.
     ///
     /// - Parameter handler: The handler function that takes a GameObject and returns a Bool.
-    public func setTakeHandler(_ handler: @escaping (GameObject) -> Bool) {
-        let commandHandler: (GameObject, Command) -> Bool = { obj, command in
+    public func setTakeHandler(_ handler: @escaping (GameObject) throws -> Bool) {
+        let commandHandler: (GameObject, Command) throws -> Bool = { obj, command in
             if case .take = command {
-                return handler(obj)
+                return try handler(obj)
             }
             return false
         }
@@ -439,9 +430,9 @@ extension GameObject {
     ///   - handler: The handler function that takes a GameObject and an array of objects and returns a Bool.
     public func setCustomCommandHandler(
         verb: String,
-        handler: @escaping (GameObject, [GameObject]) -> Bool
+        handler: @escaping (GameObject, [GameObject]) throws -> Bool
     ) {
-        let commandHandler: (GameObject, Command) -> Bool = { obj, command in
+        let commandHandler: (GameObject, Command) throws -> Bool = { obj, command in
             // Check if this is a custom command with the matching verb
             guard
                 case .custom(let words) = command,
@@ -453,7 +444,7 @@ extension GameObject {
             // For now, assume we're working with an empty array
             // In a full implementation, we'd need to connect to the parser
             let objects: [GameObject] = []
-            return handler(obj, objects)
+            return try handler(obj, objects)
         }
         setCommandHandler(commandHandler)
     }

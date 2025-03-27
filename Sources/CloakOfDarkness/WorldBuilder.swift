@@ -87,8 +87,7 @@ struct WorldBuilder {
 
     let ceiling = GameObject(
         name: "ceiling",
-        description: "Nothing really noticeable about the ceiling.",
-        type: .global
+        description: "Nothing really noticeable about the ceiling."
     )
 
     let cloak = GameObject(
@@ -118,7 +117,6 @@ struct WorldBuilder {
     let darkness = GameObject(
         name: "darkness",
         description: "It's too dark to see anything.",
-        type: .global,
         flags: .omitArticle,
         synonyms: "dark"
     )
@@ -209,8 +207,7 @@ struct WorldBuilder {
 
     let rug = GameObject(
         name: "rug",
-        description: "A tatty old rug.",
-        type: .localGlobal(["bar", "foyer"])
+        description: "A tatty old rug."
     )
 
     let safe = GameObject(
@@ -265,7 +262,7 @@ struct WorldBuilder {
     /// Builds the complete game world with all rooms and objects.
     func build(_ world: GameWorld) throws {
         // Register rooms with the world
-        try world.add(
+        try world.insert(
             bar,
             cloakroom,
             closet,
@@ -365,7 +362,7 @@ extension WorldBuilder {
                     }
                 }
 
-                world.output("You grope around clumsily in the dark. Better be careful.")
+                try world.output("You grope around clumsily in the dark. Better be careful.")
 
                 // Update disturbed counter
                 room.disturbed = (room.disturbed ?? 0) + 1
@@ -377,15 +374,15 @@ extension WorldBuilder {
 
         // Override look handler for bar to make the description match test expectations
         bar.lookAction = { (room: Room) -> Bool in
-            if room.hasFlag(.isOn) {
-                world.output("""
+            if room.isLit() {
+                try world.output("""
                     The bar, much rougher than you'd have guessed after the opulence \
                     of the foyer to the north, is completely empty. You can see a message \
                     scrawled in the sawdust on the floor.
                     """)
                 return true
             } else {
-                world.output("It's too dark to see.")
+                try world.output("It's too dark to see.")
                 return true
             }
         }
@@ -443,7 +440,7 @@ extension WorldBuilder {
             else {
                 return false
             }
-            world.output("""
+            try world.output("""
                 Did you know that the rug is a local-global object \
                 in the Foyer and the Bar?
                 """)
@@ -463,7 +460,7 @@ extension WorldBuilder {
             } ?? false
 
             if hasCloak {
-                world.output(
+                try world.output(
                     "You cannot enter the opening to the west while in possession of your cloak."
                 )
                 return true
@@ -484,7 +481,7 @@ extension WorldBuilder {
                     }
                 }
 
-                world.output("You can't go that way.")
+                try world.output("You can't go that way.")
                 return true
             }
         }
@@ -499,11 +496,11 @@ extension WorldBuilder {
             // For the end-turn action, we'll check for the named events
             // Return true if any of these events are in progress
             if world.isEventScheduled(named: "I-APPLE-FUN") {
-                world.output("The Foyer routine detects that the Apple event will run this turn!")
+                try world.output("The Foyer routine detects that the Apple event will run this turn!")
                 return true
             }
             if world.isEventScheduled(named: "I-TABLE-FUN") {
-                world.output("The Foyer routine detects that the Table event will run this turn!")
+                try world.output("The Foyer routine detects that the Table event will run this turn!")
                 return true
             }
             return false
@@ -516,13 +513,13 @@ extension WorldBuilder {
     private func configureHallToStudy(in world: GameWorld) {
         // Hall enter action
         hallToStudy.enterAction = { (room: Room) -> Bool in
-            world.output("Oof - it's cramped in here.")
+            try world.output("Oof - it's cramped in here.")
             return true
         }
 
         // Hall end-turn action
         hallToStudy.endTurnAction = { (room: Room) -> Bool in
-            world.output("A spider scuttles across your feet and then disappears into a crack.")
+            try world.output("A spider scuttles across your feet and then disappears into a crack.")
             return true
         }
     }
@@ -535,10 +532,10 @@ extension WorldBuilder {
         study.endTurnAction = { (room: Room) -> Bool in
             let random = Int.random(in: 1...10)
             if random == 1 {
-                world.output("A mouse zips across the floor and into a hole.")
+                try world.output("A mouse zips across the floor and into a hole.")
                 return true
             } else if random == 2 {
-                world.output("A faint scratching sound can be heard from the ceiling.")
+                try world.output("A faint scratching sound can be heard from the ceiling.")
                 return true
             }
             return false
@@ -556,7 +553,7 @@ extension WorldBuilder {
     ///   - bar: The bar room.
     private func createBarObjects(in world: GameWorld) throws {
         // Message
-        try world.place(message, in: bar)
+        try world.insert(message, in: bar)
 
         message.firstDescription =
             "There seems to be some sort of message scrawled in the sawdust on the floor."
@@ -568,10 +565,10 @@ extension WorldBuilder {
             // Find the player using our helper method
             if let player = obj.findPlayer() {
                 if disturbed > 1 {
-                    world.output("The message simply reads: \"You lose.\"")
+                    try world.output("The message simply reads: \"You lose.\"")
                     player.engine?.gameOver(with: .defeat("You lose"))
                 } else {
-                    world.output("The message simply reads: \"You win.\"")
+                    try world.output("The message simply reads: \"You win.\"")
                     player.engine?.gameOver(with: .victory("You win"))
                 }
             }
@@ -579,7 +576,7 @@ extension WorldBuilder {
         }
 
         message.setTakeHandler { obj in
-            world.output("The message is just sawdust on the floor, you can't take it.")
+            try world.output("The message is just sawdust on the floor, you can't take it.")
 
             // Disturb the floor
             let room = obj.location as? Room
@@ -597,20 +594,20 @@ extension WorldBuilder {
     ///   - closet: The closet room.
     private func createClosetObjects(in world: GameWorld) throws {
         // Create a broom in the closet
-        try world.place(broom, in: closet)
+        try world.insert(broom, in: closet)
 
         broom.setExamineHandler { obj in
-            world.output(
+            try world.output(
                 "A plain wooden broom for sweeping."
             )
             return true
         }
 
         // Create a dusty shelf
-        try world.place(shelf, in: closet)
+        try world.insert(shelf, in: closet)
 
         shelf.setExamineHandler { obj in
-            world.output("A dusty wooden shelf attached to the wall.")
+            try world.output("A dusty wooden shelf attached to the wall.")
             return true
         }
     }
@@ -622,12 +619,12 @@ extension WorldBuilder {
     ///   - cloakroom: The cloakroom.
     private func createCloakroomObjects(in world: GameWorld) throws {
         // Hook
-        try world.place(hook, in: cloakroom)
+        try world.insert(hook, in: cloakroom)
 
         hook.firstDescription = "A small brass hook is on the wall."
 
         hook.setExamineHandler { obj in
-            world.output("Test: Normal examine replaced by a dequeue of the Table event.")
+            try world.output("Test: Normal examine replaced by a dequeue of the Table event.")
             // Access the world directly rather than through the player
             world.dequeueEvent(named: "I-TABLE-FUN")
             return true
@@ -641,10 +638,10 @@ extension WorldBuilder {
     ///   - foyer: The foyer room.
     private func createFoyerObjects(in world: GameWorld) throws {
         // Create an apple in the foyer
-        try world.place(apple, in: foyer)
+        try world.insert(apple, in: foyer)
 
         apple.setExamineHandler { obj in
-            world.output("The apple is green and tasty-looking.")
+            try world.output("The apple is green and tasty-looking.")
             // Queue the apple event
             world.eventManager.scheduleEvent(
                 name: "I-APPLE-FUN",
@@ -655,22 +652,22 @@ extension WorldBuilder {
         }
 
         apple.setCustomCommandHandler(verb: "eat") { obj, objects in
-            world.output("Oh no! It was actually a poison apple (mostly so we could test JIGS-UP).")
+            try world.output("Oh no! It was actually a poison apple (mostly so we could test JIGS-UP).")
             world.player.engine?.gameOver(with: .defeat("You've been poisoned by the apple."))
             return true
         }
 
         // Table in the foyer
-        try world.place(table, in: foyer)
+        try world.insert(table, in: foyer)
 
         table.setExamineHandler { obj in
-            world.output("Tatty but functional.")
+            try world.output("Tatty but functional.")
             // Show contents if any
             if !obj.contents.isEmpty {
                 // Describe contents (implementation would depend on the API)
-                world.output("On the table you see:")
+                try world.output("On the table you see:")
                 for item in obj.contents {
-                    world.output("  \(item.name)")
+                    try world.output("  \(item.name)")
                 }
             }
 
@@ -684,29 +681,29 @@ extension WorldBuilder {
         }
 
         // Grapes on the table
-        try world.place(grapes, in: table)
+        try world.insert(grapes, into: table)
 
         // Playing card on the table
-        try world.place(card, in: table)
+        try world.insert(card, into: table)
 
         card.setExamineHandler { obj in
             // Pick a random description
             let descriptions = ["Ace of Spades.", "The Hermit.", "The Weeping Joker."]
-            world.output(descriptions.randomElement() ?? "A playing card.")
+            try world.output(descriptions.randomElement() ?? "A playing card.")
             return true
         }
 
         // Time cube
-        try world.place(cube, in: foyer)
+        try world.insert(cube, in: foyer)
 
         cube.setExamineHandler { obj in
-            world.output("As you inspected the cube you realized time around you speeds by.")
+            try world.output("As you inspected the cube you realized time around you speeds by.")
             try world.waitTurns(10)
             return true
         }
 
         // Changing painting
-        try world.place(painting, in: foyer)
+        try world.insert(painting, in: foyer)
 
         painting.setExamineHandler { obj in
             // Pick a random description
@@ -718,24 +715,24 @@ extension WorldBuilder {
                 "It displays a cat that is laughing.",
                 "It displays a machine marked with a Z.",
             ]
-            world.output(descriptions.randomElement() ?? "A strange painting.")
+            try world.output(descriptions.randomElement() ?? "A strange painting.")
             return true
         }
 
         painting.setCustomCommandHandler(verb: "read") { obj, _ in
             // Pick a random signature
             let signatures = ["Michelangelo.", "Phil Collins.", "The Dude."]
-            world.output(
+            try world.output(
                 "The signature at the bottom rearranges itself to read \(signatures.randomElement() ?? "unknown")"
             )
             return true
         }
 
         // Some grime on the floor
-        try world.place(grime, in: foyer)
+        try world.insert(grime, in: foyer)
 
         grime.setExamineHandler { obj in
-            world.output("A small but disgusting collection of crud.")
+            try world.output("A small but disgusting collection of crud.")
             // Queue grime event
             world.eventManager.scheduleEvent(
                 name: "I-GRIME-FUN",
@@ -754,7 +751,7 @@ extension WorldBuilder {
         try world.insert(ceiling)
 
         ceiling.setExamineHandler { obj in
-            world.output("Nothing really noticeable about the ceiling.")
+            try world.output("Nothing really noticeable about the ceiling.")
             return true
         }
 
@@ -763,7 +760,7 @@ extension WorldBuilder {
 
         darkness.setCustomCommandHandler(verb: "think-about") { obj, objects in
             if objects.contains(where: { $0 === obj }) {
-                world.output("Light, darkness. Your favorite cloak has something to do with them, yes?")
+                try world.output("Light, darkness. Your favorite cloak has something to do with them, yes?")
                 return true
             }
             return false
@@ -774,14 +771,14 @@ extension WorldBuilder {
 
         rug.setCustomCommandHandler(verb: "put-on") { obj, objects in
             if objects.contains(where: { $0 === obj }) {
-                world.output("You don't want to place anything on that tatty rug.")
+                try world.output("You don't want to place anything on that tatty rug.")
                 return true
             }
             return false
         }
 
         // Sign in hallway
-        try world.place(sign, in: hallToStudy)
+        try world.insert(sign, in: hallToStudy)
 
         sign.firstDescription = "A crude wooden sign hangs above the western exit."
         
@@ -802,10 +799,10 @@ extension WorldBuilder {
     /// - Parameter world: The game world.
     private func createPlayerInventory(in world: GameWorld) throws {
         // Cloak
-        try world.place(cloak, in: world.player)
+        try world.insert(cloak, into: world.player)
 
         cloak.setExamineHandler { obj in
-            world.output("The cloak is unnaturally dark.")
+            try world.output("The cloak is unnaturally dark.")
             return true
         }
     }
@@ -817,10 +814,10 @@ extension WorldBuilder {
     ///   - study: The study room.
     private func createStudyObjects(in world: GameWorld) throws {
         // Light switch
-        try world.place(lightSwitch, in: study)
+        try world.insert(lightSwitch, in: study)
 
         lightSwitch.setExamineHandler { obj in
-            world.output("An ordinary light switch set in the wall to the left of the entrance to the closet. It is currently " +
+            try world.output("An ordinary light switch set in the wall to the left of the entrance to the closet. It is currently " +
                    (obj.hasFlag(.isOn) ? "on." : "off."))
             return true
         }
@@ -836,10 +833,10 @@ extension WorldBuilder {
                    currentRoom === closet
                 {
                     currentRoom.setFlag(.isOn)
-                    world.output("The closet lights up!")
+                    try world.output("The closet lights up!")
                 }
 
-                world.output("You switch on the light switch.")
+                try world.output("You switch on the light switch.")
                 return true
             }
             return false
@@ -856,10 +853,10 @@ extension WorldBuilder {
                    currentRoom === closet
                 {
                     currentRoom.clearFlag(.isOn)
-                    world.output("The closet goes dark!")
+                    try world.output("The closet goes dark!")
                 }
 
-                world.output("You switch off the light switch.")
+                try world.output("You switch off the light switch.")
                 return true
             }
             return false
@@ -878,10 +875,10 @@ extension WorldBuilder {
                        currentRoom === closet
                     {
                         currentRoom.clearFlag(.isOn)
-                        world.output("The closet goes dark!")
+                        try world.output("The closet goes dark!")
                     }
 
-                    world.output("You switch off the light switch.")
+                    try world.output("You switch off the light switch.")
                 } else {
                     // Turn it on
                     obj.setFlag(.isOn)
@@ -893,10 +890,10 @@ extension WorldBuilder {
                        currentRoom === closet
                     {
                         currentRoom.setFlag(.isOn)
-                        world.output("The closet lights up!")
+                        try world.output("The closet lights up!")
                     }
 
-                    world.output("You switch on the light switch.")
+                    try world.output("You switch on the light switch.")
                 }
                 return true
             }
@@ -904,10 +901,10 @@ extension WorldBuilder {
         }
 
         // Flashlight
-        try world.place(flashlight, in: study)
+        try world.insert(flashlight, in: study)
 
         flashlight.setExamineHandler { obj in
-            world.output("A cheap plastic flashlight. It is currently " +
+            try world.output("A cheap plastic flashlight. It is currently " +
                    (obj.hasFlag(.isOn) ? "on." : "off."))
             return true
         }
@@ -915,11 +912,11 @@ extension WorldBuilder {
         flashlight.setCustomCommandHandler(verb: "turn-on") { obj, objects in
             if objects.contains(where: { $0 === obj }) {
                 if obj.hasFlag(.isOn) {
-                    world.output("It's already on.")
+                    try world.output("It's already on.")
                 } else {
                     obj.setFlag(.isOn)
                     obj.setFlag(.isLightSource)
-                    world.output("You switch on the flashlight.")
+                    try world.output("You switch on the flashlight.")
 
                     // Find the player using the findPlayer helper
                     if let player = obj.findPlayer(),
@@ -927,7 +924,7 @@ extension WorldBuilder {
                        !currentRoom.hasFlag(.isOn) && !currentRoom.hasFlag(.isNaturallyLit)
                     {
                         currentRoom.setFlag(.isOn)
-                        world.output("The flashlight illuminates the area!")
+                        try world.output("The flashlight illuminates the area!")
                     }
                 }
                 return true
@@ -938,10 +935,10 @@ extension WorldBuilder {
         flashlight.setCustomCommandHandler(verb: "turn-off") { obj, objects in
             if objects.contains(where: { $0 === obj }) {
                 if !obj.hasFlag(.isOn) {
-                    world.output("It's already off.")
+                    try world.output("It's already off.")
                 } else {
                     obj.clearFlag(.isOn)
-                    world.output("You switch off the flashlight.")
+                    try world.output("You switch off the flashlight.")
 
                     // Find the player using the findPlayer helper
                     if let player = obj.findPlayer(),
@@ -954,7 +951,7 @@ extension WorldBuilder {
                         }
                         if !hasOtherLight {
                             currentRoom.clearFlag(.isOn)
-                            world.output("The area goes dark!")
+                            try world.output("The area goes dark!")
                         }
                     }
                 }
@@ -968,7 +965,7 @@ extension WorldBuilder {
                 if obj.hasFlag(.isOn) {
                     // Turn it off
                     obj.clearFlag(.isOn)
-                    world.output("You switch off the flashlight.")
+                    try world.output("You switch off the flashlight.")
 
                     // Find the player using the findPlayer helper
                     if let player = obj.findPlayer(),
@@ -981,14 +978,14 @@ extension WorldBuilder {
                         }
                         if !hasOtherLight {
                             currentRoom.clearFlag(.isOn)
-                            world.output("The area goes dark!")
+                            try world.output("The area goes dark!")
                         }
                     }
                 } else {
                     // Turn it on
                     obj.setFlag(.isOn)
                     obj.setFlag(.isLightSource)
-                    world.output("You switch on the flashlight.")
+                    try world.output("You switch on the flashlight.")
 
                     // Find the player using the findPlayer helper
                     if let player = obj.findPlayer(),
@@ -996,7 +993,7 @@ extension WorldBuilder {
                        !currentRoom.hasFlag(.isOn) && !currentRoom.hasFlag(.isNaturallyLit)
                     {
                         currentRoom.setFlag(.isOn)
-                        world.output("The flashlight illuminates the area!")
+                        try world.output("The flashlight illuminates the area!")
                     }
                 }
                 return true
@@ -1005,12 +1002,12 @@ extension WorldBuilder {
         }
 
         // Stand
-        try world.place(stand, in: study)
+        try world.insert(stand, in: study)
 
         stand.setCapacity(to: 15)
 
         // Book
-        try world.place(book, in: stand)
+        try world.insert(book, into: stand)
 
         book.text = """
             It tells of an adventurer who was tasked with testing out a library \
@@ -1018,17 +1015,17 @@ extension WorldBuilder {
             """
 
         // Other study objects
-        try world.place(crate, in: study)
-        try world.place(dollar, in: `safe`)
-        try world.place(firefly, in: sphere)
-        try world.place(glassCase, in: study)
-        try world.place(jar, in: stand)
-        try world.place(muffin, in: glassCase)
-        try world.place(plum, in: jar)
-        try world.place(`safe`, in: study)
-        try world.place(sphere, in: study)
-        try world.place(tray, in: stand)
-        try world.place(wallet, in: study)
+        try world.insert(crate, in: study)
+        try world.insert(dollar, into: `safe`)
+        try world.insert(firefly, into: sphere)
+        try world.insert(glassCase, in: study)
+        try world.insert(jar, into: stand)
+        try world.insert(muffin, into: glassCase)
+        try world.insert(plum, into: jar)
+        try world.insert(`safe`, in: study)
+        try world.insert(sphere, in: study)
+        try world.insert(tray, into: stand)
+        try world.insert(wallet, in: study)
 
         wallet.setCapacity(to: 2)
         crate.setCapacity(to: 15)

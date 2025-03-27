@@ -10,9 +10,6 @@ public class GameWorld {
     /// Objects that exist in specific locations within the game world.
     public private(set) var objects = [GameObject]()
 
-//    /// Objects that are accessible from anywhere in the game world.
-//    public private(set) var globalObjects = [GameObject]()
-
     /// The player character and its state.
     public let player: Player
 
@@ -24,76 +21,137 @@ public class GameWorld {
 
     /// Creates a new game world with the specified player.
     ///
-    /// Also adds the player's starting room to the world.
+    /// Also adds the player's starting room to the world if not already added.
     ///
     /// - Parameter player: The player character for this game world.
-    public init(player: Player) {
+    public init(player: Player) throws {
         self.player = player
         player.setWorld(to: self)
-
-        if let room = player.currentRoom {
-            _ = try? add(room)
+        if let currentRoom = player.currentRoom, !rooms.contains(currentRoom) {
+            try add(currentRoom)
         }
     }
-    
+}
+
+// MARK: - Adding Rooms
+
+extension GameWorld {
     /// Adds a room to the game world.
     ///
     /// - Parameter room: The room to add.
     /// - Returns: The added room.
     @discardableResult
     public func add(_ room: Room) throws -> Room {
-        try insert(room)
+        guard !rooms.contains(room) else {
+            throw Error.duplicateRoomAdded(room.id)
+        }
+        rooms.append(room)
         return room
     }
-    
+
     /// Adds a collection of rooms to the game world.
     ///
     /// - Parameter rooms: The rooms to add.
     public func add(_ rooms: Room...) throws {
         for room in rooms {
-            try insert(room)
+            try add(room)
+        }
+    }
+}
+
+// MARK: - Inserting Objects
+
+extension GameWorld {
+    /// Inserts an object into a location in the game world.
+    ///
+    /// - Parameters:
+    ///   - objects: The object to insert.
+    ///   - locations: The location(s) where the object goes.
+    /// - Returns: The inserted object.
+    @discardableResult
+    public func insert(
+        _ object: GameObject,
+        in locations: Room...
+    ) throws -> GameObject {
+        try insert(object: object, locations: locations)
+    }
+
+    /// Inserts a collection of objects into a location in the game world.
+    ///
+    /// - Parameters:
+    ///   - objects: The objects to insert.
+    ///   - locations: The location(s) where the objects go.
+    public func insert(
+        _ objects: GameObject...,
+        in locations: Room...
+    ) throws {
+        for object in objects {
+            _ = try insert(object: object, locations: locations)
         }
     }
 
-    /// Inserts an object into the game world.
+    /// Inserts an object into a container in the game world.
     ///
-    /// - Parameter object: The object to insert.
+    /// - Parameters:
+    ///   - object: The object to insert.
+    ///   - container: <#container description#>
     /// - Returns: The inserted object.
     @discardableResult
-    public func insert(_ object: GameObject) throws -> GameObject {
-        switch object.type {
-        case .global, .localGlobal, .object:
-            if !objects.contains(object) {
-                objects.append(object)
-            }
-        case .player:
-            throw GameWorldError.cannotInsertPlayer(object.debugDescription)
-        case .room:
-            guard let room = object as? Room else {
-                throw GameWorldError.objectInsertedAsRoom(object.debugDescription)
-            }
-            if !rooms.contains(room) {
-                rooms.append(room)
-            }
+    public func insert(
+        _ object: GameObject,
+        into container: GameObject
+    ) throws -> GameObject {
+        guard !objects.contains(object) else {
+            throw Error.cannotInsertObjectMultipleTimes(object.id)
         }
+        switch object.type {
+        case .global: throw Error.cannotInsertGlobalInContainer(object.id)
+        case .localGlobal: throw Error.cannotInsertLocalGlobalInContainer(object.id)
+        case .player: throw Error.cannotInsertPlayer(object.id)
+        case .room: throw Error.cannotInsertRoom(object.id)
+        default: break
+        }
+        objects.append(object)
+        object.moveTo(container)
         object.setWorld(to: self)
         return object
     }
-    
-    /// Inserts a collection of objects into the game world.
-    ///
-    /// - Parameter objects: The objects to insert.
-    public func insert(_ objects: GameObject...) throws {
-        for object in objects {
-            try insert(object)
+
+    private func insert(
+        object: GameObject,
+        locations: [Room]
+    ) throws -> GameObject {
+        guard !objects.contains(object) else {
+            throw Error.cannotInsertObjectMultipleTimes(object.id)
         }
+        switch object.type {
+        case .global:
+            guard locations.isEmpty else {
+                throw Error.cannotInsertGlobalInLocation(object.id)
+            }
+        case .localGlobal:
+            guard locations.count > 1 else {
+                throw Error.localGlobalRequiresMultipleLocations(object.id)
+            }
+            object.setType(to: .localGlobal(locations.map(\.id)))
+        case .object:
+            switch locations.count {
+            case 0: object.setType(to: .global)
+            case 1: object.moveTo(locations[0])
+            default: object.setType(to: .localGlobal(locations.map(\.id)))
+            }
+        case .player: throw Error.cannotInsertPlayer(object.id)
+        case .room: throw Error.cannotInsertRoom(object.id)
+        }
+        objects.append(object)
+        object.setWorld(to: self)
+        return object
     }
+}
 
-    public func place(_ object: GameObject, in location: GameObject) throws {
-        try insert(object)
-        object.moveTo(location)
-    }
+// MARK: - Managing Events
 
+extension GameWorld {
     /// Schedules an event to run after a specified number of turns.
     /// - Parameters:
     ///   - name: A unique identifier for the event.
@@ -124,34 +182,13 @@ public class GameWorld {
     public func isEventScheduled(named name: String) -> Bool {
         eventManager.isEventScheduled(named: name)
     }
-    
-    /// Outputs a message through the configured console.
-    ///
-    /// - Parameter message: The message to output.
-    public func output(_ message: String) {
-        if let engine = player.engine {
-            engine.output("\(message)\n")
-        } else {
-            print("❗ \(message)\n")
-        }
-    }
 
-    /// Outputs an error message through the configured console.
+    /// Advances the game state by a specified number of turns, or until an event or room action
+    /// produces output.
     ///
-    /// - Parameter message: The error message to output.
-    func error(_ message: String) {
-        if let engine = player.engine {
-            engine.error("\(message)\n")
-        } else {
-            print("❗💥 \(message)\n")
-        }
-    }
-
-    /// Advances the game state by a specified number of turns, or until
-    /// an event or room action produces output.
     /// - Parameter turns: The maximum number of turns to wait.
-    /// - Returns: `true` if the wait was interrupted by something producing output,
-    ///   `false` if all turns elapsed with no output.
+    /// - Returns: `true` if the wait was interrupted by something producing output, or `false`
+    ///            if all turns elapsed with no output.
     public func waitTurns(_ turns: Int) throws -> Bool {
         var turnCount = 0
         var outputProduced = false
@@ -176,49 +213,44 @@ public class GameWorld {
     }
 }
 
-enum GameWorldError: Error {
-    case cannotInsertPlayer(String)
-    case objectInsertedAsRoom(String)
-    case objectNotFound(GameObject.ID)
-    case roomNotFound(GameObject.ID)
-}
-
-// MARK: - Finders
+// MARK: - Helpers
 
 extension GameWorld {
-    /// Finds an object in the world by name.
+    /// Finds an object in the world by its `id`.
     ///
-    /// - Parameter object: The name of an object.
+    /// - Parameter object: The object's `id`.
     /// - Returns: The found object.
-    /// - Throws: When object cannot be found.
+    /// - Throws: When an object cannot be found.
     public func find(_ id: GameObject.ID) throws -> GameObject {
-        guard
-            let found = objects.first(where: { $0.id == id })
-        else {
-            throw GameWorldError.objectNotFound(id)
+        guard let found = objects.first(where: { $0.id == id }) else {
+            throw Error.objectNotFound(id)
         }
         return found
     }
 
-    /// Finds a room in the world by name.
+    /// Finds a room in the world by its `id`.
     ///
-    /// - Parameter room: The name of a room.
+    /// - Parameter room: The room's `id`.
     /// - Returns: The found room.
-    /// - Throws: When room cannot be found.
+    /// - Throws: When a room cannot be found.
     public func find(room id: GameObject.ID) throws -> Room {
         guard
             let found = rooms.first(where: { $0.id == id })
         else {
-            throw GameWorldError.roomNotFound(id)
+            throw Error.roomNotFound(id)
         }
         return found
     }
-}
 
-// MARK: - Global objects
-
-extension GameWorld {
-    
+    /// Outputs a message through the configured console.
+    ///
+    /// - Parameter message: The message to output.
+    public func output(_ message: String) throws {
+        guard let engine = player.engine else {
+            throw Error.engineNotFound(output: message)
+        }
+        engine.output("\(message)\n")
+    }
 }
 
 //public extension GameWorld {
@@ -284,3 +316,21 @@ extension GameWorld {
 //        return false
 //    }
 //}
+
+// MARK: - GameWorld.Error
+
+extension GameWorld {
+    enum Error: Swift.Error {
+        case cannotInsertGlobalInContainer(GameObject.ID)
+        case cannotInsertGlobalInLocation(GameObject.ID)
+        case cannotInsertLocalGlobalInContainer(GameObject.ID)
+        case cannotInsertObjectMultipleTimes(GameObject.ID)
+        case cannotInsertPlayer(GameObject.ID)
+        case cannotInsertRoom(GameObject.ID)
+        case duplicateRoomAdded(GameObject.ID)
+        case localGlobalRequiresMultipleLocations(GameObject.ID)
+        case engineNotFound(output: String)
+        case objectNotFound(GameObject.ID)
+        case roomNotFound(GameObject.ID)
+    }
+}

@@ -63,7 +63,8 @@ struct RandomTextSelectionTests {
             GameObject(
                 name: "Test Object",
                 description: "A test object"
-            )
+            ),
+            in: room
         )
 
         // Set up random text options

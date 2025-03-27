@@ -16,9 +16,9 @@ public class GameTestHarness<T: ZilfGame> {
     /// Initialize a test harness for a specific game.
     ///
     /// - Parameter game: The game to test.
-    public init(for game: T) {
+    public init(for game: T) throws {
         self.game = game
-        self.engine = GameEngine(
+        self.engine = try GameEngine(
             game: game,
             console: console
         )
@@ -44,7 +44,7 @@ public class GameTestHarness<T: ZilfGame> {
     /// - Returns: <#description#>.
     @discardableResult
     public func flush() -> String {
-        console.flush()
+        console.flush().trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     /// Initialize the game (show welcome text, etc.).

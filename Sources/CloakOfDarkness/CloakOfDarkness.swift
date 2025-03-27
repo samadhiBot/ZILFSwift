@@ -34,7 +34,7 @@ struct CloakOfDarkness: ZilfGame {
     func createWorld() throws -> GameWorld {
         // Create player and world
         let player = Player(startingRoom: worldBuilder.foyer)
-        let world = GameWorld(player: player)
+        let world = try GameWorld(player: player)
 
         // Build the game world
         try worldBuilder.build(world)
