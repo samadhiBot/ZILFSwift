@@ -23,12 +23,12 @@ struct CloakOfDarknessTests {
         #expect(world.objects.count > 0, "Should have objects in the world")
 
         // Find and verify all rooms
-        let foyer = try world.find(room: "Foyer of the Opera House")
-        let bar = try world.find(room: "Foyer Bar")
-        let cloakroom = try world.find(room: "Cloakroom")
-        let hallway = try world.find(room: "Hallway to Study")
-        let study = try world.find(room: "Study")
-        let closet = try world.find(room: "Closet")
+        let foyer = try world.find(room: "foyer")
+        let bar = try world.find(room: "bar")
+        let cloakroom = try world.find(room: "cloakroom")
+        let hallway = try world.find(room: "hallToStudy")
+        let study = try world.find(room: "study")
+        let closet = try world.find(room: "closet")
 
         // Verify room lighting properties
         #expect(foyer.hasFlag(.isNaturallyLit), "Foyer should be naturally lit")
@@ -74,13 +74,13 @@ struct CloakOfDarknessTests {
         #expect(message.location == bar, "Message should be in the bar")
 
         // Cloakroom objects
-        let hook = try world.find("small brass hook")
+        let hook = try world.find("hook")
         #expect(hook.location == cloakroom, "Hook should be in the cloakroom")
         #expect(hook.hasFlag(.isContainer), "Hook should be a container")
         #expect(hook.hasFlag(.isSurface), "Hook should be a surface")
 
         // Study objects
-        let lightSwitch = try world.find("light switch")
+        let lightSwitch = try world.find("lightSwitch")
         #expect(lightSwitch.location == study, "Light switch should be in the study")
         #expect(lightSwitch.hasFlag(.isDevice), "Light switch should be a device")
 
@@ -157,9 +157,9 @@ struct CloakOfDarknessTests {
 
     @Test func testWinGame() throws {
         // Get objects and rooms we'll need
-        let foyer = try world.find(room: "Foyer of the Opera House")
-        let bar = try world.find(room: "Foyer Bar")
-        let cloakroom = try world.find(room: "Cloakroom")
+        let foyer = try world.find(room: "foyer")
+        let bar = try world.find(room: "bar")
+        let cloakroom = try world.find(room: "cloakroom")
 
         // Make sure all rooms are lit for testing
         #expect(foyer.hasFlag(.isNaturallyLit))
@@ -217,7 +217,7 @@ struct CloakOfDarknessTests {
         let cloak = try world.find("cloak")
         #expect(cloak.isIn(cloakroom))
 
-        let hook = try world.find("small brass hook")
+        let hook = try world.find("hook")
         #expect(hook.isIn(cloakroom))
 
         // 4. Take off the cloak and hang it on the hook
@@ -269,8 +269,8 @@ struct CloakOfDarknessTests {
 
     @Test func testLoseGame() throws {
         // Get objects and rooms we'll need
-        let foyer = try world.find(room: "Foyer of the Opera House")
-        let bar = try world.find(room: "Foyer Bar")
+        let foyer = try world.find(room: "foyer")
+        let bar = try world.find(room: "bar")
 
         // Make sure all rooms are lit for testing
         foyer.setFlag(.isNaturallyLit)
@@ -336,8 +336,8 @@ struct CloakOfDarknessTests {
 
     @Test func testCloak() throws {
         // Get objects and rooms we'll need
-        let foyer = try world.find(room: "Foyer of the Opera House")
-        let bar = try world.find(room: "Foyer Bar")
+        let foyer = try world.find(room: "foyer")
+        let bar = try world.find(room: "bar")
         let cloakroom = try world.find(room: "Cloakroom")
 
         // Make sure all rooms are lit for testing
@@ -403,9 +403,9 @@ struct CloakOfDarknessTests {
 
     @Test func testBlockedPath() throws {
         // Get objects and rooms we'll need
-        let foyer = try world.find(room: "Foyer of the Opera House")
+        let foyer = try world.find(room: "foyer")
         let cloakroom = try world.find(room: "Cloakroom")
-        let hallToStudy = try world.find(room: "Hallway to Study")
+        let hallToStudy = try world.find(room: "hallToStudy")
         let cloak = try world.find("cloak")
 
         // Make sure all rooms are lit for testing

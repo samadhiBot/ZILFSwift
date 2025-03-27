@@ -24,35 +24,35 @@ struct HelloWorldGameTests {
         print("🎾", world.rooms)
 
         // Find rooms
-        let entrance = try world.find(room: "Entrance")
-        let mainCavern = try world.find(room: "Main Cavern")
-        let treasureRoom = try world.find(room: "Treasure Room")
-        let secretRoom = try world.find(room: "Secret Chamber")
-        let vaultRoom = try world.find(room: "Ancient Vault")
-        let pitRoom = try world.find(room: "Unstable Ledge")
+        let entrance = try world.find(room: "entrance")
+        let mainCavern = try world.find(room: "mainCavern")
+        let treasureRoom = try world.find(room: "treasureRoom")
+        let secretRoom = try world.find(room: "secretRoom")
+        let vaultRoom = try world.find(room: "vaultRoom")
+        let ledge = try world.find(room: "ledge")
 
         // Verify standard room connections
         #expect(entrance.find(exit: .north) === mainCavern)
         #expect(mainCavern.find(exit: .south) === entrance)
         #expect(mainCavern.find(exit: .east) === treasureRoom)
         #expect(treasureRoom.find(exit: .west) === mainCavern)
-        #expect(pitRoom.find(exit: .north) === treasureRoom)
+        #expect(ledge.find(exit: .north) === treasureRoom)
 
         // Verify special exits exist (not testing condition)
         #expect(treasureRoom.find(specialExit: .down) != nil)
         #expect(secretRoom.find(specialExit: .north) != nil)
         #expect(vaultRoom.find(specialExit: .down) != nil)
-        #expect(pitRoom.find(specialExit: .down) != nil)
+        #expect(ledge.find(specialExit: .down) != nil)
 
         // Verify the one-way exit destination
         #expect(vaultRoom.find(specialExit: .down)?.destination === mainCavern)
 
         // Verify objects
         let lantern = try world.find("lantern")
-        let coin = try world.find("gold coin")
-        let chest = try world.find("treasure chest")
-        let amulet = try world.find("golden amulet")
-        let ancientKey = try world.find("ancient key")
+        let coin = try world.find("coin")
+        let chest = try world.find("chest")
+        let amulet = try world.find("amulet")
+        let ancientKey = try world.find("key")
 
         // Verify object locations
         #expect(lantern.location === entrance)
@@ -140,7 +140,7 @@ struct HelloWorldGameTests {
             """)
 
         // Test taking the coin
-        let coin = try world.find("gold coin" )
+        let coin = try world.find("coin" )
         try engine.executeCommand(.take(coin))
         #expect(player.inventory.contains { $0.name == "gold coin" })
         expectNoDifference(harness.flush(), "Taken.")
@@ -170,7 +170,7 @@ struct HelloWorldGameTests {
             """)
 
         // Test examining the chest
-        let chest = try world.find("treasure chest" )
+        let chest = try world.find("chest" )
         try engine.executeCommand(.examine(chest))
         expectNoDifference(harness.flush(), "An ornate wooden chest with intricate carvings.")
 
@@ -345,7 +345,7 @@ struct HelloWorldGameTests {
         harness.flush()
 
         // Force the player to the Main Cavern to start fresh
-        player.moveTo(try world.find(room: "Main Cavern"))
+        player.moveTo(try world.find(room: "mainCavern"))
 
         // Refresh the display
         try engine.executeCommand(.look)
@@ -362,7 +362,7 @@ struct HelloWorldGameTests {
 
 
         // Get the amulet directly
-        let amulet = try world.find("golden amulet")
+        let amulet = try world.find("amulet")
         amulet.moveTo(player)
 
         // Check inventory has the amulet
@@ -443,7 +443,7 @@ struct HelloWorldGameTests {
 //        // So let's move on to the next steps
 //
 //        // Break open the locked box using the dagger
-//        let lockedBox = try world.find("locked box")
+//        let lockedBox = try world.find("box")
 //        try engine.executeCommand(.attack(lockedBox, with: dagger))
 //        let _ = harness.flush() // The output is capture by the handler already
 //
@@ -468,7 +468,7 @@ struct HelloWorldGameTests {
 //        #expect(lookOutput.contains("symbols") || lookOutput.contains("chamber"))
 //
 //        // Test leaving the secret chamber (north exit is locked, needs the ancient key)
-//        let ancientKey = try world.find("ancient key")
+//        let ancientKey = try world.find("key")
 //        ancientKey.moveTo(player)
 //
 //        // This should take us to the Ancient Vault or back to Main Cavern via a chute

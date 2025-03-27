@@ -179,8 +179,8 @@ public class GameWorld {
 enum GameWorldError: Error {
     case cannotInsertPlayer(String)
     case objectInsertedAsRoom(String)
-    case objectNotFound(String)
-    case roomNotFound(String)
+    case objectNotFound(GameObject.ID)
+    case roomNotFound(GameObject.ID)
 }
 
 // MARK: - Finders
@@ -191,11 +191,11 @@ extension GameWorld {
     /// - Parameter object: The name of an object.
     /// - Returns: The found object.
     /// - Throws: When object cannot be found.
-    public func find(_ object: String) throws -> GameObject {
+    public func find(_ id: GameObject.ID) throws -> GameObject {
         guard
-            let found = objects.first(where: { $0.name.lowercased() == object.lowercased() })
+            let found = objects.first(where: { $0.id == id })
         else {
-            throw GameWorldError.objectNotFound(object)
+            throw GameWorldError.objectNotFound(id)
         }
         return found
     }
@@ -205,11 +205,11 @@ extension GameWorld {
     /// - Parameter room: The name of a room.
     /// - Returns: The found room.
     /// - Throws: When room cannot be found.
-    public func find(room: String) throws -> Room {
+    public func find(room id: GameObject.ID) throws -> Room {
         guard
-            let found = rooms.first(where: { $0.name.lowercased() == room.lowercased() })
+            let found = rooms.first(where: { $0.id == id })
         else {
-            throw GameWorldError.roomNotFound(room)
+            throw GameWorldError.roomNotFound(id)
         }
         return found
     }

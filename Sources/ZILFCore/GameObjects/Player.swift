@@ -124,8 +124,8 @@ public class Player: GameObject {
                     switch object.type {
                     case .global:
                         objectsInScope.append(object)
-                    case .localGlobal(let rooms):
-                        if rooms.contains(currentRoom) {
+                    case .localGlobal(let roomIDs):
+                        if roomIDs.contains(currentRoom.id) {
                             objectsInScope.append(object)
                         }
                     default:
