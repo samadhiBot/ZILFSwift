@@ -42,7 +42,7 @@ struct WorldBuilder {
     )
 
     // New locked room
-    let vaultRoom = Room(
+    let ancientVault = Room(
         name: "Ancient Vault",
         description: """
             An impressive stone vault with ornate carvings. It looks like it once held \
@@ -52,7 +52,7 @@ struct WorldBuilder {
     )
 
     // Dangerous room
-    let pitRoom = Room(
+    let unstableLedge = Room(
         name: "Unstable Ledge",
         description: """
             You stand at the edge of a crumbling ledge above a bottomless pit. \
@@ -62,42 +62,9 @@ struct WorldBuilder {
 
     // MARK: - Objects
 
-    // Create objects
-    let lantern = GameObject(
-        name: "lantern",
-        description: "A brass lantern that provides warm light.",
-        flags: .isTakable, .isLightSource
-    )
-
-    let coin = GameObject(
-        name: "gold coin",
-        description: "A shiny gold coin with strange markings.",
-        flags: .isTakable
-    )
-
-    // Chest is not takeable
-    let chest = GameObject(
-        name: "treasure chest",
-        description: "An ornate wooden chest with intricate carvings.",
-        flags: .isContainer, .isOpenable
-    )
-
-    // Maybe add a treasure inside the chest
-    let treasure = GameObject(
-        name: "golden amulet",
-        description: "An exquisite golden amulet that gleams with an inner light.",
-        flags: .isTakable, .isLightSource, .isOn
-    )
-
     let ancientKey = GameObject(
         name: "ancient key",
         description: "A weathered bronze key with strange symbols.",
-        flags: .isTakable, .isTool
-    )
-
-    let magnifyingGlass = GameObject(
-        name: "magnifying glass",
-        description: "A magnifying glass with an ornate bronze handle.",
         flags: .isTakable, .isTool
     )
 
@@ -107,16 +74,47 @@ struct WorldBuilder {
         flags: .isTakable, .isWeapon, .isTool
     )
 
+    let gem = GameObject(
+        name: "sparkling gem",
+        description: "A brilliant blue gem that seems to capture the light.",
+        flags: .isTakable
+    )
+
+    let goldCoin = GameObject(
+        name: "gold coin",
+        description: "A shiny gold coin with strange markings.",
+        flags: .isTakable
+    )
+
+    let goldenAmulet = GameObject(
+        name: "golden amulet",
+        description: "An exquisite golden amulet that gleams with an inner light.",
+        flags: .isTakable, .isLightSource, .isOn
+    )
+
+    let lantern = GameObject(
+        name: "lantern",
+        description: "A brass lantern that provides warm light.",
+        flags: .isTakable, .isLightSource
+    )
+
     let lockedBox = GameObject(
         name: "locked box",
         description: "A small iron box with no visible keyhole. It seems to be sealed shut.",
         flags: .isContainer, .isLocked
     )
 
-    let gem = GameObject(
-        name: "sparkling gem",
-        description: "A brilliant blue gem that seems to capture the light.",
-        flags: .isTakable
+    let magnifyingGlass = GameObject(
+        name: "magnifying glass",
+        description: "A magnifying glass with an ornate bronze handle.",
+        flags: .isTakable, .isTool
+    )
+
+    // Treasure chest is not takeable
+    let treasureChest = GameObject(
+        name: "treasure chest",
+        description: "An ornate wooden chest with intricate carvings.",
+        flags: .isContainer, .isOpenable
     )
 
     // MARK: - World Building
@@ -149,8 +147,8 @@ struct WorldBuilder {
             mainCavern,
             treasureRoom,
             secretRoom,
-            vaultRoom,
-            pitRoom
+            ancientVault,
+            unstableLedge
         )
     }
 
@@ -161,17 +159,17 @@ struct WorldBuilder {
         mainCavern.setExit(.south, to: entrance)
         mainCavern.setExit(.east, to: treasureRoom)
         treasureRoom.setExit(.west, to: mainCavern)
-        treasureRoom.setExit(.south, to: pitRoom)
-        pitRoom.setExit(.north, to: treasureRoom)
+        treasureRoom.setExit(.south, to: unstableLedge)
+        unstableLedge.setExit(.north, to: treasureRoom)
     }
 
     /// Place all objects in their initial locations
     private func placeObjects() {
         // Place objects in rooms
         lantern.moveTo(entrance)
-        coin.moveTo(mainCavern)
-        chest.moveTo(treasureRoom)
-        treasure.moveTo(chest)
+        goldCoin.moveTo(mainCavern)
+        treasureChest.moveTo(treasureRoom)
+        goldenAmulet.moveTo(treasureChest)
         ancientKey.moveTo(secretRoom)
         magnifyingGlass.moveTo(entrance)
         dagger.moveTo(mainCavern)
@@ -179,16 +177,16 @@ struct WorldBuilder {
         gem.moveTo(lockedBox)
 
         // Make sure the chest is closed
-        chest.clearFlag(.isOpen)
+        treasureChest.clearFlag(.isOpen)
     }
 
     /// Register all objects with the game world
     private func registerObjects(in world: GameWorld) throws {
         try world.insert(
             lantern,
-            coin,
-            chest,
-            treasure,
+            goldCoin,
+            treasureChest,
+            goldenAmulet,
             ancientKey,
             magnifyingGlass,
             dagger,
@@ -200,9 +198,9 @@ struct WorldBuilder {
     /// Configure special object behaviors
     private func configureObjectBehaviors(in world: GameWorld) {
         // When examining the coin with the magnifying glass, reveal extra details
-        coin.setCommandHandler { obj, command in
+        goldCoin.setCommandHandler { obj, command in
             if case .examine(let target, let tool) = command,
-                target === coin,
+                target === goldCoin,
                 tool?.name == "magnifying glass"
             {
                 world.output(
@@ -305,7 +303,7 @@ struct WorldBuilder {
         // Add a locked exit from the secret room to the vault
         secretRoom.setLockedExit(
             direction: .north,
-            destination: vaultRoom,
+            destination: ancientVault,
             key: ancientKey,
             lockedMessage:
                 "A heavy stone door blocks the way north. There appears to be a keyhole.",
@@ -317,7 +315,7 @@ struct WorldBuilder {
     /// Configure vault room behaviors
     private func setupVaultRoomBehaviors(in world: GameWorld) {
         // Add a one-way exit from the vault back to the main cavern
-        vaultRoom.setOneWayExit(
+        ancientVault.setOneWayExit(
             direction: .down,
             destination: mainCavern,
             message: "You slide down a smooth stone chute and land back in the main cavern!"
@@ -327,10 +325,10 @@ struct WorldBuilder {
     /// Configure pit room behaviors
     private func setupPitRoomBehaviors(in world: GameWorld) {
         // Set naturally lit flag
-        pitRoom.setFlag(.isNaturallyLit)
+        unstableLedge.setFlag(.isNaturallyLit)
 
         // Add the deadly pit exit
-        pitRoom.setDeadlyExit(
+        unstableLedge.setDeadlyExit(
             direction: .down,
             deathMessage: """
                 You step forward and the ledge gives way beneath you. You fall into darkness, \

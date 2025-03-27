@@ -27,9 +27,9 @@ struct HelloWorldGameTests {
         let entrance = try world.find(room: "entrance")
         let mainCavern = try world.find(room: "mainCavern")
         let treasureRoom = try world.find(room: "treasureRoom")
-        let secretRoom = try world.find(room: "secretRoom")
-        let vaultRoom = try world.find(room: "vaultRoom")
-        let ledge = try world.find(room: "ledge")
+        let secretRoom = try world.find(room: "secretChamber")
+        let vaultRoom = try world.find(room: "ancientVault")
+        let ledge = try world.find(room: "unstableLedge")
 
         // Verify standard room connections
         #expect(entrance.find(exit: .north) === mainCavern)
@@ -49,10 +49,10 @@ struct HelloWorldGameTests {
 
         // Verify objects
         let lantern = try world.find("lantern")
-        let coin = try world.find("coin")
-        let chest = try world.find("chest")
-        let amulet = try world.find("amulet")
-        let ancientKey = try world.find("key")
+        let coin = try world.find("goldCoin")
+        let chest = try world.find("treasureChest")
+        let amulet = try world.find("goldenAmulet")
+        let ancientKey = try world.find("ancientKey")
 
         // Verify object locations
         #expect(lantern.location === entrance)
@@ -140,7 +140,7 @@ struct HelloWorldGameTests {
             """)
 
         // Test taking the coin
-        let coin = try world.find("coin" )
+        let coin = try world.find("goldCoin")
         try engine.executeCommand(.take(coin))
         #expect(player.inventory.contains { $0.name == "gold coin" })
         expectNoDifference(harness.flush(), "Taken.")
@@ -170,7 +170,7 @@ struct HelloWorldGameTests {
             """)
 
         // Test examining the chest
-        let chest = try world.find("chest" )
+        let chest = try world.find("treasureChest" )
         try engine.executeCommand(.examine(chest))
         expectNoDifference(harness.flush(), "An ornate wooden chest with intricate carvings.")
 
@@ -362,7 +362,7 @@ struct HelloWorldGameTests {
 
 
         // Get the amulet directly
-        let amulet = try world.find("amulet")
+        let amulet = try world.find("goldenAmulet")
         amulet.moveTo(player)
 
         // Check inventory has the amulet
